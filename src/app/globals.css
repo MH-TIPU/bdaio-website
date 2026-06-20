@@ -2,25 +2,83 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #0f172a; /* Slate 900 for a richer, more premium look than plain dark gray */
+  --bdaio-blue: #1e5a8a;
+  --bdaio-blue-light: #3b82c4;
+  --bdaio-blue-dark: #0d3d6b;
+  --bdaio-accent: #10b981; /* Premium Emerald 500 */
+  --bdaio-gray: #64748b; /* Slate 500 */
+  --bdaio-gray-light: #f8fafc; /* Slate 50 */
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bdaio-blue: var(--bdaio-blue);
+  --color-bdaio-blue-light: var(--bdaio-blue-light);
+  --color-bdaio-blue-dark: var(--bdaio-blue-dark);
+  --color-bdaio-accent: var(--bdaio-accent);
+  --color-bdaio-gray: var(--bdaio-gray);
+  --color-bdaio-gray-light: var(--bdaio-gray-light);
+  --font-sans: var(--font-inter);
+  --font-bengali: var(--font-hind-siliguri);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
+.font-bengali {
+  font-family: var(--font-hind-siliguri), system-ui, sans-serif;
+}
+
+/* Custom Text Selection */
+::selection {
+  background-color: rgba(59, 130, 246, 0.2);
+  color: #1e3a8a;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Animations */
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.05);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 8s ease-in-out infinite;
+}
+
