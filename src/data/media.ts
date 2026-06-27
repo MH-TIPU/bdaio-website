@@ -1,5 +1,5 @@
 export const heroMedia = {
-  heroBanner: "/media/2026/04/WhatsApp-Image-2026-04-18-at-11.49.19.jpeg",
+  heroBanner: "/media/2026/06/apoai-gold-2026.jpg",
   regionalRound: "/media/2026/05/WhatsApp-Image-2026-04-29-at-17.05.14.jpeg",
   campaignPoster: "/media/2026/04/popup_banner-02.jpg",
   brainBackground: "/media/2026/03/hero-bg.jpg",
@@ -22,6 +22,8 @@ export const brandMedia = {
   ciu: "/media/2026/04/CIU-Logo.png",
   kuet: "/media/2026/04/KUET-Logo.png",
   rajshahiCollege: "/media/2026/04/RC_logo.png",
+  kishorAlo: "/media/2026/06/kishor-alo.png",
+  bigganChinta: "/media/2026/06/biggan-chinta.png",
 };
 
 export const galleryMedia = [

@@ -72,7 +72,7 @@ export function JourneySection() {
               Join our active community of learners, mentors, and past winners on WhatsApp. Get help, resources, and instant updates!
             </p>
             <a
-              href="https://chat.whatsapp.com/"
+              href="https://chat.whatsapp.com/CgDwX7Zi5BoE8kFuefb8k6?mode=gi_t"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-6 py-3 text-sm font-bold text-white shadow-md shadow-emerald-500/20 transition hover:bg-emerald-600 hover:shadow-emerald-500/35"

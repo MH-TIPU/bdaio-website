@@ -140,6 +140,21 @@ export function SponsorsSection() {
           </div>
         </div>
 
+        {/* Magazine Partners */}
+        <div className="text-center">
+          <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-blue-500">
+            Magazine Partners
+          </h3>
+          <div className="flex justify-center gap-4 max-w-4xl mx-auto">
+            <div className="w-32">
+              <SponsorLogo name="Kishor Alo" alt="Kishor Alo logo" src={brandMedia.kishorAlo} />
+            </div>
+            <div className="w-32">
+              <SponsorLogo name="Biggan Chinta" alt="Biggan Chinta logo" src={brandMedia.bigganChinta} />
+            </div>
+          </div>
+        </div>
+
         {/* Regional Venue Partners */}
         <div className="text-center">
           <h3 className="mb-6 text-xs font-bold uppercase tracking-widest text-blue-500">

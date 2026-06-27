@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "Results",
@@ -14,6 +15,8 @@ const mockStandings = [
 ];
 
 export default function ResultPage() {
+  notFound();
+
   return (
     <section className="py-20 bg-slate-50/50">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

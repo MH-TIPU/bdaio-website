@@ -12,6 +12,7 @@ export function HeroSection() {
           fill
           className="object-cover"
           priority
+          unoptimized
         />
       </div>
     </section>
