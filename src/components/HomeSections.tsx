@@ -4,7 +4,7 @@ import { heroMedia } from "@/data/media";
 
 export function HeroSection() {
   return (
-    <section className="relative w-full overflow-hidden bg-[#050f21]">
+    <section className="site-hero-media relative w-full overflow-hidden bg-[#050f21]">
       <div className="relative w-full aspect-[16/9]">
         <Image
           src={heroMedia.heroBanner}
