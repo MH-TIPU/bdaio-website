@@ -31,7 +31,7 @@ const steps = [
   {
     number: "05",
     title: "Represent",
-    description: "Represent Bangladesh globally at IAIO Riyadh and IOAI China.",
+    description: "Represent Bangladesh globally at IAIO and IOAI.",
     button: "Our Archives",
     href: "/archives",
   },

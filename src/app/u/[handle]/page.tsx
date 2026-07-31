@@ -1,0 +1,168 @@
+import type { Metadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { getPublicProfile } from "@/lib/community/publicProfile";
+import { BadgeChip } from "@/components/community/BadgeChip";
+
+const KIND_LABELS: Record<string, string> = {
+  ORGANIZING: "Organising",
+  MENTORING: "Mentoring",
+  CONTENT: "Content",
+  TRANSLATION: "Translation",
+  JUDGING: "Judging",
+  OTHER: "Other",
+};
+
+export async function generateMetadata(
+  props: PageProps<"/u/[handle]">,
+): Promise<Metadata> {
+  const { handle } = await props.params;
+  const profile = await getPublicProfile(handle);
+  if (!profile) return { title: "Profile not found", robots: { index: false } };
+  return {
+    title: `${profile.displayName} · BdAIO`,
+    description: profile.bio ?? `${profile.displayName} on BdAIO.`,
+    // Minors' pages are deliberately kept out of search indexes.
+    robots: profile.isMinor ? { index: false, follow: false } : undefined,
+  };
+}
+
+function initials(name: string): string {
+  return name.split(/\s+/).slice(0, 2).map((p) => p[0]?.toUpperCase() ?? "").join("") || "?";
+}
+
+export default async function PublicProfilePage(props: PageProps<"/u/[handle]">) {
+  const { handle } = await props.params;
+  const profile = await getPublicProfile(handle);
+
+  // A private or non-existent profile is indistinguishable from outside.
+  if (!profile) notFound();
+
+  return (
+    <section className="bg-slate-50/50 py-16">
+      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+        <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100 sm:p-8">
+          <div className="flex flex-wrap items-start gap-5">
+            <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full bg-slate-100 ring-1 ring-slate-200">
+              {profile.photoUrl ? (
+                <Image
+                  src={profile.photoUrl}
+                  alt=""
+                  fill
+                  sizes="80px"
+                  className="object-cover"
+                />
+              ) : (
+                <span className="flex h-full w-full items-center justify-center text-xl font-semibold text-slate-400">
+                  {initials(profile.displayName)}
+                </span>
+              )}
+            </div>
+
+            <div className="min-w-0 flex-1">
+              <h1 className="text-2xl font-bold text-slate-900">
+                {profile.displayName}
+              </h1>
+              {profile.fullNameBn && (
+                <p className="font-bengali text-slate-500">{profile.fullNameBn}</p>
+              )}
+
+              {profile.institution && (
+                <p className="mt-1 text-sm text-slate-600">
+                  <Link
+                    href={`/institutions/${profile.institution.slug}`}
+                    className="font-medium text-bdaio-blue hover:underline"
+                  >
+                    {profile.institution.name}
+                  </Link>
+                  {profile.verifiedStudent && (
+                    <span className="ml-2 text-xs font-semibold text-emerald-700">
+                      verified
+                    </span>
+                  )}
+                </p>
+              )}
+
+              {profile.district && (
+                <p className="text-sm text-slate-500">{profile.district}</p>
+              )}
+
+              {profile.badges.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {profile.badges.map((badge) => (
+                    <BadgeChip key={badge.id} type={badge.type} title={badge.title} />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {profile.bio && (
+            <p className="mt-5 border-t border-slate-100 pt-5 text-sm leading-relaxed text-slate-700">
+              {profile.bio}
+            </p>
+          )}
+
+          {profile.isMinor && (
+            <p className="mt-5 rounded-lg bg-slate-50 px-4 py-2.5 text-xs text-slate-500">
+              This participant is under 18, so only limited information is shown.
+            </p>
+          )}
+        </div>
+
+        {profile.roles.length > 0 && (
+          <div className="mt-6 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
+            <h2 className="text-sm font-semibold text-slate-900">Community roles</h2>
+            <ul className="mt-3 space-y-2">
+              {profile.roles.map((role) => (
+                <li key={`${role.type}-${role.institution ?? "global"}`} className="text-sm text-slate-700">
+                  <span className="font-medium">
+                    {role.type.charAt(0) + role.type.slice(1).toLowerCase()}
+                  </span>
+                  {role.institution ? ` · ${role.institution}` : " · BdAIO"}
+                  {role.since && (
+                    <span className="text-slate-500">
+                      {" "}
+                      since {role.since.toLocaleDateString("en-GB", { month: "long", year: "numeric" })}
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {profile.contributions.length > 0 && (
+          <div className="mt-6 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
+            <h2 className="text-sm font-semibold text-slate-900">Contributions</h2>
+            <ul className="mt-3 divide-y divide-slate-100">
+              {profile.contributions.map((c) => (
+                <li key={c.id} className="py-3 first:pt-0 last:pb-0">
+                  <div className="flex flex-wrap items-baseline justify-between gap-2">
+                    <p className="text-sm font-medium text-slate-900">{c.title}</p>
+                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
+                      {KIND_LABELS[c.kind] ?? c.kind}
+                    </span>
+                  </div>
+                  {c.description && (
+                    <p className="mt-1 text-sm text-slate-600">{c.description}</p>
+                  )}
+                  <p className="mt-1 text-xs text-slate-500">
+                    {[
+                      c.event,
+                      c.occurredOn?.toLocaleDateString("en-GB", { month: "long", year: "numeric" }),
+                      c.hours ? `${c.hours} hours` : null,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}

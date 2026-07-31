@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Generated / vendored output — not ours to lint.
+    "src/generated/**",
+    "public/bdaio-site-static/**",
   ]),
 ]);
 

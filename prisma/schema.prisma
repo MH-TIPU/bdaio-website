@@ -1,0 +1,583 @@
+// BdAIO platform schema — Phase 0 (Foundation).
+// Core identity + competition hierarchy: User, Profile, Institution, Program, Event, Round, Registration.
+// The community/trust layer (memberships, roles, contributions), results, resources, payments (ShurjoPay),
+// and LMS models are added in later phases — see docs/PLATFORM_PLAN.md.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum AccountRole {
+  PARTICIPANT
+  INSTITUTION_MODERATOR
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+}
+
+enum ProfileVisibility {
+  PRIVATE
+  PUBLIC
+}
+
+enum InstitutionType {
+  SCHOOL
+  COLLEGE
+  UNIVERSITY
+  CLUB
+  COMMUNITY
+}
+
+enum InstitutionStatus {
+  PENDING
+  APPROVED
+  SUSPENDED
+}
+
+enum ProgramScope {
+  LOCAL
+  NATIONAL
+  REGIONAL
+  INTERNATIONAL
+}
+
+enum EventType {
+  OLYMPIAD_EDITION
+  REGIONAL_ROUND
+  WORKSHOP
+  SEMINAR
+  COURSE
+  BOOTCAMP
+}
+
+enum EventMode {
+  ONLINE
+  OFFLINE
+  HYBRID
+}
+
+enum EventStatus {
+  DRAFT
+  OPEN
+  RUNNING
+  ARCHIVED
+}
+
+enum RegistrationStatus {
+  APPLIED
+  APPROVED
+  REJECTED
+  WAITLISTED
+  WITHDRAWN
+}
+
+enum MembershipRole {
+  STUDENT
+  MEMBER
+  VOLUNTEER
+  MODERATOR
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum CommunityRoleType {
+  VOLUNTEER
+  MENTOR
+  CONTRIBUTOR
+}
+
+enum ContributionKind {
+  ORGANIZING
+  MENTORING
+  CONTENT
+  TRANSLATION
+  JUDGING
+  OTHER
+}
+
+enum Medal {
+  GOLD
+  SILVER
+  BRONZE
+  HONOURABLE_MENTION
+}
+
+enum CertificateType {
+  PARTICIPATION
+  MERIT
+  MEDAL
+  APPRECIATION
+}
+
+enum ResourceVisibility {
+  PUBLIC
+  MEMBERS
+}
+
+enum ResourceKind {
+  SYLLABUS
+  GUIDELINE
+  PAST_PROBLEM
+  MATERIAL
+  DOWNLOAD
+  LINK
+}
+
+enum BadgeType {
+  VERIFIED_STUDENT
+  VOLUNTEER
+  MENTOR
+  CONTRIBUTOR
+  MEDAL
+  PARTICIPATION
+}
+
+// ---------------------------------------------------------------------------
+// Identity & profile
+// ---------------------------------------------------------------------------
+
+model User {
+  id              String      @id @default(cuid())
+  email           String      @unique
+  passwordHash    String?
+  role            AccountRole @default(PARTICIPANT)
+  status          UserStatus  @default(PENDING)
+  emailVerifiedAt DateTime?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  profile       Profile?
+  registrations Registration[]
+  sessions      Session[]
+  tokens        AuthToken[]
+  activityLogs  ActivityLog[]
+  memberships   InstitutionMembership[]
+  communityRoles CommunityRole[]
+  contributions Contribution[]
+  badges        Badge[]
+  certificates  Certificate[]
+  notifications Notification[]
+  judgeRoles    RoundJudge[]
+
+  @@index([role])
+}
+
+/// Database-backed sessions: revocable, so suspending a user or "log out
+/// everywhere" takes effect immediately (a JWT-only strategy cannot do this).
+model Session {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  lastSeenAt DateTime @default(now())
+  userAgent  String?
+  ipAddress  String?
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+enum AuthTokenType {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+}
+
+/// Single-use tokens for email verification and password reset. Only a hash of
+/// the token is stored, so a database leak does not yield usable tokens.
+model AuthToken {
+  id        String        @id @default(cuid())
+  userId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      AuthTokenType
+  tokenHash String        @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime      @default(now())
+
+  @@index([userId, type])
+}
+
+/// Drives the participant activity feed and the admin/moderator audit trail.
+model ActivityLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action     String
+  entityType String?
+  entityId   String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([action])
+}
+
+model Profile {
+  id            String            @id @default(cuid())
+  userId        String            @unique
+  user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  handle        String?           @unique // public profile URL: /u/[handle]
+  fullName      String
+  fullNameBn    String?
+  photo         String?
+  phone         String?
+  dateOfBirth   DateTime?
+  gender        String?
+  // Present address (division → district → upazila → street).
+  presentDivision String?
+  presentDistrict String?
+  presentUpazila  String?
+  presentAddress  String?
+  // Permanent ("past") address — often a different home district in Bangladesh.
+  permanentDivision String?
+  permanentDistrict String?
+  permanentUpazila  String?
+  permanentAddress  String?
+  /// True when the permanent address is the same as the present one.
+  sameAddress     Boolean @default(false)
+  bio           String?
+  visibility    ProfileVisibility @default(PRIVATE)
+  institutionId String?
+  institution   Institution?      @relation(fields: [institutionId], references: [id], onDelete: SetNull)
+  classGrade    String?
+  guardian      GuardianInfo?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@index([institutionId])
+}
+
+/// Guardian contact, required for participants under 18 (BdAIO is a school
+/// olympiad, so most participants are minors).
+model GuardianInfo {
+  id        String   @id @default(cuid())
+  profileId String   @unique
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  name      String
+  relation  String?
+  phone     String
+  email     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Institution {
+  id          String            @id @default(cuid())
+  name        String
+  nameBn      String?
+  slug        String            @unique
+  type        InstitutionType   @default(SCHOOL)
+  division    String?
+  district    String?
+  upazila     String?
+  logo        String?
+  description String?
+  website     String?
+  status      InstitutionStatus @default(PENDING)
+  verified    Boolean           @default(false)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  profiles    Profile[]
+  memberships InstitutionMembership[]
+
+  @@index([status])
+}
+
+/// Links a person to an institution. A moderator marking a membership
+/// `verified` is what grants that student the Verified Student badge — it can
+/// never be self-claimed.
+model InstitutionMembership {
+  id             String         @id @default(cuid())
+  userId         String
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  institutionId  String
+  institution    Institution    @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  membershipRole MembershipRole @default(STUDENT)
+  status         ApprovalStatus @default(PENDING)
+  verified       Boolean        @default(false)
+  verifiedById   String?
+  verifiedAt     DateTime?
+  note           String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@unique([userId, institutionId])
+  @@index([institutionId, status])
+}
+
+/// Additive, opt-in community standing shown on the public profile. Scoped to
+/// an institution (moderator-approved) or global (admin-approved).
+model CommunityRole {
+  id            String            @id @default(cuid())
+  userId        String
+  user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type          CommunityRoleType
+  institutionId String? // null = global
+  status        ApprovalStatus    @default(PENDING)
+  motivation    String?
+  approvedById  String?
+  since         DateTime?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@unique([userId, type, institutionId])
+  @@index([status])
+}
+
+/// What a volunteer/mentor/contributor actually did. Powers the public profile.
+model Contribution {
+  id           String           @id @default(cuid())
+  userId       String
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind         ContributionKind @default(OTHER)
+  title        String
+  description  String?
+  eventId      String?
+  event        Event?           @relation(fields: [eventId], references: [id], onDelete: SetNull)
+  occurredOn   DateTime?
+  hours        Int?
+  verifiedById String?
+  verifiedAt   DateTime?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@index([userId])
+}
+
+/// A certificate issued to a participant. The PDF is generated on demand from
+/// these fields, so the record — not a stored file — is the source of truth.
+/// `serial` is what a third party checks to confirm a certificate is genuine.
+model Certificate {
+  id         String          @id @default(cuid())
+  serial     String          @unique
+  userId     String
+  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventId    String?
+  event      Event?          @relation(fields: [eventId], references: [id], onDelete: SetNull)
+  type       CertificateType @default(PARTICIPATION)
+  title      String
+  recipientName String // captured at issue time so later profile edits cannot alter it
+  detail     String?
+  issuedAt   DateTime        @default(now())
+  issuedById String?
+  revokedAt  DateTime?
+
+  @@index([userId])
+  @@index([eventId])
+}
+
+/// In-app notification. Created by the server alongside the action it reports.
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  title     String
+  body      String?
+  href      String?
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([userId, readAt])
+}
+
+model ResourceCategory {
+  id        String     @id @default(cuid())
+  name      String
+  slug      String     @unique
+  order     Int        @default(0)
+  resources Resource[]
+}
+
+/// Syllabuses, guidelines, past problems and downloads. `MEMBERS` visibility
+/// requires a signed-in account, checked server-side on both list and file.
+model Resource {
+  id          String             @id @default(cuid())
+  title       String
+  titleBn     String?
+  description String?
+  kind        ResourceKind       @default(MATERIAL)
+  visibility  ResourceVisibility @default(PUBLIC)
+  url         String? // external link
+  filePath    String? // stored under UPLOAD_DIR
+  categoryId  String?
+  category    ResourceCategory?  @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  published   Boolean            @default(true)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  @@index([visibility, published])
+}
+
+/// Earned marks shown publicly: system badges (verified student, roles) and
+/// competition results. Granted by the server, never by the holder.
+model Badge {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      BadgeType
+  title     String
+  eventId   String?
+  event     Event?    @relation(fields: [eventId], references: [id], onDelete: SetNull)
+  awardedAt DateTime  @default(now())
+
+  @@unique([userId, type, eventId])
+  @@index([userId])
+}
+
+// ---------------------------------------------------------------------------
+// Competition hierarchy: Program -> Event -> Round, with Registration
+// ---------------------------------------------------------------------------
+
+model Program {
+  id          String       @id @default(cuid())
+  title       String
+  titleBn     String?
+  slug        String       @unique
+  description String?
+  logo        String?
+  scope       ProgramScope @default(NATIONAL)
+  isExternal  Boolean      @default(false) // we host it vs merely nominate students to it
+  active      Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  events Event[]
+}
+
+model Event {
+  id          String      @id @default(cuid())
+  programId   String
+  program     Program     @relation(fields: [programId], references: [id], onDelete: Cascade)
+  title       String
+  titleBn     String?
+  slug        String      @unique
+  type        EventType   @default(OLYMPIAD_EDITION)
+  year        Int
+  description String?
+  mode        EventMode   @default(OFFLINE)
+  venue       String?
+  onlineUrl   String?
+  capacity    Int?
+  feeBdt      Int? // null = free
+  banner      String?
+  status      EventStatus @default(DRAFT)
+  startsAt    DateTime?
+  endsAt      DateTime?
+  regOpensAt  DateTime?
+  regClosesAt DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  rounds        Round[]
+  registrations Registration[]
+  contributions Contribution[]
+  badges        Badge[]
+  certificates  Certificate[]
+
+  @@index([programId])
+  @@index([type])
+  @@index([status])
+}
+
+model Round {
+  id          String    @id @default(cuid())
+  eventId     String
+  event       Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  name        String
+  order       Int       @default(0)
+  mode        EventMode @default(OFFLINE)
+  venue       String?
+  onlineUrl   String?
+  startsAt    DateTime?
+  endsAt      DateTime?
+  regOpensAt  DateTime?
+  regClosesAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  registrations Registration[]
+  judges        RoundJudge[]
+  results       Result[]
+
+  @@index([eventId])
+}
+
+/// A judge assigned to a specific round. Scoping by round is what stops a judge
+/// for one round from touching another round's marks.
+model RoundJudge {
+  id         String   @id @default(cuid())
+  roundId    String
+  round      Round    @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assignedAt DateTime @default(now())
+
+  @@unique([roundId, userId])
+  @@index([userId])
+}
+
+/// One participant's outcome in one round.
+///
+/// `published` is the gate: until an admin publishes, a result is invisible to
+/// the participant and to the public, so partial marking is never leaked.
+model Result {
+  id             String    @id @default(cuid())
+  registrationId String
+  registration   Registration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  roundId        String
+  round          Round     @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  marks          Float?
+  maxMarks       Float?
+  rank           Int?
+  medal          Medal?
+  remarks        String?
+  published      Boolean   @default(false)
+  publishedAt    DateTime?
+  scoredById     String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@unique([registrationId, roundId])
+  @@index([roundId, published])
+}
+
+model Registration {
+  id        String             @id @default(cuid())
+  userId    String
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventId   String
+  event     Event              @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  roundId   String?
+  round     Round?             @relation(fields: [roundId], references: [id], onDelete: SetNull)
+  status    RegistrationStatus @default(APPLIED)
+  category  String? // age-group / category label
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  results   Result[]
+
+  @@unique([userId, eventId, roundId])
+  @@index([eventId])
+  @@index([userId])
+}

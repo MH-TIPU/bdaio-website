@@ -7,11 +7,29 @@ export type NavItem = {
 export const navItems: NavItem[] = [
   { label: "Home", href: "/" },
   { label: "About", href: "/about" },
-  // { label: "Result", href: "/result" },
+  {
+    label: "Compete",
+    href: "/programs",
+    children: [
+      { label: "Programs", href: "/programs" },
+      { label: "Events", href: "/events" },
+      { label: "Workshops & Courses", href: "/workshops" },
+    ],
+  },
+  {
+    label: "Community",
+    href: "/institutions",
+    children: [
+      { label: "Institutions & Clubs", href: "/institutions" },
+      { label: "Register your institution", href: "/institutions/register" },
+    ],
+  },
+  { label: "Results", href: "/results" },
   {
     label: "Resources",
-    href: "/syllabus",
+    href: "/resources",
     children: [
+      { label: "Resource library", href: "/resources" },
       { label: "Syllabus", href: "/syllabus" },
       { label: "Participation Guideline", href: "/participation-guideline" },
     ],
