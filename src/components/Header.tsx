@@ -18,7 +18,7 @@ export function Header() {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-100 bg-white py-4 shadow-sm">
+    <header className="site-header sticky top-0 z-50 border-b py-4 shadow-sm">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Logo />
 
@@ -37,13 +37,13 @@ export function Header() {
                   <button
                     className={`flex items-center gap-1 px-3.5 py-2 text-sm font-semibold transition-colors duration-200 focus:outline-none ${
                       active
-                        ? "text-[#1e5a8a]"
-                        : "text-slate-600 hover:text-[#1e5a8a]"
+                        ? "text-bdaio-blue-dark"
+                        : "text-bdaio-gray hover:text-bdaio-blue-dark"
                     }`}
                   >
                     {item.label}
                     <svg
-                      className="h-3 w-3 text-slate-400"
+                      className="h-3 w-3 text-bdaio-gray"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -53,12 +53,12 @@ export function Header() {
                     </svg>
                   </button>
                   {openDropdown === item.label && (
-                    <div className="absolute left-0 top-full mt-1 min-w-[200px] rounded-lg border border-slate-100 bg-white p-1 shadow-lg animate-in fade-in duration-100">
+                    <div className="site-nav-panel absolute left-0 top-full mt-1 min-w-[200px] rounded-lg border p-1 shadow-lg animate-in fade-in duration-100">
                       {item.children.map((child) => (
                         <Link
                           key={child.href}
                           href={child.href}
-                          className="block rounded px-3.5 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-[#1e5a8a] transition-colors"
+                          className="block rounded px-3.5 py-2 text-sm font-semibold text-bdaio-gray transition-colors hover:bg-bdaio-gray-light hover:text-bdaio-blue-dark"
                         >
                           {child.label}
                         </Link>
@@ -74,8 +74,8 @@ export function Header() {
                 href={item.href}
                 className={`px-3.5 py-2 text-sm font-semibold transition-colors duration-200 ${
                   active
-                    ? "text-[#1e5a8a]"
-                    : "text-slate-600 hover:text-[#1e5a8a]"
+                    ? "text-bdaio-blue-dark"
+                    : "text-bdaio-gray hover:text-bdaio-blue-dark"
                 }`}
               >
                 {item.label}
@@ -86,7 +86,7 @@ export function Header() {
 
         {/* Mobile menu button */}
         <button
-          className="rounded-lg p-2 text-slate-600 hover:bg-slate-50 lg:hidden transition-colors"
+          className="rounded-lg p-2 text-bdaio-gray transition-colors hover:bg-bdaio-gray-light lg:hidden"
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label="Toggle menu"
         >
@@ -102,22 +102,22 @@ export function Header() {
 
       {/* Mobile Navigation */}
       {mobileOpen && (
-        <nav className="border-t border-slate-100 bg-white px-4 py-4 lg:hidden max-h-[80vh] overflow-y-auto">
+        <nav className="site-nav-panel border-t px-4 py-4 lg:hidden max-h-[80vh] overflow-y-auto">
           <div className="space-y-1">
             {navItems.map((item) => (
               <div key={item.label} className="p-1">
                 {item.children ? (
                   <>
-                    <p className="px-3 py-1 text-xs font-bold uppercase tracking-wider text-slate-400">
+                    <p className="px-3 py-1 text-xs font-bold uppercase tracking-wider text-bdaio-gray">
                       {item.label}
                     </p>
-                    <div className="mt-1 ml-2 border-l border-slate-100 pl-3 space-y-1">
+                    <div className="mt-1 ml-2 border-l border-bdaio-blue/15 pl-3 space-y-1">
                       {item.children.map((child) => (
                         <Link
                           key={child.href}
                           href={child.href}
                           onClick={() => setMobileOpen(false)}
-                          className="block rounded px-2.5 py-2 text-sm font-semibold text-slate-600 hover:text-[#1e5a8a] transition-colors"
+                          className="block rounded px-2.5 py-2 text-sm font-semibold text-bdaio-gray transition-colors hover:text-bdaio-blue-dark"
                         >
                           {child.label}
                         </Link>
@@ -130,8 +130,8 @@ export function Header() {
                     onClick={() => setMobileOpen(false)}
                     className={`block rounded px-3 py-2 text-sm font-semibold transition-colors ${
                       isActive(pathname, item.href)
-                        ? "text-[#1e5a8a]"
-                        : "text-slate-700 hover:text-[#1e5a8a]"
+                        ? "text-bdaio-blue-dark"
+                        : "text-bdaio-gray hover:text-bdaio-blue-dark"
                     }`}
                   >
                     {item.label}

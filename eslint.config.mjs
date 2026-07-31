@@ -15,6 +15,7 @@ const eslintConfig = defineConfig([
     // Generated / vendored output — not ours to lint.
     "src/generated/**",
     "public/bdaio-site-static/**",
+    "scripts/build-static.js",
   ]),
 ]);
 
