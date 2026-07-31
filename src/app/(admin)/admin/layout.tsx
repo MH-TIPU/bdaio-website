@@ -4,6 +4,7 @@ import { DashboardNav } from "@/components/dashboard/DashboardNav";
 
 const NAV = [
   { href: "/admin", label: "Overview" },
+  { href: "/admin/users", label: "Users" },
   { href: "/admin/programs", label: "Programs" },
   { href: "/admin/events", label: "Events" },
   { href: "/admin/registrations", label: "Registrations" },
@@ -11,6 +12,10 @@ const NAV = [
   { href: "/admin/community", label: "Community roles" },
   { href: "/admin/results", label: "Results" },
   { href: "/admin/certificates", label: "Certificates" },
+  { href: "/admin/announcements", label: "Announcements" },
+  { href: "/admin/content", label: "Content" },
+  { href: "/admin/faq", label: "FAQ" },
+  { href: "/admin/logs", label: "Audit log" },
 ];
 
 export default async function AdminLayout({

@@ -7,7 +7,13 @@
 > This is written for **me, the implementer** — decisions are made, not offered. Where a call is really the
 > team's (pricing, policy), I state the **default I'm building to** and flag it; override anytime and I adjust.
 >
-> **Status:** Plan locked, code not started. **Owner:** Engineering (CTO). **Updated:** 2026‑07‑31.
+> **Status:** **Phases 0–6 built.** Phases 0–5 are committed and pushed to `main` (and `prod`); **Phase 6 is
+> complete but uncommitted**. Remaining: 7 Polish, 8 ShurjoPay, 9 LMS.
+> **Owner:** Engineering (CTO). **Updated:** 2026‑07‑31.
+>
+> **Picking this up in a fresh session?** Read §3.4–§3.11 first — they record the Next 16 traps and the security
+> decisions that are expensive to rediscover. Dev login: `admin@bdaio.org` / `BdAIO-dev-2026` (seeded participants
+> use the same password). `npm run dev` on port 3000; `npm run db:seed` is idempotent and authoritative.
 
 ---
 
@@ -59,7 +65,7 @@ unless a compatibility check against Next 16.2.9 forces the fallback.
 | Forms | **React Hook Form + Zod** | — |
 | Email | **Nodemailer over team SMTP** | Resend |
 | File storage | **Local VPS disk at `UPLOAD_DIR`, served by nginx** — confirmed by the team; see §3.6 | — (self-hosted by choice) |
-| PDF (certificates) | **@react-pdf/renderer** | pdf-lib |
+| PDF (certificates) | **pdf-lib** — chosen in Phase 4 to avoid coupling PDF output to a React major version | — |
 | Payments *(Phase 8)* | **ShurjoPay** (BDT) | — |
 | LMS *(Phase 9)* | **In‑house on this stack** | — |
 | i18n | **EN + বাংলা** dictionary | — |
@@ -304,6 +310,25 @@ Two separate authorities, because marking and announcing are different responsib
 > (`medalLabel`) exported alongside the actions broke the whole module and 500'd every page importing it. Shared
 > sync helpers live in a plain module (`src/lib/results/medals.ts`).
 
+### 3.11 Admin & CMS (built in Phase 6)
+
+- **Editable content** lives in `Page` (served at `/p/[slug]`), `FaqItem` and `Announcement`, so organisers change
+  wording without a deploy. The Bengali FAQ was **migrated out of `src/data/faq.ts` into the database** by the seed;
+  the static file remains only as the source of that initial content.
+- **Announcements** carry an `audience` (everyone / members / moderators) plus `publishAt` and `expiresAt`.
+  All four conditions are enforced **in the query** (`src/lib/cms/announcements.ts`), so a restricted or
+  scheduled notice never reaches the client — verified from both a guest and a signed-in member.
+- **Privilege-escalation guards on user administration**, all enforced server-side and mirrored in the UI:
+  - **Nobody may change their own role or status** — that is how self-escalation starts.
+  - **Only a `SUPER_ADMIN` may create, change, or suspend an admin.** A plain `ADMIN` who injects an
+    `<option value="ADMIN">` into the DOM is still rejected (tested).
+  - **Suspending revokes every session immediately** (`revokeAllSessions`), so access dies at once rather than at
+    token expiry — verified 1 session → 0.
+- **Rounds cannot be deleted once they hold entries or marks**, which prevents an accidental click destroying
+  scored data.
+- **Audit log** at `/admin/logs` with action-prefix filters and per-action counts. Rejected attempts still write
+  nothing, so the trail never implies an action that did not happen.
+
 ---
 
 ## 4. Domain model
@@ -462,12 +487,12 @@ API        /api/{auth,uploads,webhooks/shurjopay(P8)}
 | Phase | Theme | Engineering tasks |
 |---|---|---|
 | **0 Foundation** ✅ | static → app | *Done:* `output:"standalone"`; Prisma 7 + Postgres + migrations; `.env`/`.env.example`; `src/lib/db.ts`; seed script; `components/ui`; Next patched to 16.2.12. *Outstanding:* pm2/nginx/Postgres provisioning + nightly backups (server-side, not yet done) |
-| **1 Accounts** 🟡 | auth & profiles | *Done:* register/login/logout, email verification (+resend), password reset, `User`/`Profile`/`Institution`/`GuardianInfo`, `Session`/`AuthToken`, DAL + RBAC helpers, `src/proxy.ts` guard, `/dashboard` shell + nav, profile editing with minor/guardian rules, `ActivityLog`. *Outstanding:* SMTP credentials (transport is built and pluggable), profile **photo upload**, auth **rate limiting**, public profile page `/u/[handle]` (lands with Phase 3) |
+| **1 Accounts** 🟡 | auth & profiles | *Done:* register/login/logout, email verification (+resend), password reset, `User`/`Profile`/`Institution`/`GuardianInfo`, `Session`/`AuthToken`, DAL + RBAC helpers, `src/proxy.ts` guard, `/dashboard` shell + nav, profile editing with minor/guardian rules, `ActivityLog`. *Outstanding:* auth **rate limiting** (Phase 7). *(SMTP is configured; photo upload shipped in Phase 1; `/u/[handle]` shipped in Phase 3.)* |
 | **2 Programs/Events** ✅ | core flow | *Done:* public `/programs`, `/programs/[slug]`, `/events`, `/events/[slug]`, `/workshops`; typed events; registration + enrolment with windows, eligibility, capacity → **waitlist**; withdraw; bilingual confirmation & decision emails; `/dashboard/registrations`; rules isolated in `src/lib/events/registration.ts`. **Admin back-office:** `/admin` stats + audit feed, program CRUD, event CRUD (incl. **clone next year's edition**), round management with delete-protection, registration review (approve/reject) with filters, and **CSV export** of participant data. Seed covers 4 programs, 6 events, 5 participants, and registrations in all 5 states |
 | **3 Community & Institutions** ✅ | trust & recognition | *Done:* `Institution` self‑registration → admin approval → moderators installed; `InstitutionMembership` + moderator console (approve/reject members, **verify students → Verified Student badge**); `CommunityRole` volunteer/mentor/contributor applications with scoped approval (moderator) vs global (admin); `Contribution` log gated on an approved role; `Badge` model with grant/revoke centralised in `src/lib/community/badges.ts`; **public profiles `/u/[handle]`** via a DTO that enforces opt‑in visibility and minor redaction; institution directory + pages; admin institution & community queues |
 | **4 Journey** ✅ | participant value | *Done:* activity feed (`ActivityLog` → readable sentences), achievements page with badge/stat summary, **certificates issued in bulk per event + PDF generated on demand (pdf-lib) + public `/verify/[serial]`**, revocation, resource library with public vs members‑only filtering, notification centre wired into registration/verification/role/certificate events, admin certificates screen |
 | **5 Results** ✅ | scoring | *Done:* `Result` + `RoundJudge` models; per‑round mark sheet with **ranks derived from marks** (ties share a rank); **publish gate** — nothing visible to participant or public until an admin publishes; judge assignment scoped per round; publishing awards medal badges, **auto‑issues achievement certificates**, and notifies; public `/results` index + per‑event leaderboard; participant `/dashboard/results`; judge `/dashboard/judging`. *Outstanding:* CSV score import, submissions |
-| **6 Admin/CMS** | organizer control | Full back‑office, CMS for public copy, announcements, CSV export, audit log |
+| **6 Admin/CMS** ✅ | organizer control | *Done:* user administration with role/status control, **announcements** (audience + scheduling + expiry), **editable CMS pages** at `/p/[slug]`, **FAQ moved from `src/data/faq.ts` into editable rows** (Bengali content preserved), **rounds CRUD** (Phase 2 carry‑over), audit‑log viewer with action filters, registrations CSV export. *Outstanding:* CSV score import, site settings UI |
 | **7 Polish** | hardening | i18n completeness, SEO/sitemap, PWA, analytics, rate limiting, backups, SMS |
 | **8 Payments** | fees | **ShurjoPay** checkout on registration, `Payment` records + webhook, receipts, admin payments/reconciliation |
 | **9 LMS** | learning | Courses/modules/lessons, enrollment + progress, auto‑graded quizzes, course certificates, "My Learning" + admin authoring |

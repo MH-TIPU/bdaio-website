@@ -4,6 +4,7 @@ import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { hash } from "@node-rs/argon2";
 import { PrismaClient, type Prisma } from "../src/generated/prisma/client";
+import { faqSections } from "../src/data/faq";
 
 const db = new PrismaClient({
   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
@@ -849,6 +850,76 @@ async function main() {
         create: { roundId: prelimRound.id, userId: created[4].id },
       });
     }
+  }
+
+  // --- CMS: migrate the static Bengali FAQ into editable rows -------------
+  // src/data/faq.ts stays as the source of the initial content; once seeded,
+  // admins edit the DB copy and the public page reads only from the DB.
+  let faqOrder = 0;
+  for (const section of faqSections) {
+    for (const item of section.items) {
+      faqOrder += 1;
+      const existing = await db.faqItem.findFirst({
+        where: { question: item.question },
+      });
+      const data = {
+        section: section.title,
+        question: item.question,
+        answer: item.answer,
+        order: faqOrder,
+        published: true,
+      };
+      if (existing) {
+        await db.faqItem.update({ where: { id: existing.id }, data });
+      } else {
+        await db.faqItem.create({ data });
+      }
+    }
+  }
+
+  // A sample editable page and a live announcement.
+  await db.page.upsert({
+    where: { slug: "code-of-conduct" },
+    update: {},
+    create: {
+      slug: "code-of-conduct",
+      title: "Code of Conduct",
+      titleBn: "আচরণবিধি",
+      body: "BdAIO is open to every student in Bangladesh, and everyone taking part is expected to behave with respect and integrity.\n\nCheating, plagiarism, or sharing answers during a round leads to disqualification. Harassment of any kind is not tolerated, online or in person.\n\nIf something goes wrong, contact the organisers — we would rather hear about a problem early.",
+      published: true,
+    },
+  });
+
+  const notice = await db.announcement.findFirst({
+    where: { title: "BdAIO 2026 registration is open" },
+  });
+  if (!notice) {
+    await db.announcement.create({
+      data: {
+        title: "BdAIO 2026 registration is open",
+        titleBn: "বিডিএআইও ২০২৬ নিবন্ধন শুরু",
+        body: "Registration for the 2026 edition is now open to students up to Grade 12. Complete your profile, then register for the round nearest you.\n\nThe Dhaka regional round and the nationwide online round both run next month.",
+        bodyBn: "২০২৬ সালের আসরে দ্বাদশ শ্রেণি পর্যন্ত শিক্ষার্থীদের নিবন্ধন শুরু হয়েছে।",
+        audience: "EVERYONE",
+        pinned: true,
+        published: true,
+      },
+    });
+  }
+
+  // A members-only notice, to prove audience filtering.
+  const memberNotice = await db.announcement.findFirst({
+    where: { title: "Practice problem set for members" },
+  });
+  if (!memberNotice) {
+    await db.announcement.create({
+      data: {
+        title: "Practice problem set for members",
+        body: "A new set of practice problems is available in the resource library for signed-in members.",
+        audience: "MEMBERS",
+        published: true,
+      },
+    });
   }
 
   console.log("Seed complete:", {

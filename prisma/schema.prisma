@@ -401,6 +401,69 @@ model Notification {
   @@index([userId, readAt])
 }
 
+enum AnnouncementAudience {
+  EVERYONE
+  MEMBERS
+  MODERATORS
+}
+
+/// Site-wide notices. `publishAt` lets an announcement be prepared ahead of
+/// time; nothing is visible before that moment.
+model Announcement {
+  id         String               @id @default(cuid())
+  title      String
+  titleBn    String?
+  body       String
+  bodyBn     String?
+  audience   AnnouncementAudience @default(EVERYONE)
+  pinned     Boolean              @default(false)
+  published  Boolean              @default(false)
+  publishAt  DateTime?
+  expiresAt  DateTime?
+  createdById String?
+  createdAt  DateTime             @default(now())
+  updatedAt  DateTime             @updatedAt
+
+  @@index([published, publishAt])
+}
+
+/// CMS-lite: editable copy for public pages, so organisers can change wording
+/// without a deploy. Body is Markdown-ish plain text rendered as paragraphs.
+model Page {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  title     String
+  titleBn   String?
+  body      String
+  bodyBn    String?
+  published Boolean  @default(true)
+  updatedById String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// FAQ entries, moved out of `src/data/faq.ts` so they are editable.
+model FaqItem {
+  id         String   @id @default(cuid())
+  /// Groups questions under a heading on the public page.
+  section    String   @default("General")
+  question   String
+  answer     String
+  order      Int      @default(0)
+  published  Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([published, order])
+}
+
+/// Simple key/value settings an admin can change at runtime.
+model SiteSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
 model ResourceCategory {
   id        String     @id @default(cuid())
   name      String
