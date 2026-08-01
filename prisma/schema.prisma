@@ -256,6 +256,10 @@ model Profile {
   sameAddress     Boolean @default(false)
   bio           String?
   visibility    ProfileVisibility @default(PRIVATE)
+  /// Opt-in for transactional SMS (Phase 7). Off by default: a phone number is
+  /// collected for organisers to reach a participant, which is not consent to
+  /// be texted by the platform.
+  smsOptIn      Boolean           @default(false)
   institutionId String?
   institution   Institution?      @relation(fields: [institutionId], references: [id], onDelete: SetNull)
   classGrade    String?
@@ -462,6 +466,77 @@ model SiteSetting {
   key       String   @id
   value     String
   updatedAt DateTime @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// Phase 7 — hardening (rate limiting + analytics)
+// ---------------------------------------------------------------------------
+
+/// Fixed-window rate-limit counters. Kept in Postgres rather than in process
+/// memory so a pm2 restart (or a second process) cannot reset an attacker's
+/// budget, and so the limit is shared across every instance.
+///
+/// `bucket` encodes both what is limited and who is being limited, e.g.
+/// `login:ip:203.0.113.4` or `login:email:sha256(...)`. Rows are disposable:
+/// anything past `expiresAt` is pruned opportunistically.
+model RateLimit {
+  bucket      String
+  windowStart DateTime
+  count       Int      @default(1)
+  expiresAt   DateTime
+
+  @@id([bucket, windowStart])
+  @@index([expiresAt])
+}
+
+/// Daily page-view counts, aggregate only. There is deliberately no
+/// per-request table: without raw rows there is no browsing history to leak,
+/// subpoena, or forget to purge.
+model PageViewDaily {
+  day   DateTime @db.Date
+  path  String
+  views Int      @default(0)
+
+  @@id([day, path])
+  @@index([day])
+}
+
+/// One row per (day, visitor) → daily unique visitors, no cookie involved.
+/// `visitorHash` is HMAC(ip + user-agent) keyed with a *per-day* secret, so it
+/// cannot be reversed to an IP and the same person is not linkable across days.
+model VisitorDaily {
+  day         DateTime @db.Date
+  visitorHash String
+
+  @@id([day, visitorHash])
+  @@index([day])
+}
+
+/// Where public traffic came from, by referrer host only — never the full
+/// referring URL, which can carry a search query or a private page path.
+model ReferrerDaily {
+  day   DateTime @db.Date
+  host  String
+  count Int      @default(0)
+
+  @@id([day, host])
+  @@index([day])
+}
+
+/// Core Web Vitals rolled up per day. Stores bucket counts (Google's
+/// good/needs-improvement/poor thresholds) plus sum+count for a mean, because
+/// a true p75 would require keeping every sample.
+model WebVitalDaily {
+  day    DateTime @db.Date
+  metric String
+  count  Int      @default(0)
+  total  Float    @default(0)
+  good   Int      @default(0)
+  fair   Int      @default(0)
+  poor   Int      @default(0)
+
+  @@id([day, metric])
+  @@index([day])
 }
 
 model ResourceCategory {

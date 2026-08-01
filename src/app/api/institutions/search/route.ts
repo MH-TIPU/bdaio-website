@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { RATE_LIMITS, limitByIp, retryAfterMessage } from "@/lib/security/rateLimit";
 
 /**
  * Institution suggestions for the profile and registration forms.
@@ -9,8 +10,26 @@ import { db } from "@/lib/db";
  *
  * Only APPROVED institutions are ever returned, so this cannot be used to
  * discover pending submissions.
+ *
+ * Unauthenticated and it runs a `contains` query, so it is rate limited: the
+ * typeahead is debounced client-side, but nothing stops a script from walking
+ * the alphabet to dump the directory.
  */
 export async function GET(request: Request) {
+  const throttle = await limitByIp(
+    "institution_search",
+    RATE_LIMITS.institutionSearch,
+  );
+  if (!throttle.ok) {
+    return Response.json(
+      { institutions: [], error: retryAfterMessage(throttle.retryAfterSeconds) },
+      {
+        status: 429,
+        headers: { "Retry-After": String(throttle.retryAfterSeconds) },
+      },
+    );
+  }
+
   const url = new URL(request.url);
   const q = (url.searchParams.get("q") ?? "").trim();
   const district = (url.searchParams.get("district") ?? "").trim();

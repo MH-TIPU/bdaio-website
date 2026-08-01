@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { MedalChip } from "@/components/results/MedalChip";
+import { pageMetadata } from "@/lib/seo";
 
 export const revalidate = 60;
 
@@ -14,11 +15,12 @@ export async function generateMetadata(
     where: { slug },
     select: { title: true },
   });
-  if (!event) return { title: "Results not found" };
-  return {
+  if (!event) return { title: "Results not found", robots: { index: false } };
+  return pageMetadata({
     title: `${event.title} results`,
     description: `Published standings and medallists for ${event.title}.`,
-  };
+    path: `/results/${slug}`,
+  });
 }
 
 /** Shows a participant's name only if they chose a public profile. */

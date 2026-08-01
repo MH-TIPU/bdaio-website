@@ -1,8 +1,16 @@
 "use server";
 
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
+import { requestMeta } from "@/lib/security/request";
+import {
+  RATE_LIMITS,
+  consumeRateLimit,
+  emailBucket,
+  limitByIp,
+  resetRateLimit,
+  retryAfterMessage,
+} from "@/lib/security/rateLimit";
 import { hashPassword, verifyPassword } from "@/lib/auth/password";
 import {
   createSession,
@@ -28,15 +36,6 @@ const RESET_TTL_MS = 60 * 60 * 1000; // 1 hour
 /** Same message whether the email is unknown or the password is wrong. */
 const INVALID_CREDENTIALS = "Incorrect email or password.";
 
-async function requestMeta() {
-  const h = await headers();
-  return {
-    userAgent: h.get("user-agent"),
-    // Trust order matters behind nginx; x-forwarded-for is set by our proxy.
-    ipAddress: h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null,
-  };
-}
-
 export async function register(
   _prev: AuthFormState,
   formData: FormData,
@@ -58,6 +57,16 @@ export async function register(
   }
 
   const { fullName, email, password } = parsed.data;
+
+  // Checked after validation (so junk submissions don't spend the budget) but
+  // before the argon2 hash, which is the expensive part of this action.
+  const throttle = await limitByIp("register", RATE_LIMITS.register);
+  if (!throttle.ok) {
+    return {
+      message: retryAfterMessage(throttle.retryAfterSeconds),
+      values: { fullName, email },
+    };
+  }
 
   const existing = await db.user.findUnique({
     where: { email },
@@ -125,6 +134,32 @@ export async function login(
 
   const { email, password } = parsed.data;
 
+  // Two budgets, because they stop different attacks: the IP budget slows one
+  // machine spraying many accounts, the email budget slows a botnet spread
+  // across many IPs grinding on one account. Both are spent before the argon2
+  // verify below, so a flood cannot be used to burn CPU either.
+  const ipThrottle = await limitByIp("login", RATE_LIMITS.loginIp);
+  if (!ipThrottle.ok) {
+    return {
+      message: retryAfterMessage(ipThrottle.retryAfterSeconds),
+      values: { email },
+    };
+  }
+
+  const emailKey = emailBucket("login", email);
+  const emailThrottle = await consumeRateLimit({
+    bucket: emailKey,
+    ...RATE_LIMITS.loginEmail,
+  });
+  if (!emailThrottle.ok) {
+    // Counted for every address, existing or not, so the throttle itself cannot
+    // be used to discover which emails have accounts.
+    return {
+      message: retryAfterMessage(emailThrottle.retryAfterSeconds),
+      values: { email },
+    };
+  }
+
   const user = await db.user.findUnique({
     where: { email },
     select: { id: true, passwordHash: true, status: true },
@@ -147,6 +182,10 @@ export async function login(
       values: { email },
     };
   }
+
+  // Signing in successfully clears the account's budget, so a few mistyped
+  // passwords don't leave a real user one attempt from a lockout.
+  await resetRateLimit(emailKey);
 
   const meta = await requestMeta();
   await createSession(user.id, meta);
@@ -217,6 +256,16 @@ export async function resendVerification(): Promise<AuthFormState> {
   if (!user) redirect("/login");
   if (user.emailVerifiedAt) return { message: "Your email is already verified." };
 
+  // Per user, not per IP: this button sends mail from our domain, and holding it
+  // down is a way to get us onto a spam list.
+  const throttle = await consumeRateLimit({
+    bucket: `resend_verification:user:${user.id}`,
+    ...RATE_LIMITS.resendVerification,
+  });
+  if (!throttle.ok) {
+    return { message: retryAfterMessage(throttle.retryAfterSeconds) };
+  }
+
   // Invalidate any outstanding verification tokens before issuing a new one.
   await db.authToken.updateMany({
     where: { userId: user.id, type: "EMAIL_VERIFICATION", usedAt: null },
@@ -252,6 +301,25 @@ export async function requestPasswordReset(
   }
 
   const { email } = parsed.data;
+
+  // Both budgets are spent before the lookup, and counted for unknown addresses
+  // too, so throttling cannot be turned into an account-existence oracle.
+  const ipThrottle = await limitByIp(
+    "password_reset",
+    RATE_LIMITS.passwordResetIp,
+  );
+  if (!ipThrottle.ok) {
+    return { message: retryAfterMessage(ipThrottle.retryAfterSeconds) };
+  }
+
+  const emailThrottle = await consumeRateLimit({
+    bucket: emailBucket("password_reset", email),
+    ...RATE_LIMITS.passwordResetEmail,
+  });
+  if (!emailThrottle.ok) {
+    return { message: retryAfterMessage(emailThrottle.retryAfterSeconds) };
+  }
+
   const user = await db.user.findUnique({
     where: { email },
     select: { id: true, email: true },

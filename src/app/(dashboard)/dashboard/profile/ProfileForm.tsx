@@ -28,6 +28,7 @@ export type ProfileDefaults = {
   institutionId: string;
   bio: string;
   visibility: "PRIVATE" | "PUBLIC";
+  smsOptIn: boolean;
   guardianName: string;
   guardianRelation: string;
   guardianPhone: string;
@@ -270,6 +271,31 @@ export function ProfileForm({
             className="sm:col-span-2"
           />
         </div>
+      </section>
+
+      <section>
+        <h2 className="text-sm font-semibold text-slate-900">Notifications</h2>
+        <p className="mt-1 text-xs text-slate-500">
+          You always get an email and an in-app notification. Text messages are
+          extra, and off unless you ask for them.
+        </p>
+        <label className="mt-4 flex items-start gap-2.5 text-sm text-slate-700">
+          <input
+            type="checkbox"
+            name="smsOptIn"
+            defaultChecked={defaults.smsOptIn}
+            className="mt-0.5 h-4 w-4 rounded border-slate-300"
+          />
+          <span>
+            Send me an SMS for important updates — a registration decision or a
+            published result.
+            <span className="mt-0.5 block text-xs text-slate-500">
+              Needs a Bangladeshi mobile number in the contact details above.
+              Standard operator charges never apply to you; we pay for what we
+              send.
+            </span>
+          </span>
+        </label>
       </section>
 
       <Button type="submit" disabled={pending} className="w-auto">

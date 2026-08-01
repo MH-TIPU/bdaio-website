@@ -11,6 +11,7 @@ import {
 } from "@/lib/auth/dal";
 import { grantBadge, revokeBadge, roleBadgeType } from "@/lib/community/badges";
 import { notify } from "@/lib/notifications/notify";
+import { consumeRateLimit, retryAfterMessage } from "@/lib/security/rateLimit";
 import { fieldErrors, slugify } from "@/lib/validation/admin";
 import { isValidLocation } from "@/data/bd-geo";
 import {
@@ -37,6 +38,17 @@ export async function registerInstitution(
 
   if (!user.emailVerifiedAt) {
     return { message: "Verify your email address before registering an institution." };
+  }
+
+  // A verified account is the gate, but one account should not be able to bury
+  // the admin approval queue in submissions.
+  const throttle = await consumeRateLimit({
+    bucket: `institution_register:user:${user.id}`,
+    limit: 3,
+    windowMs: 60 * 60_000,
+  });
+  if (!throttle.ok) {
+    return { message: retryAfterMessage(throttle.retryAfterSeconds) };
   }
 
   const raw = Object.fromEntries(formData.entries());

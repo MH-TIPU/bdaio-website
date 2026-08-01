@@ -4,6 +4,11 @@ import { db } from "@/lib/db";
 export const metadata: Metadata = {
   title: "Verify a certificate",
   description: "Check whether a BdAIO certificate is genuine.",
+  // Public but not indexable: a verification link is for the person holding the
+  // certificate, and every one of these URLs shows a recipient's name. Search
+  // results full of certificate serials would turn a verification tool into a
+  // directory of participants. robots.ts disallows /verify/ as well.
+  robots: { index: false, follow: false },
 };
 
 /**

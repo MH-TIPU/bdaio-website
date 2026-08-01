@@ -4,6 +4,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPublicProfile } from "@/lib/community/publicProfile";
 import { BadgeChip } from "@/components/community/BadgeChip";
+import { JsonLd } from "@/components/JsonLd";
+import { metaDescription, pageMetadata, personJsonLd } from "@/lib/seo";
 
 const KIND_LABELS: Record<string, string> = {
   ORGANIZING: "Organising",
@@ -20,12 +22,16 @@ export async function generateMetadata(
   const { handle } = await props.params;
   const profile = await getPublicProfile(handle);
   if (!profile) return { title: "Profile not found", robots: { index: false } };
-  return {
+  return pageMetadata({
     title: `${profile.displayName} · BdAIO`,
-    description: profile.bio ?? `${profile.displayName} on BdAIO.`,
+    description: metaDescription(profile.bio) ?? `${profile.displayName} on BdAIO.`,
+    path: `/u/${handle}`,
+    // A minor's photo must not travel in a share card either.
+    image: profile.isMinor ? null : profile.photoUrl,
+    type: "profile",
     // Minors' pages are deliberately kept out of search indexes.
-    robots: profile.isMinor ? { index: false, follow: false } : undefined,
-  };
+    index: !profile.isMinor,
+  });
 }
 
 function initials(name: string): string {
@@ -41,6 +47,20 @@ export default async function PublicProfilePage(props: PageProps<"/u/[handle]">)
 
   return (
     <section className="bg-slate-50/50 py-16">
+      {/* No Person markup for minors: §3.7 keeps them out of search results, and
+          structured data is precisely the machine-readable dossier that rule
+          exists to prevent. */}
+      {!profile.isMinor && (
+        <JsonLd
+          data={personJsonLd({
+            displayName: profile.displayName,
+            handle: profile.handle,
+            bio: profile.bio,
+            photo: profile.photoUrl,
+            institutionName: profile.institution?.name ?? null,
+          })}
+        />
+      )}
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100 sm:p-8">
           <div className="flex flex-wrap items-start gap-5">

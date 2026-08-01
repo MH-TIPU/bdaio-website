@@ -18,6 +18,8 @@ import {
   TYPE_LABELS,
   formatDate,
 } from "@/components/events/EventCard";
+import { JsonLd } from "@/components/JsonLd";
+import { breadcrumbJsonLd, eventJsonLd, metaDescription, pageMetadata } from "@/lib/seo";
 import { RegisterPanel } from "./RegisterPanel";
 
 export async function generateMetadata(
@@ -26,10 +28,19 @@ export async function generateMetadata(
   const { slug } = await props.params;
   const event = await db.event.findUnique({
     where: { slug },
-    select: { title: true, description: true },
+    select: { title: true, description: true, banner: true, status: true, updatedAt: true },
   });
-  if (!event) return { title: "Event not found" };
-  return { title: event.title, description: event.description ?? undefined };
+  if (!event) return { title: "Event not found", robots: { index: false } };
+  return pageMetadata({
+    title: event.title,
+    description: metaDescription(event.description),
+    path: `/events/${slug}`,
+    image: event.banner,
+    type: "article",
+    // A draft event 404s below; keep it out of search results either way.
+    index: event.status !== "DRAFT",
+    modifiedTime: event.updatedAt,
+  });
 }
 
 export default async function EventPage(props: PageProps<"/events/[slug]">) {
@@ -91,6 +102,16 @@ export default async function EventPage(props: PageProps<"/events/[slug]">) {
 
   return (
     <section className="bg-slate-50/50 py-16">
+      {/* schema.org/Event requires a start date; markup is omitted rather than
+          emitted invalid for an event whose schedule isn't set yet. */}
+      {event.startsAt && <JsonLd data={eventJsonLd(event)} />}
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "Events", path: "/events" },
+          { name: event.program.title, path: `/programs/${event.program.slug}` },
+          { name: event.title, path: `/events/${event.slug}` },
+        ])}
+      />
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <Link
           href={`/programs/${event.program.slug}`}

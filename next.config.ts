@@ -16,6 +16,41 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "2mb",
     },
   },
+  // Phase 7 hardening. HSTS is deliberately absent: TLS terminates at nginx, and
+  // Strict-Transport-Security belongs on the server that owns the certificate
+  // (see docs/OPS.md) — sending it from Node would make it depend on a deploy.
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          // Stops a browser from second-guessing a Content-Type — the reason a
+          // renamed script uploaded as an "image" cannot execute.
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          // No part of this app is meant to be framed, and the admin console
+          // holds one-click destructive actions worth clickjacking.
+          { key: "X-Frame-Options", value: "DENY" },
+          // Send the full URL only to ourselves; other origins get the origin.
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          // We ask for none of these, so no embedded frame can either.
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=(), payment=()",
+          },
+        ],
+      },
+      {
+        // The service worker must never be served from cache, or a bad worker
+        // stays installed until its own cache entry expires.
+        source: "/sw.js",
+        headers: [
+          { key: "Content-Type", value: "application/javascript; charset=utf-8" },
+          { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
+          { key: "Content-Security-Policy", value: "default-src 'self'; script-src 'self'" },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

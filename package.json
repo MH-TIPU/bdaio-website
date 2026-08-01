@@ -12,7 +12,11 @@
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
     "db:seed": "tsx prisma/seed.ts",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "typecheck": "tsc --noEmit",
+    "assets:brand": "node scripts/generate-brand-assets.mjs",
+    "backup": "bash scripts/backup.sh",
+    "restore": "bash scripts/restore.sh"
   },
   "dependencies": {
     "@node-rs/argon2": "^2.0.2",

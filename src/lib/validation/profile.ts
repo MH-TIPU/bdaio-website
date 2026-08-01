@@ -56,6 +56,12 @@ export const profileSchema = z.object({
     .transform((v) => (v ? v : undefined)),
   bio: optionalText(500),
   visibility: z.enum(["PRIVATE", "PUBLIC"]),
+  // An unchecked checkbox submits nothing at all, so absence means "off" — the
+  // right default for consent to be texted.
+  smsOptIn: z
+    .union([z.literal("on"), z.literal("")])
+    .optional()
+    .transform((v) => v === "on"),
   // Guardian — required when the participant is a minor (enforced in the action,
   // which knows the date of birth).
   guardianName: optionalText(120),

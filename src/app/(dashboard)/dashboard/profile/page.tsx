@@ -38,6 +38,7 @@ export default async function ProfilePage() {
     institutionId: profile?.institutionId ?? "",
     bio: profile?.bio ?? "",
     visibility: profile?.visibility ?? "PRIVATE",
+    smsOptIn: profile?.smsOptIn ?? false,
     guardianName: profile?.guardian?.name ?? "",
     guardianRelation: profile?.guardian?.relation ?? "",
     guardianPhone: profile?.guardian?.phone ?? "",

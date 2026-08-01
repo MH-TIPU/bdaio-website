@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
+import { metaDescription, pageMetadata } from "@/lib/seo";
 
 export const revalidate = 60;
 
@@ -8,10 +9,18 @@ export async function generateMetadata(props: PageProps<"/p/[slug]">): Promise<M
   const { slug } = await props.params;
   const page = await db.page.findUnique({
     where: { slug },
-    select: { title: true, body: true, published: true },
+    select: { title: true, body: true, published: true, updatedAt: true },
   });
-  if (!page || !page.published) return { title: "Page not found" };
-  return { title: page.title, description: page.body.slice(0, 155) };
+  if (!page || !page.published) {
+    return { title: "Page not found", robots: { index: false } };
+  }
+  return pageMetadata({
+    title: page.title,
+    description: metaDescription(page.body),
+    path: `/p/${slug}`,
+    type: "article",
+    modifiedTime: page.updatedAt,
+  });
 }
 
 /** Renders CMS content. Unpublished pages 404 for everyone. */

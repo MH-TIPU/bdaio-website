@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
+import { JsonLd } from "@/components/JsonLd";
+import { institutionJsonLd, metaDescription, pageMetadata } from "@/lib/seo";
 
 export const revalidate = 60;
 
@@ -11,15 +13,19 @@ export async function generateMetadata(
   const { slug } = await props.params;
   const institution = await db.institution.findUnique({
     where: { slug },
-    select: { name: true, description: true, status: true },
+    select: { name: true, description: true, status: true, logo: true, updatedAt: true },
   });
+  // A pending institution is invisible everywhere, including here.
   if (!institution || institution.status !== "APPROVED") {
-    return { title: "Institution not found" };
+    return { title: "Institution not found", robots: { index: false } };
   }
-  return {
+  return pageMetadata({
     title: institution.name,
-    description: institution.description ?? undefined,
-  };
+    description: metaDescription(institution.description),
+    path: `/institutions/${slug}`,
+    image: institution.logo,
+    modifiedTime: institution.updatedAt,
+  });
 }
 
 export default async function InstitutionPage(
@@ -60,6 +66,7 @@ export default async function InstitutionPage(
 
   return (
     <section className="bg-slate-50/50 py-16">
+      <JsonLd data={institutionJsonLd(institution)} />
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         <Link
           href="/institutions"

@@ -4,8 +4,9 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { logActivity, requireRole } from "@/lib/auth/dal";
-import { sendMail } from "@/lib/email/mailer";
+import { appUrl, sendMail } from "@/lib/email/mailer";
 import { registrationDecisionEmail } from "@/lib/email/templates";
+import { notify } from "@/lib/notifications/notify";
 import {
   eventSchema,
   fieldErrors,
@@ -258,7 +259,7 @@ export async function decideRegistration(formData: FormData): Promise<void> {
   const registration = await db.registration.findUnique({
     where: { id },
     include: {
-      user: { select: { email: true } },
+      user: { select: { id: true, email: true } },
       event: { select: { title: true, slug: true } },
       round: { select: { name: true } },
     },
@@ -280,13 +281,31 @@ export async function decideRegistration(formData: FormData): Promise<void> {
 
   // Only the outcomes a participant needs to act on trigger mail.
   if (decision === "APPROVED" || decision === "REJECTED") {
+    const approved = decision === "APPROVED";
+
     await sendMail(
       registrationDecisionEmail(registration.user.email, {
         eventTitle: registration.event.title,
         roundName: registration.round?.name ?? null,
-        approved: decision === "APPROVED",
+        approved,
       }),
     );
+
+    // Worth an SMS: an approved entrant has to show up somewhere on a date, and
+    // in Bangladesh a text reaches a student whose inbox they may not check.
+    // Only sent to participants who opted in — see notify().
+    await notify({
+      userId: registration.user.id,
+      type: approved ? "registration.approved" : "registration.rejected",
+      title: approved
+        ? `Registration approved: ${registration.event.title}`
+        : `Registration not accepted: ${registration.event.title}`,
+      body: registration.round?.name ?? undefined,
+      href: "/dashboard/registrations",
+      sms: approved
+        ? `BdAIO: your registration for ${registration.event.title} is APPROVED. Details: ${appUrl("/dashboard/registrations")}`
+        : undefined,
+    });
   }
 
   revalidatePath("/admin/registrations");

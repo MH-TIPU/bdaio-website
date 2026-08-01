@@ -153,6 +153,7 @@ export async function updateProfile(
       institutionId: data.institutionId ?? null,
       bio: data.bio ?? null,
       visibility: data.visibility,
+      smsOptIn: data.smsOptIn,
     },
     select: { id: true },
   });

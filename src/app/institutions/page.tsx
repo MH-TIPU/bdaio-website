@@ -2,11 +2,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { InstitutionSearch } from "./InstitutionSearch";
+import { absoluteUrl } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Institutions & Clubs",
   description:
     "Schools, colleges, universities, and AI clubs taking part in BdAIO across Bangladesh.",
+  // Every filter combination is a distinct URL for the same directory, so they
+  // all canonicalise to the unfiltered page.
+  alternates: { canonical: absoluteUrl("/institutions") },
 };
 
 // Filters come from the query string, so this page must render per request.

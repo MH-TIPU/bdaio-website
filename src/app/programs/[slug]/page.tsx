@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { EventCard } from "@/components/events/EventCard";
+import { metaDescription, pageMetadata } from "@/lib/seo";
 
 export async function generateMetadata(
   props: PageProps<"/programs/[slug]">,
@@ -9,13 +10,16 @@ export async function generateMetadata(
   const { slug } = await props.params;
   const program = await db.program.findUnique({
     where: { slug },
-    select: { title: true, description: true },
+    select: { title: true, description: true, active: true, updatedAt: true },
   });
-  if (!program) return { title: "Program not found" };
-  return {
+  if (!program) return { title: "Program not found", robots: { index: false } };
+  return pageMetadata({
     title: program.title,
-    description: program.description ?? undefined,
-  };
+    description: metaDescription(program.description),
+    path: `/programs/${slug}`,
+    index: program.active,
+    modifiedTime: program.updatedAt,
+  });
 }
 
 export default async function ProgramPage(props: PageProps<"/programs/[slug]">) {
