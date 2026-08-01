@@ -791,7 +791,16 @@ properly Bengali and must not be overwritten with demo copy.
 
 ### 13.4 Carried forward from Phases 5–6
 
-- [ ] **CSV score import** — marks are entered by hand per round; a national round makes that untenable.
+- [x] **CSV score import** on a round's mark sheet. Reads the same `email` column the registration export
+      writes, so the workflow is export → fill in marks → import. Header names are matched leniently ("E-mail",
+      "Marks"), and the parser is hand-written — Excel BOMs, CRLF, quoted commas and embedded newlines are the
+      whole problem, and a parser should be readable when a file fails to import at 1am.
+      **All or nothing:** one bad row means nothing is written and every problem is listed with its line number.
+      A half-applied mark sheet looks like it worked, and the gap is invisible until someone notices a student has
+      no result.
+      **Importing does not change publication state** — the same as saving the form. Verified: on a round that is
+      *already* published the new marks are live at once, so the UI warns before the upload and the confirmation
+      says so instead of repeating "hidden until published".
 - [ ] **`Submission` model + upload flow** — rounds cannot yet collect answer files.
 - [ ] **Site settings UI** — the `SiteSetting` model exists and is unused; no admin screen reads or writes it.
 - [ ] **Email background queue** (§3.6a) — sends are synchronous inside the request (~5s for a password reset).

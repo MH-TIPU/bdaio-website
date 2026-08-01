@@ -8,6 +8,7 @@ import {
   removeJudge,
 } from "@/server/results/actions";
 import { ScoreForm, type ScoreRow } from "@/components/results/ScoreForm";
+import { ImportScores } from "@/components/results/ImportScores";
 
 export const metadata: Metadata = { title: "Score round · Admin" };
 
@@ -114,6 +115,11 @@ export default async function ScoreRoundPage(
           rows={rows}
         />
       </div>
+
+      <ImportScores
+        roundId={round.id}
+        published={round.results.some((r) => r.published)}
+      />
 
       {/* Judges */}
       <div className="mt-8 rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-100">

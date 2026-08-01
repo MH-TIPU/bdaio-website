@@ -9,6 +9,7 @@ import { notify } from "@/lib/notifications/notify";
 import { appUrl } from "@/lib/email/mailer";
 import { certificateSerial } from "@/lib/certificates/pdf";
 import { medalLabel } from "@/lib/results/medals";
+import { findColumn, headerIndex, parseCsv } from "@/lib/results/csv";
 import type { CurrentUser } from "@/lib/auth/dal";
 
 export type ResultsState =
@@ -322,4 +323,212 @@ export async function removeJudge(formData: FormData): Promise<void> {
   });
 
   revalidatePath(`/admin/results/${assignment.roundId}`);
+}
+
+// --- CSV score import ------------------------------------------------------
+
+export type ImportState =
+  | {
+      message?: string;
+      success?: boolean;
+      /** Per-row problems, as "line 4: …", so the organiser can fix the file. */
+      problems?: string[];
+      imported?: number;
+    }
+  | undefined;
+
+/**
+ * Imports marks for a round from a CSV file.
+ *
+ * Hand-entering a national round's marks is not viable, and retyping is where
+ * transcription errors come from — so the mark sheet gains an importer that reads
+ * the same email column our registration export writes: export, fill in marks,
+ * import.
+ *
+ * Two deliberate choices:
+ *
+ *  - **All or nothing.** If any row is bad, nothing is written and every problem
+ *    is reported at once. A partial import of a mark sheet is the worst outcome
+ *    available: it looks like it worked, and the missing rows are invisible until
+ *    someone notices a student has no result.
+ *  - **It never publishes.** Importing sets marks and re-derives ranks, exactly
+ *    like saving the form. Publication stays a separate, admin-only act (§3.10),
+ *    because "I uploaded a file" must not be the same gesture as "the whole
+ *    country can see these results".
+ */
+export async function importRoundScores(
+  _prev: ImportState,
+  formData: FormData,
+): Promise<ImportState> {
+  const roundId = String(formData.get("roundId") ?? "");
+  if (!roundId) return { message: "Missing round." };
+
+  let scorer: CurrentUser;
+  try {
+    scorer = await requireScorerOf(roundId);
+  } catch {
+    return { message: "You are not assigned to score this round." };
+  }
+
+  const round = await db.round.findUnique({
+    where: { id: roundId },
+    select: { id: true, eventId: true },
+  });
+  if (!round) return { message: "That round no longer exists." };
+
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) {
+    return { message: "Choose a CSV file to import." };
+  }
+
+  const rows = parseCsv(await file.text());
+  if (rows.length < 2) {
+    return { message: "That file has a header but no rows." };
+  }
+
+  const index = headerIndex(rows[0]);
+  const emailAt = findColumn(index, ["email", "emailaddress", "e-mail"]);
+  const marksAt = findColumn(index, ["marks", "mark", "score", "points"]);
+  const medalAt = findColumn(index, ["medal", "award"]);
+
+  if (emailAt === undefined || marksAt === undefined) {
+    return {
+      message:
+        "The file needs an “email” column and a “marks” column. Other columns are ignored.",
+    };
+  }
+
+  // Only approved entrants of this round's event can be scored — the same rule
+  // the form enforces, applied here so a crafted CSV cannot reach anyone else.
+  const registrations = await db.registration.findMany({
+    where: { eventId: round.eventId, status: "APPROVED" },
+    select: { id: true, user: { select: { email: true } } },
+  });
+  const byEmail = new Map(
+    registrations.map((r) => [r.user.email.toLowerCase(), r.id]),
+  );
+
+  const problems: string[] = [];
+  const seen = new Set<string>();
+  const updates: {
+    registrationId: string;
+    marks: number | null;
+    medal: (typeof MEDALS)[number] | null;
+  }[] = [];
+
+  for (let i = 1; i < rows.length; i++) {
+    // +1 because spreadsheets are 1-indexed and row 1 is the header.
+    const line = i + 1;
+    const row = rows[i];
+    const email = (row[emailAt] ?? "").trim().toLowerCase();
+    const marksText = (row[marksAt] ?? "").trim();
+    const medalText = medalAt === undefined ? "" : (row[medalAt] ?? "").trim().toUpperCase();
+
+    if (!email) {
+      problems.push(`Line ${line}: no email address.`);
+      continue;
+    }
+
+    const registrationId = byEmail.get(email);
+    if (!registrationId) {
+      problems.push(`Line ${line}: ${email} is not an approved entrant of this event.`);
+      continue;
+    }
+
+    if (seen.has(registrationId)) {
+      problems.push(`Line ${line}: ${email} appears more than once.`);
+      continue;
+    }
+
+    let marks: number | null = null;
+    if (marksText !== "") {
+      const parsed = Number(marksText);
+      if (!Number.isFinite(parsed) || parsed < 0) {
+        problems.push(`Line ${line}: "${marksText}" is not a valid mark.`);
+        continue;
+      }
+      marks = parsed;
+    }
+
+    let medal: (typeof MEDALS)[number] | null = null;
+    if (medalText !== "") {
+      const normalised = medalText.replace(/[\s-]+/g, "_");
+      if (!MEDALS.includes(normalised as (typeof MEDALS)[number])) {
+        problems.push(
+          `Line ${line}: "${medalText}" is not a medal (${MEDALS.join(", ")}).`,
+        );
+        continue;
+      }
+      medal = normalised as (typeof MEDALS)[number];
+    }
+
+    seen.add(registrationId);
+    updates.push({ registrationId, marks, medal });
+  }
+
+  if (problems.length > 0) {
+    return {
+      message: `Nothing was imported. Fix ${problems.length === 1 ? "this problem" : `these ${problems.length} problems`} and try again.`,
+      // Capped so one badly-shaped file cannot produce a page of noise.
+      problems: problems.slice(0, 25),
+    };
+  }
+
+  const maxMarksText = String(formData.get("maxMarks") ?? "").trim();
+  const maxMarks = maxMarksText === "" ? null : Number(maxMarksText);
+
+  for (const update of updates) {
+    await db.result.upsert({
+      where: {
+        registrationId_roundId: {
+          registrationId: update.registrationId,
+          roundId: round.id,
+        },
+      },
+      update: {
+        marks: update.marks,
+        medal: update.medal,
+        maxMarks: Number.isFinite(maxMarks) ? maxMarks : null,
+        scoredById: scorer.id,
+      },
+      create: {
+        registrationId: update.registrationId,
+        roundId: round.id,
+        marks: update.marks,
+        medal: update.medal,
+        maxMarks: Number.isFinite(maxMarks) ? maxMarks : null,
+        scoredById: scorer.id,
+        published: false,
+      },
+    });
+  }
+
+  await recomputeRanks(round.id);
+
+  await logActivity({
+    userId: scorer.id,
+    action: "results.imported",
+    entityType: "Round",
+    entityId: round.id,
+    metadata: { count: updates.length, file: file.name },
+  });
+
+  revalidatePath(`/admin/results/${round.id}`);
+
+  // Importing does not change the publication state — the same as saving the
+  // form. For an *already published* round that means the new marks are public
+  // the moment they land, so say so rather than repeating "hidden until
+  // published", which would be a comforting lie.
+  const live = await db.result.count({
+    where: { roundId: round.id, published: true },
+  });
+
+  const who = `${updates.length} ${updates.length === 1 ? "entrant" : "entrants"}`;
+  return {
+    success: true,
+    imported: updates.length,
+    message: live
+      ? `Imported marks for ${who}. This round is already published, so the updated marks are visible publicly now.`
+      : `Imported marks for ${who}. They stay hidden until published.`,
+  };
 }
