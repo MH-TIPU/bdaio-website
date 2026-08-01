@@ -644,8 +644,10 @@ anytime as we learn. These are product calls; I proceed on the default so engine
 - **Ops** — pm2 process + nginx reverse proxy; `.env` per environment; structured logs; health check endpoint.
 - **Git** — **work on `main` directly** (team decision, 2026‑08‑01; supersedes the earlier feature‑branch rule —
   we are a single implementer and the review step was buying nothing). No auto commit/deploy (only on request); no
-  secrets in history; commits without Co‑Authored‑By trailers. Each commit on `main` should still be a complete,
-  deployable slice, since there is no branch to hide half‑finished work in.
+  secrets in history. Each commit on `main` should still be a complete, deployable slice, since there is no branch
+  to hide half‑finished work in.
+- **No tool attribution anywhere.** No `Co‑Authored‑By` trailers, no "generated with" footers, no tool names in
+  commit messages, PR descriptions, or code comments. The work is the team's; the history reads as ours.
 
 ---
 
