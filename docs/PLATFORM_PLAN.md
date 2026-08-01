@@ -642,8 +642,10 @@ anytime as we learn. These are product calls; I proceed on the default so engine
 - **Quality** — typecheck + lint in CI; unit tests for validation/business logic; e2e smoke on the critical path
   (register → verify → login → register‑for‑event); accessibility (WCAG AA); Lighthouse budget for the BD network.
 - **Ops** — pm2 process + nginx reverse proxy; `.env` per environment; structured logs; health check endpoint.
-- **Git** — feature branches, no direct commits to `main`; no auto commit/deploy (only on request); no secrets in
-  history; commits without Co‑Authored‑By trailers.
+- **Git** — **work on `main` directly** (team decision, 2026‑08‑01; supersedes the earlier feature‑branch rule —
+  we are a single implementer and the review step was buying nothing). No auto commit/deploy (only on request); no
+  secrets in history; commits without Co‑Authored‑By trailers. Each commit on `main` should still be a complete,
+  deployable slice, since there is no branch to hide half‑finished work in.
 
 ---
 
