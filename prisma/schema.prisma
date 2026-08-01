@@ -176,6 +176,7 @@ model User {
   certificates  Certificate[]
   notifications Notification[]
   judgeRoles    RoundJudge[]
+  contactMessages ContactMessage[]
 
   @@index([role])
 }
@@ -466,6 +467,32 @@ model SiteSetting {
   key       String   @id
   value     String
   updatedAt DateTime @updatedAt
+}
+
+/// Messages sent through the public contact form.
+///
+/// Stored rather than only emailed: mail to a shared address gets lost, and an
+/// organiser needs to see what is outstanding. `handledAt`/`handledById` is that
+/// queue — not a workflow, just "someone has dealt with this".
+///
+/// No relation to `User`: most senders are not signed in, and asking a
+/// prospective participant to create an account before they can ask a question
+/// is how you never hear from them.
+model ContactMessage {
+  id          String    @id @default(cuid())
+  name        String
+  email       String
+  subject     String
+  body        String
+  /// Set when a signed-in user sent it, so a reply has context. Nullable.
+  userId      String?
+  user        User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  handledAt   DateTime?
+  handledById String?
+  createdAt   DateTime  @default(now())
+
+  @@index([handledAt, createdAt])
+  @@index([userId])
 }
 
 // ---------------------------------------------------------------------------

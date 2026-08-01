@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { pageMetadata } from "@/lib/seo";
 import { notFound } from "next/navigation";
 import { dictionaryFor, getDictionary, isLocale } from "@/lib/i18n";
+import { ContactForm } from "./ContactForm";
 
 export async function generateMetadata(
   { params }: PageProps<"/[locale]/contact">,
@@ -21,8 +22,8 @@ export default async function ContactPage({ params }: PageProps<"/[locale]/conta
   const t = getDictionary(locale).pages.contact;
 
   return (
-    <section className="py-24 bg-white flex min-h-[60vh] items-center justify-center">
-      <div className="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8 space-y-6">
+    <section className="bg-white py-20">
+      <div className="mx-auto max-w-2xl px-4 text-center sm:px-6 lg:px-8 space-y-6">
         {/* Main Header - Matches the old site screenshot */}
         <h1 className="text-2xl font-bold tracking-tight text-[#1e5a8a]">
           {t.title}
@@ -43,6 +44,13 @@ export default async function ContactPage({ params }: PageProps<"/[locale]/conta
         <p className="text-sm font-semibold text-slate-500 leading-relaxed max-w-2xl mx-auto">
           {t.officeLabel}: {t.office}
         </p>
+
+        <div className="mt-10 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm sm:p-8">
+          <h2 className="mb-5 text-left text-lg font-bold text-slate-900">
+            {t.formTitle}
+          </h2>
+          <ContactForm t={t} />
+        </div>
       </div>
     </section>
   );

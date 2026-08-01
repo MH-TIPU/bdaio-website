@@ -160,6 +160,13 @@ export const bn: Dictionary = {
       emailLabel: "ই-মেইল",
       officeLabel: "অফিস",
       office: "গ্রিন সিটি সেন্টার, লেভেল ১২, ৭৫৮ সাতমসজিদ রোড, ঢাকা ১২০৯, বাংলাদেশ",
+      formTitle: "আমাদের বার্তা পাঠান",
+      formName: "আপনার নাম",
+      formEmail: "আপনার ইমেইল",
+      formSubject: "বিষয়",
+      formMessage: "বার্তা",
+      formSubmit: "বার্তা পাঠান",
+      formSending: "পাঠানো হচ্ছে…",
     },
 
     home: {

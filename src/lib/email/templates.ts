@@ -13,6 +13,23 @@ function layout(heading: string, bodyHtml: string): string {
 </div>`;
 }
 
+/**
+ * Escapes text before it goes into an HTML email body.
+ *
+ * Every other template here interpolates values we generate ourselves — tokens,
+ * event titles typed by an admin. The contact form does not: its name, subject
+ * and body come from an anonymous stranger, and dropping those into HTML
+ * unescaped is an injection into an organiser's inbox.
+ */
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function button(href: string, label: string): string {
   return `<p style="margin:20px 0"><a href="${href}" style="background:#1e5a8a;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;display:inline-block;font-weight:600">${label}</a></p>
 <p style="font-size:12px;color:#64748b;word-break:break-all">${href}</p>`;
@@ -135,6 +152,42 @@ export function passwordResetEmail(to: string, token: string): Mail {
        <p style="margin:0;color:#475569">আপনার পাসওয়ার্ড রিসেট করার অনুরোধ পেয়েছি। লিংকটি ১ ঘণ্টা পর্যন্ত সক্রিয় থাকবে।</p>
        ${button(link, "Reset password")}
        <p style="font-size:13px;color:#64748b;margin:0">If you did not request this, ignore this email — your password will not change.</p>`,
+    ),
+  };
+}
+
+/**
+ * Notifies the organisers' shared address that a contact message arrived.
+ *
+ * `replyTo` is the sender, so an organiser can just hit reply — the `from` stays
+ * our own domain, because sending as the visitor's address would fail SPF and
+ * land the whole thing in spam.
+ *
+ * All interpolated values are escaped: this is the one template whose content
+ * comes from an anonymous stranger.
+ */
+export function contactMessageEmail(
+  to: string,
+  message: { name: string; email: string; subject: string; body: string },
+): Mail {
+  const safe = {
+    name: escapeHtml(message.name),
+    email: escapeHtml(message.email),
+    subject: escapeHtml(message.subject),
+    body: escapeHtml(message.body),
+  };
+
+  return {
+    to,
+    replyTo: message.email,
+    subject: `[BdAIO contact] ${message.subject}`,
+    text: `From: ${message.name} <${message.email}>\nSubject: ${message.subject}\n\n${message.body}\n\n---\nSent through the contact form at ${appUrl("/contact")}`,
+    html: layout(
+      "New contact message",
+      `<p style="margin:0 0 4px"><strong>From:</strong> ${safe.name} &lt;${safe.email}&gt;</p>
+       <p style="margin:0 0 16px"><strong>Subject:</strong> ${safe.subject}</p>
+       <div style="white-space:pre-wrap;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;font-size:14px">${safe.body}</div>
+       <p style="font-size:12px;color:#64748b;margin:16px 0 0">Reply directly to this email to answer the sender.</p>`,
     ),
   };
 }

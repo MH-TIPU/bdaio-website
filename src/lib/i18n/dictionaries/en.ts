@@ -176,6 +176,13 @@ export const en = {
       emailLabel: "E-Mail",
       officeLabel: "Office",
       office: "Green City Center, Level 12, 758 Satmasjid Road, Dhaka 1209, Bangladesh",
+      formTitle: "Send us a message",
+      formName: "Your name",
+      formEmail: "Your email",
+      formSubject: "Subject",
+      formMessage: "Message",
+      formSubmit: "Send message",
+      formSending: "Sending…",
     },
 
     home: {

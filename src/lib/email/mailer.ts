@@ -6,6 +6,12 @@ export type Mail = {
   subject: string;
   text: string;
   html: string;
+  /**
+   * Optional Reply-To. Used by the contact form so an organiser can reply
+   * straight to the sender, while `from` stays our own domain — sending as the
+   * visitor's address would fail SPF and land the mail in spam.
+   */
+  replyTo?: string;
 };
 
 let transporter: Transporter | null = null;
@@ -69,6 +75,7 @@ export async function sendMail(mail: Mail): Promise<{ delivered: boolean }> {
     await getTransporter().sendMail({
       from: process.env.EMAIL_FROM ?? "BdAIO <no-reply@bdaio.org>",
       to: mail.to,
+      replyTo: mail.replyTo,
       subject: mail.subject,
       text: mail.text,
       html: mail.html,

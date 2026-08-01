@@ -801,8 +801,13 @@ properly Bengali and must not be overwritten with demo copy.
 
 Each is a `✗` in the §7 route map. None blocks go-live; all were scoped as CMS‑lite.
 
-- [ ] **`ContactMessage`** + a working contact form — `/contact` is currently static text, so a message sent
-      through the site goes nowhere.
+- [x] **`ContactMessage`** + a working contact form. The only unauthenticated *write* on the platform, so it is
+      layered: Zod bounds every field, a **honeypot** (not a CAPTCHA — we will not make a student solve a puzzle to
+      ask a question) silently drops crude bots, 5/hour per IP, and the message is **stored before it is emailed**,
+      because losing a prospective participant's question to an SMTP outage is worse than a slow reply.
+      Admin inbox at `/admin/messages` with an unhandled-first queue.
+      This also added `escapeHtml` to the email templates: every other template interpolates values we generate,
+      but this one carries a stranger's text into an organiser's HTML inbox.
 - [ ] **`Sponsor`** — the sponsor logos on the home page are hard-coded in `src/data/media.ts`.
 - [ ] **`MediaAsset`** + `/admin/media` — uploads are per-feature; there is no library.
 - [ ] **`/admin/resources`** — resources are seeded, not manageable in the UI.
