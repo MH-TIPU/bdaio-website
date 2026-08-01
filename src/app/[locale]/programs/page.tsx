@@ -2,17 +2,18 @@ import type { Metadata } from "next";
 import { Link } from "@/components/Link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
-import { getDictionary, isLocale } from "@/lib/i18n";
+import { dictionaryFor, getDictionary, isLocale } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
 
 export async function generateMetadata(
   { params }: PageProps<"/[locale]/programs">,
 ): Promise<Metadata> {
   const { locale } = await params;
+  const meta = dictionaryFor(locale).pages.programs;
   return pageMetadata({
     locale,
     path: "/programs",
-    title: "Programs",
+    title: meta.title,
     description:
     "The olympiads, competitions, and workshop series run by BdAIO — and the international competitions we nominate students to."
   });

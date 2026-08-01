@@ -22,6 +22,18 @@ export function getDictionary(locale: Locale): Dictionary {
 }
 
 /**
+ * Dictionary for a raw route param.
+ *
+ * `generateMetadata` runs before the page body, so it cannot rely on the
+ * page's own `notFound()` guard — and throwing there costs the whole page
+ * rather than just the metadata. An unrecognised locale falls back to the
+ * default; the page still 404s a moment later.
+ */
+export function dictionaryFor(locale: string): Dictionary {
+  return getDictionary(isLocale(locale) ? locale : DEFAULT_LOCALE);
+}
+
+/**
  * The locale for an authenticated page, read from the cookie.
  *
  * Public pages take their locale from the `[locale]` route segment, which keeps

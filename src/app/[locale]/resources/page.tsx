@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Link } from "@/components/Link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
-import { getDictionary, isLocale } from "@/lib/i18n";
+import { dictionaryFor, getDictionary, isLocale } from "@/lib/i18n";
 import { getCurrentUser } from "@/lib/auth/dal";
 import { pageMetadata } from "@/lib/seo";
 
@@ -10,10 +10,11 @@ export async function generateMetadata(
   { params }: PageProps<"/[locale]/resources">,
 ): Promise<Metadata> {
   const { locale } = await params;
+  const meta = dictionaryFor(locale).pages.resources;
   return pageMetadata({
     locale,
     path: "/resources",
-    title: "Resources",
+    title: meta.title,
     description:
     "Syllabuses, guidelines, past problems, and learning materials for the Bangladesh AI Olympiad."
   });

@@ -2,28 +2,35 @@ import type { Metadata } from "next";
 import { Accordion } from "@/components/Accordion";
 import { syllabusSections } from "@/data/syllabus";
 import { pageMetadata } from "@/lib/seo";
+import { notFound } from "next/navigation";
+import { dictionaryFor, getDictionary, isLocale } from "@/lib/i18n";
 
 export async function generateMetadata(
   { params }: PageProps<"/[locale]/syllabus">,
 ): Promise<Metadata> {
   const { locale } = await params;
+  const meta = dictionaryFor(locale).pages.syllabus;
   return pageMetadata({
     locale,
     path: "/syllabus",
-    title: "Syllabus"
+    title: meta.title,
   });
 }
 
-export default function SyllabusPage() {
+export default async function SyllabusPage({ params }: PageProps<"/[locale]/syllabus">) {
+  const { locale } = await params;
+  if (!isLocale(locale)) notFound();
+  const t = getDictionary(locale).pages.syllabus;
+
   return (
     <section className="py-20 bg-slate-50/50">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <h1 className="text-4xl font-black text-[#1e5a8a] sm:text-5xl">
-            Competition Syllabus
+            {t.title}
           </h1>
           <p className="mt-3 text-lg text-slate-500">
-            Comprehensive topics and areas covered in BdAIO and international rounds.
+            {t.lead}
           </p>
           <div className="mx-auto mt-6 h-1 w-20 rounded bg-blue-500" />
         </div>
@@ -49,10 +56,8 @@ export default function SyllabusPage() {
 
         {/* Syllabus Note footer */}
         <div className="mt-16 rounded-2xl border border-blue-100 bg-blue-50/20 p-8 text-center max-w-2xl mx-auto">
-          <h3 className="text-base font-bold text-[#1e5a8a] mb-2">Preparing for the International Olympiad?</h3>
-          <p className="text-sm text-slate-550 leading-relaxed">
-            The national contest syllabus is aligned with the International Olympiad on Artificial Intelligence (IOAI) and International AI Olympiad (IAIO) benchmarks. Make sure to review previous years&apos; Kaggle competition datasets.
-          </p>
+          <h3 className="text-base font-bold text-[#1e5a8a] mb-2">{t.noteTitle}</h3>
+          <p className="text-sm text-slate-550 leading-relaxed">{t.noteBody}</p>
         </div>
       </div>
     </section>

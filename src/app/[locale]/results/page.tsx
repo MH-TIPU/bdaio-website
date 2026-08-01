@@ -2,17 +2,18 @@ import type { Metadata } from "next";
 import { Link } from "@/components/Link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
-import { getDictionary, isLocale } from "@/lib/i18n";
+import { dictionaryFor, getDictionary, isLocale } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
 
 export async function generateMetadata(
   { params }: PageProps<"/[locale]/results">,
 ): Promise<Metadata> {
   const { locale } = await params;
+  const meta = dictionaryFor(locale).pages.results;
   return pageMetadata({
     locale,
     path: "/results",
-    title: "Results",
+    title: meta.title,
     description:
     "Published results and medallists from the Bangladesh AI Olympiad and related competitions."
   });

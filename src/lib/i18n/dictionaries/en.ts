@@ -115,6 +115,36 @@ export const en = {
       lead: "Notices from the BdAIO organising team.",
       empty: "There are no announcements right now.",
     },
+
+    /**
+     * `about` is stored as an array of paragraphs rather than one blob: a
+     * translator works paragraph by paragraph, and a mismatched count is then
+     * visible instead of silently truncating the page.
+     */
+    about: {
+      title: "About BdAIO",
+      paragraphs: [
+        "The Bangladesh Artificial Intelligence Olympiad (BdAIO) is a national-level competition designed to inspire, educate, and engage young minds in the rapidly evolving field of Artificial Intelligence. It provides a platform for students across Bangladesh to explore AI, develop problem-solving skills, and prepare for participation in international AI Olympiads. Through BdAIO, talented students are identified and trained to represent Bangladesh on the global stage.",
+        "The Olympiad is open to students studying up to Grade 12 or equivalent levels, including students up to the 4th semester of Polytechnic institutes across Bangladesh. Participants demonstrate their programming proficiency in Python along with their understanding of core AI concepts such as machine learning, neural networks, natural language processing, and computer vision.",
+        "BdAIO is conducted in multiple phases, beginning with a preliminary selection round and culminating in the national round. At each stage, participants refine their analytical thinking, strengthen their conceptual knowledge, and gain practical exposure to AI-related problem solving. The top-performing students are selected for advanced training and international representation.",
+        "Bangladesh has already achieved notable success in global AI competitions. At the first International Artificial Intelligence Olympiad (IAIO) held in Riyadh, Saudi Arabia in 2024, the Bangladesh team won 2 Silver Medals and 2 Bronze Medals. The silver medals were won by Misbah Uddin Inan (Notre Dame College) and Arefin Anwar (Saint Joseph College), while the bronze medals were achieved by Abrar Shahid (Notre Dame College) and Rafid Ahmed (Academia, Lalmatia). The team was led by Dr. B. M. Mainul Hossain, Director at the Institute of Information Technology, University of Dhaka.",
+      ],
+    },
+
+    contact: {
+      title: "Get In Touch",
+      emailLabel: "E-Mail",
+      officeLabel: "Office",
+      office: "Green City Center, Level 12, 758 Satmasjid Road, Dhaka 1209, Bangladesh",
+    },
+
+    syllabus: {
+      title: "Competition Syllabus",
+      lead: "Comprehensive topics and areas covered in BdAIO and international rounds.",
+      noteTitle: "Preparing for the International Olympiad?",
+      noteBody:
+        "The national contest syllabus is aligned with the International Olympiad on Artificial Intelligence (IOAI) and International AI Olympiad (IAIO) benchmarks. Make sure to review previous years' Kaggle competition datasets.",
+    },
   },
 
   offline: {

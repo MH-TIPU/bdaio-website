@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
-import { getDictionary, isLocale } from "@/lib/i18n";
+import { dictionaryFor, getDictionary, isLocale } from "@/lib/i18n";
 import { EventCard } from "@/components/events/EventCard";
 import { pageMetadata } from "@/lib/seo";
 
@@ -9,10 +9,11 @@ export async function generateMetadata(
   { params }: PageProps<"/[locale]/events">,
 ): Promise<Metadata> {
   const { locale } = await params;
+  const meta = dictionaryFor(locale).pages.events;
   return pageMetadata({
     locale,
     path: "/events",
-    title: "Events",
+    title: meta.title,
     description:
     "Upcoming BdAIO olympiad rounds, workshops, seminars, and courses — and the archive of past events."
   });

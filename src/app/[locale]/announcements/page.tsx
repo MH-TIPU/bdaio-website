@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/dal";
-import { getDictionary, isLocale } from "@/lib/i18n";
+import { dictionaryFor, getDictionary, isLocale } from "@/lib/i18n";
 import { visibleAnnouncements } from "@/lib/cms/announcements";
 import { pageMetadata } from "@/lib/seo";
 
@@ -9,10 +9,11 @@ export async function generateMetadata(
   { params }: PageProps<"/[locale]/announcements">,
 ): Promise<Metadata> {
   const { locale } = await params;
+  const meta = dictionaryFor(locale).pages.announcements;
   return pageMetadata({
     locale,
     path: "/announcements",
-    title: "Announcements",
+    title: meta.title,
     description: "Latest notices and updates from the Bangladesh AI Olympiad."
   });
 }

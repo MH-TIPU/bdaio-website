@@ -3,6 +3,7 @@ import { Link } from "@/components/Link";
 import { db } from "@/lib/db";
 import { InstitutionSearch } from "./InstitutionSearch";
 import { pageMetadata } from "@/lib/seo";
+import { dictionaryFor } from "@/lib/i18n";
 
 export async function generateMetadata(
   { params }: PageProps<"/[locale]/institutions">,
@@ -11,12 +12,12 @@ export async function generateMetadata(
   // `path` carries no query string, so every filter combination canonicalises to
   // the unfiltered directory — otherwise each division × district pair would be
   // its own indexable near-duplicate.
+  const meta = dictionaryFor(locale).pages.institutions;
   return pageMetadata({
     locale,
     path: "/institutions",
-    title: "Institutions & Clubs",
-    description:
-      "Schools, colleges, universities, and AI clubs taking part in BdAIO across Bangladesh.",
+    title: meta.title,
+    description: meta.lead,
   });
 }
 
@@ -34,6 +35,10 @@ const TYPE_LABELS = {
 export default async function InstitutionsPage(
   props: PageProps<"/[locale]/institutions">,
 ) {
+  const { locale } = await props.params;
+  const dict = dictionaryFor(locale);
+  const t = dict.pages.institutions;
+  const nav = dict.nav;
   const { q, division, district } = await props.searchParams;
   const search = typeof q === "string" ? q.trim() : "";
 
@@ -66,17 +71,15 @@ export default async function InstitutionsPage(
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto mb-10 max-w-3xl text-center">
           <h1 className="text-4xl font-black text-bdaio-blue sm:text-5xl">
-            Institutions & Clubs
+            {t.title}
           </h1>
-          <p className="mt-3 text-lg text-slate-500">
-            Schools, colleges, universities, and AI clubs taking part in BdAIO.
-          </p>
+          <p className="mt-3 text-lg text-slate-500">{t.lead}</p>
           <div className="mx-auto mt-6 h-1 w-20 rounded bg-blue-500" />
           <Link
             href="/institutions/register"
             className="mt-6 inline-block rounded-lg bg-bdaio-blue px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-bdaio-blue-dark"
           >
-            Register your institution
+            {nav.registerInstitution}
           </Link>
         </div>
 
@@ -84,9 +87,7 @@ export default async function InstitutionsPage(
 
         {institutions.length === 0 ? (
           <p className="text-center text-sm text-slate-500">
-            {search || division || district
-              ? "No institutions match your search."
-              : "No institutions have been approved yet."}
+            {t.empty}
           </p>
         ) : (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
