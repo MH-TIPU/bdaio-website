@@ -759,11 +759,18 @@ different constraints.
       titles/descriptions** all come from the dictionary, so the Bengali tree has Bengali `<title>` tags too.
       Layouts were kept and only the strings extracted — a CMS migration was considered and rejected for the
       designed pages (rules, archives), where a plain-text body would have flattened the layout.
-- [ ] Remaining to translate: `rules`, `archives`, `news`, `faq` framing, the home page sections
-      (`HomeSections`, `CelebrationSection`, `JourneySection`), the auth forms and validation messages, and the
-      dashboard + admin consoles. Roughly 1,400 lines of copy.
-      Note the participation guideline and FAQ bodies are already properly Bengali and must not be overwritten
-      with demo copy.
+- [x] `rules`, `archives`, `news`, `faq`, the home page sections and the whole auth flow (including form labels
+      and pending-button states).
+
+**Scope decided by the team, 2026‑08‑01: translation stops at navigation, headings and leads.** Deep body copy —
+table column labels, certificate-verification field names, dashboard and admin console strings — **stays English on
+purpose.** Chasing every string was costing more than it returned, and the organisers who use the admin console read
+English. If that changes, the mechanism is already in place: add the key to `en.ts`, and the build fails until
+`bn.ts` has it.
+
+Deliberately left English: the certificate-verification detail labels, the `/result` reference table, the
+`news/library` heading, and the dashboard + admin consoles. The participation guideline and FAQ bodies are already
+properly Bengali and must not be overwritten with demo copy.
 - [ ] Transactional email and SMS templates in both languages (the SMS 160-character budget is GSM-7; Bengali is
       UCS-2 at 70 characters, so Bengali texts cost more — decide per template).
 
