@@ -736,14 +736,22 @@ different constraints.
       derived from `en`, so **adding an English key fails the build until it is translated** — the mechanism that
       stops Bengali drifting behind (§11).
 - [x] `getDictionary()` + `getSessionDictionary()` for the cookie-based authenticated surface.
-- [ ] Move public routes under `src/app/[locale]/` with `generateStaticParams`; locale redirect in `proxy.ts`.
-      One atomic commit — a half-moved tree means `/bn/...` 404s on whatever was left behind.
-- [ ] Locale-aware `Link` wrapper, and the language toggle in the header.
-- [ ] `alternates.languages` in `pageMetadata()` and `hreflang` pairs in the sitemap.
-- [ ] Translate the rest: page prose, all form and validation messages, the dashboard, and the admin console.
-      Note that page prose (about, rules, syllabus, guidelines) is **content, not UI** — the guideline and FAQ are
-      already Bengali, but the rules and syllabus are not, and machine-translating formal competition rules is a
-      call for the team, not for me.
+- [x] Public routes moved under `src/app/[locale]/`, both languages prerendered (`● SSG`) with `revalidate`
+      preserved. **Two root layouts** now exist — `[locale]/layout.tsx` for the public site and
+      `(app)/layout.tsx` for the authenticated tree — because the locale reaches them differently. The cost is
+      that crossing between them is a full page load; that happens once per sign-in, not while browsing.
+- [x] Locale redirect and cookie sync in `proxy.ts`; `/dashboard` while signed out lands on `/{locale}/login`.
+- [x] Language toggle that switches **in place** — `/bn/events` → `/en/events`, not back to the home page, which
+      is the usual bug and the reason people stop using a toggle.
+- [x] `hreflang` pairs for every URL in `sitemap.xml`, and `alternates.languages` + `x-default` +
+      `og:locale:alternate` from `pageMetadata()`.
+- [ ] **`hreflang` link tags on the statically-titled pages.** The six pages that call `pageMetadata()` emit them;
+      the ~16 list and marketing pages still use a plain `export const metadata`, so they have a title but no
+      canonical or alternates. The sitemap covers them, which is the stronger signal, but the tags should follow.
+- [ ] Translate the rest: page prose, form and validation messages, the dashboard, and the admin console. The
+      dictionary and the chrome are done; the page bodies still render English in both trees.
+      Prose is **content, not UI** — demo-quality Bengali is fine here since the team replaces copy in production,
+      but note the participation guideline and FAQ are already properly Bengali and should not be overwritten.
 - [ ] Transactional email and SMS templates in both languages (the SMS 160-character budget is GSM-7; Bengali is
       UCS-2 at 70 characters, so Bengali texts cost more — decide per template).
 

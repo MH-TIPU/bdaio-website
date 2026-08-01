@@ -1,41 +1,56 @@
+import type { Dictionary } from "@/lib/i18n/dictionaries/en";
+
+/**
+ * The site navigation.
+ *
+ * Items carry a **dictionary key**, not a label: the label is looked up per
+ * locale at render time. Keeping the key here rather than the English string is
+ * what makes the nav translatable without a second copy of this structure — and
+ * because the key is typed against the dictionary, a renamed key fails the build
+ * instead of rendering `undefined` in the header.
+ *
+ * `href` is always locale-free; the header prefixes it with the active locale.
+ */
+export type NavKey = keyof Dictionary["nav"];
+
 export type NavItem = {
-  label: string;
+  key: NavKey;
   href: string;
-  children?: { label: string; href: string }[];
+  children?: { key: NavKey; href: string }[];
 };
 
 export const navItems: NavItem[] = [
-  { label: "Home", href: "/" },
-  { label: "About", href: "/about" },
+  { key: "home", href: "/" },
+  { key: "about", href: "/about" },
   {
-    label: "Compete",
+    key: "compete",
     href: "/programs",
     children: [
-      { label: "Programs", href: "/programs" },
-      { label: "Events", href: "/events" },
-      { label: "Workshops & Courses", href: "/workshops" },
+      { key: "programs", href: "/programs" },
+      { key: "events", href: "/events" },
+      { key: "workshops", href: "/workshops" },
     ],
   },
   {
-    label: "Community",
+    key: "community",
     href: "/institutions",
     children: [
-      { label: "Institutions & Clubs", href: "/institutions" },
-      { label: "Register your institution", href: "/institutions/register" },
+      { key: "institutions", href: "/institutions" },
+      { key: "registerInstitution", href: "/institutions/register" },
     ],
   },
-  { label: "Results", href: "/results" },
-  { label: "Announcements", href: "/announcements" },
-  { label: "News", href: "/news" },
+  { key: "results", href: "/results" },
+  { key: "announcements", href: "/announcements" },
+  { key: "news", href: "/news" },
   {
-    label: "Resources",
+    key: "resources",
     href: "/resources",
     children: [
-      { label: "Resource library", href: "/resources" },
-      { label: "Syllabus", href: "/syllabus" },
-      { label: "Participation Guideline", href: "/participation-guideline" },
+      { key: "resourceLibrary", href: "/resources" },
+      { key: "syllabus", href: "/syllabus" },
+      { key: "participationGuideline", href: "/participation-guideline" },
     ],
   },
-  { label: "FAQ", href: "/faq" },
-  { label: "Contact Us", href: "/contact" },
+  { key: "faq", href: "/faq" },
+  { key: "contact", href: "/contact" },
 ];

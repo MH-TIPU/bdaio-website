@@ -21,10 +21,16 @@
  *   self.addEventListener("install", () => self.registration.unregister());
  */
 
-const CACHE_VERSION = "v1";
+const CACHE_VERSION = "v2";
 const ASSET_CACHE = `bdaio-assets-${CACHE_VERSION}`;
 const SHELL_CACHE = `bdaio-shell-${CACHE_VERSION}`;
-const OFFLINE_URL = "/offline";
+
+// One offline page per locale (Phase 7b put public pages behind a `/en`/`/bn`
+// prefix, so a bare `/offline` now redirects and cannot be precached).
+// A service worker cannot read cookies, so the language is taken from the path
+// of the request that failed — which is exactly the page the reader was on.
+const OFFLINE_URLS = { en: "/en/offline", bn: "/bn/offline" };
+const DEFAULT_OFFLINE_URL = OFFLINE_URLS.en;
 
 /** Immutable, public, and safe to serve from the cache. */
 const CACHEABLE_PREFIXES = ["/_next/static/", "/media/", "/icon-", "/og.png", "/apple-icon"];
@@ -35,7 +41,11 @@ self.addEventListener("install", (event) => {
       const cache = await caches.open(SHELL_CACHE);
       // `reload` bypasses the HTTP cache so a deploy can't leave a stale
       // offline page pinned for the life of the cache.
-      await cache.add(new Request(OFFLINE_URL, { cache: "reload" }));
+      await Promise.all(
+        Object.values(OFFLINE_URLS).map((url) =>
+          cache.add(new Request(url, { cache: "reload" })),
+        ),
+      );
       await self.skipWaiting();
     })(),
   );
@@ -100,7 +110,9 @@ async function networkOnlyWithOfflinePage(request) {
     return await fetch(request);
   } catch {
     const cache = await caches.open(SHELL_CACHE);
-    const offline = await cache.match(OFFLINE_URL);
+    const offline =
+      (await cache.match(offlineUrlFor(request))) ??
+      (await cache.match(DEFAULT_OFFLINE_URL));
     return (
       offline ??
       new Response("You are offline.", {
@@ -109,6 +121,12 @@ async function networkOnlyWithOfflinePage(request) {
       })
     );
   }
+}
+
+/** The offline page in the language of the page the reader was trying to reach. */
+function offlineUrlFor(request) {
+  const locale = new URL(request.url).pathname.split("/")[1];
+  return OFFLINE_URLS[locale] ?? DEFAULT_OFFLINE_URL;
 }
 
 /** Serve the cached copy immediately, refresh it in the background. */

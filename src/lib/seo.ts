@@ -1,4 +1,12 @@
 import type { Metadata } from "next";
+import {
+  DEFAULT_LOCALE,
+  LOCALES,
+  LOCALE_HREFLANG,
+  isLocale,
+  localePath,
+  type Locale,
+} from "@/lib/i18n/config";
 
 /**
  * One source of truth for canonical URLs, social cards, and structured data.
@@ -32,8 +40,19 @@ export function absoluteUrl(path = "/"): string {
 type PageMetadataInput = {
   title: string;
   description?: string | null;
-  /** Site-relative path, used for the canonical URL. */
+  /**
+   * Site-relative path **without** a locale prefix, e.g. `/events/bdaio-2026`.
+   * The prefix is added here so no caller can produce a canonical URL that
+   * disagrees with the page's own address.
+   */
   path: string;
+  /**
+   * The locale this page is being rendered in. Accepts the raw route param, so
+   * callers can pass `params.locale` straight through without narrowing it —
+   * anything unrecognised falls back to the default rather than throwing inside
+   * metadata generation, where an exception costs the whole page.
+   */
+  locale?: Locale | string;
   /** Site-relative or absolute image; defaults to the site card. */
   image?: string | null;
   type?: "website" | "article" | "profile";
@@ -43,24 +62,46 @@ type PageMetadataInput = {
   modifiedTime?: Date | null;
 };
 
+/** The `og:locale` value each locale maps to. */
+const OG_LOCALE: Record<Locale, string> = {
+  en: "en_US",
+  bn: "bn_BD",
+};
+
 export function pageMetadata({
   title,
   description,
   path,
+  locale: requestedLocale = DEFAULT_LOCALE,
   image,
   type = "website",
   index = true,
   publishedTime,
   modifiedTime,
 }: PageMetadataInput): Metadata {
-  const url = absoluteUrl(path);
+  const locale: Locale = isLocale(requestedLocale) ? requestedLocale : DEFAULT_LOCALE;
+  const url = absoluteUrl(localePath(locale, path));
   const desc = description?.trim() || undefined;
   const card = image ? absoluteUrl(image) : absoluteUrl(DEFAULT_OG_IMAGE);
+
+  // Every language of a page points at every other, itself included — which is
+  // what Google expects, and what stops the two translations being read as
+  // duplicate content competing with each other.
+  const languages = Object.fromEntries(
+    LOCALES.map((l) => [LOCALE_HREFLANG[l], absoluteUrl(localePath(l, path))]),
+  );
 
   return {
     title,
     description: desc,
-    alternates: { canonical: url },
+    alternates: {
+      canonical: url,
+      languages: {
+        ...languages,
+        // Tells a crawler which version to serve when it has no better signal.
+        "x-default": absoluteUrl(localePath(DEFAULT_LOCALE, path)),
+      },
+    },
     robots: index ? undefined : { index: false, follow: false },
     openGraph: {
       title,
@@ -68,7 +109,8 @@ export function pageMetadata({
       url,
       siteName: SITE_NAME,
       type,
-      locale: "en_US",
+      locale: OG_LOCALE[locale],
+      alternateLocale: LOCALES.filter((l) => l !== locale).map((l) => OG_LOCALE[l]),
       images: [{ url: card }],
       ...(publishedTime ? { publishedTime: publishedTime.toISOString() } : {}),
       ...(modifiedTime ? { modifiedTime: modifiedTime.toISOString() } : {}),

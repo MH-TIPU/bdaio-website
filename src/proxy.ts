@@ -1,30 +1,112 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { SESSION_COOKIE } from "@/lib/auth/constants";
+import {
+  LOCALE_COOKIE,
+  LOCALE_COOKIE_MAX_AGE,
+  localePath,
+  pickLocale,
+  splitLocale,
+} from "@/lib/i18n/config";
 
 // Next.js 16 renamed the `middleware` convention to `proxy` (Node runtime only).
 //
-// This performs an *optimistic* check only: it looks for the presence of the
-// session cookie to pre-filter obvious cases. It deliberately does NOT verify
+// Two jobs, in order: pre-filter requests to protected routes, and send a
+// locale-less public URL to a localized one.
+//
+// The auth part performs an *optimistic* check only: it looks for the presence of
+// the session cookie to pre-filter obvious cases. It deliberately does NOT verify
 // the session or touch the database, because proxy runs on every request
 // including prefetches. Real authorization lives in the DAL
 // (src/lib/auth/dal.ts), which every protected page and action goes through.
+//
+// Everything imported here must be dependency-free and synchronous: the proxy
+// bundle cannot be async, and importing anything that reaches `server-only`,
+// Prisma, or `jose` breaks every route with a 500 (§3.5). That is why the locale
+// helpers live in `src/lib/i18n/config.ts` and not in the i18n barrel, which
+// reads cookies through `next/headers`.
 
 const PROTECTED_PREFIXES = ["/dashboard", "/admin"];
 
+/**
+ * Never given a locale prefix, because they are not pages. `/uploads` is served
+ * by nginx in production but by a route handler in development.
+ */
+const LOCALE_EXEMPT_PREFIXES = ["/api", "/uploads", "/_next", "/_vercel"];
+
+/** Root-level metadata routes and static files; also never localized. */
+const LOCALE_EXEMPT_EXACT = [
+  "/robots.txt",
+  "/sitemap.xml",
+  "/manifest.webmanifest",
+  "/sw.js",
+  "/favicon.ico",
+];
+
+function hasPrefix(pathname: string, prefixes: string[]): boolean {
+  return prefixes.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+}
+
+function isLocaleExempt(pathname: string): boolean {
+  if (LOCALE_EXEMPT_EXACT.includes(pathname)) return true;
+  if (hasPrefix(pathname, LOCALE_EXEMPT_PREFIXES)) return true;
+  // The authenticated tree is localized by cookie, not by URL (§13.2).
+  if (hasPrefix(pathname, PROTECTED_PREFIXES)) return true;
+  // Anything with a file extension is an asset, not a page.
+  return /\.[a-zA-Z0-9]+$/.test(pathname);
+}
+
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const hasSessionCookie = Boolean(request.cookies.get(SESSION_COOKIE)?.value);
+  const cookieLocale = request.cookies.get(LOCALE_COOKIE)?.value;
 
-  const isProtected = PROTECTED_PREFIXES.some(
-    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
-  );
-
-  if (isProtected && !hasSessionCookie) {
-    const url = new URL("/login", request.nextUrl);
-    return NextResponse.redirect(url);
+  if (hasPrefix(pathname, PROTECTED_PREFIXES)) {
+    const hasSessionCookie = Boolean(request.cookies.get(SESSION_COOKIE)?.value);
+    if (!hasSessionCookie) {
+      const url = request.nextUrl.clone();
+      // Send them to sign-in in their own language, not the default.
+      url.pathname = localePath(
+        pickLocale({
+          cookie: cookieLocale,
+          acceptLanguage: request.headers.get("accept-language"),
+        }),
+        "/login",
+      );
+      url.search = "";
+      return NextResponse.redirect(url);
+    }
+    return NextResponse.next();
   }
 
-  return NextResponse.next();
+  if (isLocaleExempt(pathname)) return NextResponse.next();
+
+  const { locale } = splitLocale(pathname);
+
+  if (locale) {
+    const response = NextResponse.next();
+    // Keep the cookie in step with the URL, so a shared `/bn/...` link becomes
+    // this visitor's preference for their next unprefixed visit.
+    if (cookieLocale !== locale) {
+      response.cookies.set(LOCALE_COOKIE, locale, {
+        path: "/",
+        maxAge: LOCALE_COOKIE_MAX_AGE,
+        sameSite: "lax",
+        // Readable by the client toggle. There is nothing sensitive in a
+        // language preference, and the toggle needs to write it too.
+        httpOnly: false,
+      });
+    }
+    return response;
+  }
+
+  const url = request.nextUrl.clone();
+  url.pathname = localePath(
+    pickLocale({
+      cookie: cookieLocale,
+      acceptLanguage: request.headers.get("accept-language"),
+    }),
+    pathname,
+  );
+  return NextResponse.redirect(url);
 }
 
 export const config = {
