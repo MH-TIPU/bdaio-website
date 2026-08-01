@@ -204,6 +204,8 @@ export async function saveRound(
     endsAt: data.endsAt ?? null,
     regOpensAt: data.regOpensAt ?? null,
     regClosesAt: data.regClosesAt ?? null,
+    submissionsOpenAt: data.submissionsOpenAt ?? null,
+    submissionsCloseAt: data.submissionsCloseAt ?? null,
   };
 
   const round = id

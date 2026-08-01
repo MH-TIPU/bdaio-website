@@ -9,6 +9,7 @@ import {
 } from "@/server/results/actions";
 import { ScoreForm, type ScoreRow } from "@/components/results/ScoreForm";
 import { ImportScores } from "@/components/results/ImportScores";
+import { formatBytes } from "@/lib/storage/submissions";
 
 export const metadata: Metadata = { title: "Score round · Admin" };
 
@@ -49,6 +50,17 @@ export default async function ScoreRoundPage(
 
   const byRegistration = new Map(round.results.map((r) => [r.registrationId, r]));
 
+  // A judge cannot mark work they cannot read. Links go through
+  // /api/submissions/[id], which re-checks that this judge is assigned to this
+  // round — the page listing a link is never the authorisation.
+  const submissions = await db.submission.findMany({
+    where: { roundId: round.id },
+    select: { id: true, registrationId: true, originalName: true, sizeBytes: true },
+  });
+  const submissionByRegistration = new Map(
+    submissions.map((s) => [s.registrationId, s]),
+  );
+
   const rows: ScoreRow[] = registrations.map((registration) => {
     const result = byRegistration.get(registration.id);
     return {
@@ -59,6 +71,16 @@ export default async function ScoreRoundPage(
       marks: result?.marks != null ? String(result.marks) : "",
       medal: result?.medal ?? "",
       rank: result?.rank ?? null,
+      submission: (() => {
+        const found = submissionByRegistration.get(registration.id);
+        return found
+          ? {
+              id: found.id,
+              originalName: found.originalName,
+              size: formatBytes(found.sizeBytes),
+            }
+          : null;
+      })(),
     };
   });
 

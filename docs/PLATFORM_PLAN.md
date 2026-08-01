@@ -801,7 +801,19 @@ properly Bengali and must not be overwritten with demo copy.
       **Importing does not change publication state** — the same as saving the form. Verified: on a round that is
       *already* published the new marks are live at once, so the UI warns before the upload and the confirmation
       says so instead of repeating "hidden until published".
-- [ ] **`Submission` model + upload flow** — rounds cannot yet collect answer files.
+- [x] **`Submission` model + upload flow.** Off per round unless an organiser enables it, with an optional
+      open/close window; one submission per entrant per round, and re-uploading replaces it (the latest file is the
+      answer — no version history to store or leak).
+      **These files are not under `UPLOAD_DIR`.** nginx serves that directory directly (§3.6), so anything in it is
+      public to whoever has the URL, and a random filename is not access control for a student's exam answer.
+      They live under `SUBMISSION_DIR`, which nginx must never serve, and every read goes through
+      `/api/submissions/[id]` — owner, admin, or a judge **assigned to that round**; anyone else gets 404, not 403,
+      so an id cannot be probed. Unlike avatars these cannot be re-encoded, so validation is extension + magic
+      bytes, and safety comes from serving them as an attachment with `nosniff` and a sandboxed CSP, never inline.
+      Verified: a shell script renamed `.pdf` was refused; a path-traversal filename was reduced to its basename;
+      another approved entrant on the same round got 404; a judge of a *different* round got 404 and 200 once
+      assigned to this one; and closing the window removed the upload and withdraw forms while leaving the
+      entrant's own download.
 - [ ] **Site settings UI** — the `SiteSetting` model exists and is unused; no admin screen reads or writes it.
 - [ ] **Email background queue** (§3.6a) — sends are synchronous inside the request (~5s for a password reset).
       Fine now; move it before opening registration to a full cohort.

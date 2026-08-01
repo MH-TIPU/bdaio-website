@@ -10,10 +10,15 @@ const nextConfig: NextConfig = {
   // at runtime; add `images.remotePatterns` here when we serve remote images.
   experimental: {
     serverActions: {
-      // Server Actions cap request bodies at 1MB by default. Profile photos are
-      // limited to 1MB, so the envelope must be a little larger to fit the image
-      // plus the rest of the form. The 1MB image rule is enforced in the action.
-      bodySizeLimit: "2mb",
+      // Server Actions cap request bodies at 1MB by default, which is smaller
+      // than things we accept: profile photos (1MB) and, since Phase 7b, answer
+      // submissions (5MB). The envelope has to clear the largest of those plus
+      // form overhead.
+      //
+      // Raising it does not loosen either rule — both limits are enforced in the
+      // action, against the actual file size, so this only decides how large a
+      // request is *read* before being rejected.
+      bodySizeLimit: "6mb",
     },
   },
   // Phase 7 hardening. HSTS is deliberately absent: TLS terminates at nginx, and

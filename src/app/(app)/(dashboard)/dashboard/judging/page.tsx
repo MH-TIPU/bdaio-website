@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth/dal";
 import { ScoreForm, type ScoreRow } from "@/components/results/ScoreForm";
+import { formatBytes } from "@/lib/storage/submissions";
 
 export const metadata: Metadata = { title: "Judging" };
 
@@ -51,6 +52,16 @@ export default async function JudgingPage() {
         assignment.round.results.map((r) => [r.registrationId, r]),
       );
 
+      // A judge marks what they can read. The link is authorised again inside
+      // /api/submissions/[id] against this judge's round assignment.
+      const submissions = await db.submission.findMany({
+        where: { roundId: assignment.round.id },
+        select: { id: true, registrationId: true, originalName: true, sizeBytes: true },
+      });
+      const submissionByRegistration = new Map(
+        submissions.map((s) => [s.registrationId, s]),
+      );
+
       const rows: ScoreRow[] = registrations.map((registration) => {
         const result = byRegistration.get(registration.id);
         return {
@@ -61,6 +72,16 @@ export default async function JudgingPage() {
           marks: result?.marks != null ? String(result.marks) : "",
           medal: result?.medal ?? "",
           rank: result?.rank ?? null,
+          submission: (() => {
+            const found = submissionByRegistration.get(registration.id);
+            return found
+              ? {
+                  id: found.id,
+                  originalName: found.originalName,
+                  size: formatBytes(found.sizeBytes),
+                }
+              : null;
+          })(),
         };
       });
 

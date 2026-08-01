@@ -681,11 +681,48 @@ model Round {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
+  /// Submissions are off unless an organiser turns them on for this round: most
+  /// rounds are marked from an offline sitting and should not invite uploads.
+  allowSubmissions   Boolean   @default(false)
+  /// The window entrants may upload in. Separate from `startsAt`/`endsAt`, which
+  /// describe when the round is *sat* — a take-home task is often collected
+  /// hours after the paper closes.
+  submissionsOpenAt  DateTime?
+  submissionsCloseAt DateTime?
+
   registrations Registration[]
   judges        RoundJudge[]
   results       Result[]
+  submissions   Submission[]
 
   @@index([eventId])
+}
+
+/// An entrant's answer file for a round.
+///
+/// One row per (registration, round): re-uploading **replaces** the file, which
+/// matches how an exam works — the latest submission is the answer. There is
+/// deliberately no version history; keeping every draft of every entrant's work
+/// is a storage and privacy cost with no marking benefit.
+model Submission {
+  id             String       @id @default(cuid())
+  registrationId String
+  registration   Registration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  roundId        String
+  round          Round        @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  /// Server-generated name on disk. A client filename never reaches a path.
+  filename       String
+  /// What the entrant called it, shown in the UI and used as the download name.
+  originalName   String
+  mimeType       String
+  sizeBytes      Int
+  /// Optional note from the entrant — a Kaggle link, or what they attempted.
+  notes          String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([registrationId, roundId])
+  @@index([roundId])
 }
 
 /// A judge assigned to a specific round. Scoping by round is what stops a judge
@@ -740,7 +777,8 @@ model Registration {
   createdAt DateTime           @default(now())
   updatedAt DateTime           @updatedAt
 
-  results   Result[]
+  results     Result[]
+  submissions Submission[]
 
   @@unique([userId, eventId, roundId])
   @@index([eventId])

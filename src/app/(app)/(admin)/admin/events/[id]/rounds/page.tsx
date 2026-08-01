@@ -105,6 +105,9 @@ export default async function EventRoundsPage(
                     mode: round.mode,
                     venue: round.venue ?? "",
                     startsAt: toLocalInput(round.startsAt),
+                    allowSubmissions: round.allowSubmissions,
+                    submissionsOpenAt: toLocalInput(round.submissionsOpenAt),
+                    submissionsCloseAt: toLocalInput(round.submissionsCloseAt),
                   }}
                 />
               </div>
@@ -123,6 +126,9 @@ export default async function EventRoundsPage(
                 mode: event.mode,
                 venue: "",
                 startsAt: "",
+                allowSubmissions: false,
+                submissionsOpenAt: "",
+                submissionsCloseAt: "",
               }}
             />
           </div>

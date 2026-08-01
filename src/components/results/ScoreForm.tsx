@@ -13,6 +13,8 @@ export type ScoreRow = {
   marks: string;
   medal: string;
   rank: number | null;
+  /** The entrant's answer file, when the round collects them. */
+  submission: { id: string; originalName: string; size: string } | null;
 };
 
 /**
@@ -86,6 +88,17 @@ export function ScoreForm({
                     {row.email}
                     {row.institution ? ` · ${row.institution}` : ""}
                   </p>
+                  {row.submission && (
+                    <p className="mt-0.5 text-xs">
+                      <a
+                        href={`/api/submissions/${row.submission.id}`}
+                        className="font-medium text-bdaio-blue hover:underline"
+                      >
+                        ⬇ {row.submission.originalName}
+                      </a>{" "}
+                      <span className="text-slate-400">({row.submission.size})</span>
+                    </p>
+                  )}
                   {state?.errors?.[row.registrationId] && (
                     <p className="text-xs text-red-600">
                       {state.errors[row.registrationId]![0]}

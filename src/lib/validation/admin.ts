@@ -113,6 +113,14 @@ export const roundSchema = z.object({
   endsAt: optionalDate,
   regOpensAt: optionalDate,
   regClosesAt: optionalDate,
+  // An unchecked checkbox submits nothing, so absence means "off" — the right
+  // default for a round that should not invite uploads.
+  allowSubmissions: z
+    .union([z.literal("on"), z.literal("")])
+    .optional()
+    .transform((v) => v === "on"),
+  submissionsOpenAt: optionalDate,
+  submissionsCloseAt: optionalDate,
 });
 
 export type AdminFormState =

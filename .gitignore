@@ -49,3 +49,7 @@ next-env.d.ts
 
 # local file uploads (served by nginx in production)
 /uploads
+
+# Submission files (answer uploads). Never served by nginx — reads go through
+# an authenticated route handler.
+/private-uploads
