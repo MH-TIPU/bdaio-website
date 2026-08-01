@@ -5,6 +5,8 @@ import { SponsorsSection } from "@/components/Sponsors";
 import { JourneySection } from "@/components/JourneySection";
 import { SITE_TITLE, pageMetadata } from "@/lib/seo";
 import { DESCRIPTION } from "@/lib/rootMetadata";
+import { notFound } from "next/navigation";
+import { getDictionary, isLocale } from "@/lib/i18n";
 
 export async function generateMetadata(
   { params }: PageProps<"/[locale]">,
@@ -20,14 +22,18 @@ export async function generateMetadata(
   });
 }
 
-export default function HomePage() {
+export default async function HomePage({ params }: PageProps<"/[locale]">) {
+  const { locale } = await params;
+  if (!isLocale(locale)) notFound();
+  const t = getDictionary(locale).pages.home;
+
   return (
     <>
       <HeroSection />
-      <CelebrationSection />
-      <IntroSection />
-      <MissionSection />
-      <JourneySection />
+      <CelebrationSection t={t} />
+      <IntroSection t={t} />
+      <MissionSection t={t} />
+      <JourneySection t={t} />
       <SponsorsSection />
     </>
   );

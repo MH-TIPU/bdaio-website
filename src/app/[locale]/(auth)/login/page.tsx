@@ -3,30 +3,35 @@ import { Link } from "@/components/Link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/dal";
 import { LoginForm } from "./LoginForm";
+import { dictionaryFor } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
 
 export async function generateMetadata(
   { params }: PageProps<"/[locale]/login">,
 ): Promise<Metadata> {
   const { locale } = await params;
+  const t = dictionaryFor(locale).auth;
   return pageMetadata({
     locale,
     path: "/login",
-    title: "Sign in",
-    description: "Sign in to your BdAIO account."
+    title: t.signInTitle,
+    description: t.signInSubtitle,
   });
 }
 
 export default async function LoginPage(props: PageProps<"/[locale]/login">) {
   if (await getCurrentUser()) redirect("/dashboard");
 
+  const { locale } = await props.params;
+  const dict = dictionaryFor(locale);
+  const t = dict.auth;
   const { reset } = await props.searchParams;
 
   return (
     <>
-      <h1 className="text-xl font-bold text-slate-900">Sign in</h1>
+      <h1 className="text-xl font-bold text-slate-900">{t.signInTitle}</h1>
       <p className="mt-1.5 text-sm text-slate-600">
-        Welcome back to BdAIO.
+        {t.signInSubtitle}
       </p>
 
       {reset === "1" && (
@@ -34,12 +39,12 @@ export default async function LoginPage(props: PageProps<"/[locale]/login">) {
           role="status"
           className="mt-4 rounded-lg bg-emerald-50 px-3 py-2.5 text-sm text-emerald-800"
         >
-          Your password has been updated. Please sign in.
+          {t.passwordUpdated}
         </p>
       )}
 
       <div className="mt-6">
-        <LoginForm />
+        <LoginForm t={t} />
       </div>
 
       <p className="mt-4 text-center text-sm">
@@ -47,17 +52,17 @@ export default async function LoginPage(props: PageProps<"/[locale]/login">) {
           href="/forgot-password"
           className="font-medium text-slate-600 hover:text-bdaio-blue hover:underline"
         >
-          Forgot your password?
+          {t.forgotPassword}
         </Link>
       </p>
 
       <p className="mt-4 text-center text-sm text-slate-600">
-        New to BdAIO?{" "}
+        {t.newHere}{" "}
         <Link
           href="/register"
           className="font-semibold text-bdaio-blue hover:underline"
         >
-          Create an account
+          {dict.common.signUp}
         </Link>
       </p>
     </>

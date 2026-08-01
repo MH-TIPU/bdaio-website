@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Link } from "@/components/Link";
 import { ForgotPasswordForm } from "./ForgotPasswordForm";
+import { dictionaryFor } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
 
 export async function generateMetadata(
@@ -14,22 +15,28 @@ export async function generateMetadata(
   });
 }
 
-export default function ForgotPasswordPage() {
+export default async function ForgotPasswordPage({
+  params,
+}: PageProps<"/[locale]/forgot-password">) {
+  const { locale } = await params;
+  const dict = dictionaryFor(locale);
+  const t = dict.auth;
+
   return (
     <>
-      <h1 className="text-xl font-bold text-slate-900">Forgot your password?</h1>
+      <h1 className="text-xl font-bold text-slate-900">{t.forgotTitle}</h1>
       <p className="mt-1.5 text-sm text-slate-600">
-        Enter your email and we&rsquo;ll send you a link to reset it.
+        {t.forgotBody}
       </p>
 
       <div className="mt-6">
-        <ForgotPasswordForm />
+        <ForgotPasswordForm t={t} />
       </div>
 
       <p className="mt-6 text-center text-sm text-slate-600">
-        Remembered it?{" "}
+        {t.rememberedIt}{" "}
         <Link href="/login" className="font-semibold text-bdaio-blue hover:underline">
-          Sign in
+          {dict.common.signIn}
         </Link>
       </p>
     </>

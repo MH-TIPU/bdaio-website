@@ -70,6 +70,20 @@ export const en = {
     haveAccount: "Already have an account?",
     // Kept identical for an unknown email and a wrong password — §3.5.
     invalidCredentials: "Incorrect email or password.",
+    signingIn: "Signing in…",
+    passwordUpdated: "Your password has been updated. Please sign in.",
+    forgotTitle: "Forgot your password?",
+    forgotBody: "Enter your email and we\u2019ll send you a link to reset it.",
+    rememberedIt: "Remembered it?",
+    registerSubtitle: "One account for every BdAIO olympiad, workshop, and course.",
+    passwordHint: "At least 8 characters, with a letter and a number.",
+    creatingAccount: "Creating account…",
+    createAccount: "Create account",
+    sending: "Sending…",
+    sendResetLink: "Send reset link",
+    newPasswordTitle: "Choose a new password",
+    newPasswordBody: "Signing in elsewhere will end once your password changes.",
+    savePassword: "Save password",
   },
 
   /**
@@ -136,6 +150,65 @@ export const en = {
       emailLabel: "E-Mail",
       officeLabel: "Office",
       office: "Green City Center, Level 12, 758 Satmasjid Road, Dhaka 1209, Bangladesh",
+    },
+
+    home: {
+      introTitle: "What is BdAIO?",
+      introBody:
+        "The Bangladesh Artificial Intelligence Olympiad (BdAIO) is the premier national competition designed to discover, groom, and inspire young minds in AI. Students up to Grade 12 showcase their skills in Python coding, machine learning models, and algorithm development. BdAIO acts as the official pathway to represent the country on the global stage, including IOAI and IAIO.",
+      introCta: "Learn More About Us",
+      missionTitle: "Our Mission",
+      missionBody:
+        "Inspire and enable young minds to master Artificial Intelligence through structured competitive platforms, community mentorship, and real-world AI modeling tasks.",
+      gatewayTitle: "International Gateway",
+      gatewayBody:
+        "BdAIO is the official national qualifying event where top-performing students are selected to represent Bangladesh globally at the International AI Olympiad (IAIO) and IOAI.",
+
+      achievementBadge: "Historic Achievement",
+      achievementTitle: "Bangladesh at APOAI 2026!",
+      /** Split so the medal count can stay visually emphasised in both languages. */
+      achievementLead: "Team Bangladesh has achieved an extraordinary milestone at the",
+      achievementEvent: "Asia-Pacific Olympiad in Artificial Intelligence (APOAI) 2026",
+      achievementWinning: ", winning",
+      achievementMedals: "3 Gold Medals",
+      goldMedalist: "Gold Medalist",
+
+      journeyTitle: "Olympiad Journey",
+      journeyLead:
+        "Follow the path from registration to representing Bangladesh on the global stage.",
+      journeyCommunity: "Connect with the Community",
+      journeyCommunityBody:
+        "Join our active community of learners, mentors, and past winners on WhatsApp. Get help, resources, and instant updates!",
+      journeyCommunityCta: "Join Our WhatsApp Community",
+      /** Steps keep their numbers and links in code; only the words are here. */
+      journeySteps: [
+        {
+          title: "Register",
+          description: "Sign up and register for Quiz or AI Problem Solving.",
+          button: "How to Register",
+        },
+        {
+          title: "Qualify",
+          description: "Compete and pass the online/regional rounds from 2 – 10 May 2026.",
+          button: "View Rules",
+        },
+        {
+          title: "Compete",
+          description: "Ace the national-level round in Dhaka on 16 May 2026.",
+          button: "View Syllabus",
+        },
+        {
+          title: "Selection",
+          description:
+            "Join the intensive 3-day Selection Camp & Grooming from 18 – 20 May 2026.",
+          button: "Event Schedule",
+        },
+        {
+          title: "Represent",
+          description: "Represent Bangladesh globally at IAIO and IOAI.",
+          button: "Our Archives",
+        },
+      ],
     },
 
     syllabus: {

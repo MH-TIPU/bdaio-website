@@ -4,8 +4,9 @@ import { useActionState } from "react";
 import { requestPasswordReset } from "@/server/auth/actions";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
+import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 
-export function ForgotPasswordForm() {
+export function ForgotPasswordForm({ t }: { t: Dictionary["auth"] }) {
   const [state, action, pending] = useActionState(requestPasswordReset, undefined);
 
   // On success the message is deliberately neutral, so show it on its own.
@@ -23,7 +24,7 @@ export function ForgotPasswordForm() {
   return (
     <form action={action} className="space-y-4" noValidate>
       <Field
-        label="Email"
+        label={t.email}
         name="email"
         type="email"
         autoComplete="email"
@@ -31,7 +32,7 @@ export function ForgotPasswordForm() {
         errors={state?.errors?.email}
       />
       <Button type="submit" disabled={pending} className="mt-2">
-        {pending ? "Sending…" : "Send reset link"}
+        {pending ? t.sending : t.sendResetLink}
       </Button>
     </form>
   );

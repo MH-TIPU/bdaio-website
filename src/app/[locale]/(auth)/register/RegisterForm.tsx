@@ -4,8 +4,9 @@ import { useActionState } from "react";
 import { register } from "@/server/auth/actions";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
+import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 
-export function RegisterForm() {
+export function RegisterForm({ t }: { t: Dictionary["auth"] }) {
   const [state, action, pending] = useActionState(register, undefined);
 
   return (
@@ -20,7 +21,7 @@ export function RegisterForm() {
       )}
 
       <Field
-        label="Full name"
+        label={t.fullName}
         name="fullName"
         type="text"
         autoComplete="name"
@@ -30,7 +31,7 @@ export function RegisterForm() {
       />
 
       <Field
-        label="Email"
+        label={t.email}
         name="email"
         type="email"
         autoComplete="email"
@@ -40,17 +41,17 @@ export function RegisterForm() {
       />
 
       <Field
-        label="Password"
+        label={t.password}
         name="password"
         type="password"
         autoComplete="new-password"
         required
-        hint="At least 8 characters, with a letter and a number."
+        hint={t.passwordHint}
         errors={state?.errors?.password}
       />
 
       <Button type="submit" disabled={pending} className="mt-2">
-        {pending ? "Creating account…" : "Create account"}
+        {pending ? t.creatingAccount : t.createAccount}
       </Button>
     </form>
   );

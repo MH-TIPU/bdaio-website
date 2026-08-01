@@ -1,9 +1,12 @@
 "use client";
+import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 
 import { useEffect } from "react";
 import confetti from "canvas-confetti";
 
-export function CelebrationSection() {
+type Home = Dictionary["pages"]["home"];
+
+export function CelebrationSection({ t }: { t: Home }) {
   const fireConfetti = () => {
     // 1. Initial Left side burst
     confetti({
@@ -49,22 +52,22 @@ export function CelebrationSection() {
         
         {/* Top Decorative Badge */}
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold uppercase tracking-wider mb-6">
-          <span>🏆</span> Historic Achievement
+          <span>🏆</span> {t.achievementBadge}
         </div>
 
         {/* Title Section */}
         <h2 className="text-3xl font-black tracking-tight text-[#1e5a8a] sm:text-4xl mb-4">
-          Bangladesh at APOAI 2026!
+          {t.achievementTitle}
         </h2>
         
         <p className="mx-auto mb-10 max-w-2xl text-base sm:text-lg leading-relaxed text-slate-600">
-          Team Bangladesh has achieved an extraordinary milestone at the{" "}
+          {t.achievementLead}{" "}
           <span className="font-semibold text-slate-900">
-            Asia-Pacific Olympiad in Artificial Intelligence (APOAI) 2026
+            {t.achievementEvent}
           </span>
-          , winning{" "}
+          {t.achievementWinning}{" "}
           <span className="font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded">
-            3 Gold Medals
+            {t.achievementMedals}
           </span>
           !
         </p>
@@ -86,7 +89,7 @@ export function CelebrationSection() {
               </div>
               <h3 className="text-lg font-bold text-[#1e5a8a]">{medalist.name}</h3>
               <p className="text-xs font-semibold text-amber-600 uppercase tracking-wider mt-1">
-                Gold Medalist
+                {t.goldMedalist}
               </p>
             </div>
           ))}

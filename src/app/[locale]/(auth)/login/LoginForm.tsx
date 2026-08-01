@@ -4,8 +4,9 @@ import { useActionState } from "react";
 import { login } from "@/server/auth/actions";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
+import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 
-export function LoginForm() {
+export function LoginForm({ t }: { t: Dictionary["auth"] }) {
   const [state, action, pending] = useActionState(login, undefined);
 
   return (
@@ -20,7 +21,7 @@ export function LoginForm() {
       )}
 
       <Field
-        label="Email"
+        label={t.email}
         name="email"
         type="email"
         autoComplete="email"
@@ -30,7 +31,7 @@ export function LoginForm() {
       />
 
       <Field
-        label="Password"
+        label={t.password}
         name="password"
         type="password"
         autoComplete="current-password"
@@ -39,7 +40,7 @@ export function LoginForm() {
       />
 
       <Button type="submit" disabled={pending} className="mt-2">
-        {pending ? "Signing in…" : "Sign in"}
+        {pending ? t.signingIn : t.signInTitle}
       </Button>
     </form>
   );
