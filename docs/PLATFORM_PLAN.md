@@ -717,15 +717,33 @@ Nothing here is app code. The platform is built and cannot yet be reached by any
 
 ### 13.2 Phase 7b — i18n
 
-The only Phase 7 item not in 7a, deliberately: it touches all 66 pages, so it is its own slice.
+The only Phase 7 item not in 7a, deliberately: it touches all 66 pages, so it is its own slice. **Started** — the
+content layer and locale negotiation are in; the routing move is the next commit.
 
-- [ ] `src/app/[locale]/` with `generateStaticParams` for `en`/`bn` — keeps public pages static and gives each
-      language a real URL, which a locale cookie cannot (a cookie read in the root layout makes every page
-      dynamic and loses the §3.4 `revalidate` behaviour).
-- [ ] `src/lib/i18n/{en,bn}.ts` dictionaries + a typed `t()`; one key set, no per-page ad-hoc strings.
-- [ ] Language toggle in the header, persisted, defaulting from `Accept-Language`.
+**Decided while building the foundation:** the two route trees are localized *differently*, because they have
+different constraints.
+- **Public pages → `[locale]` segments.** Each language gets a real URL and an `hreflang` pair, and the pages stay
+  statically rendered. A cookie cannot do this: read in the root layout it makes every page dynamic and loses the
+  §3.4 `revalidate` behaviour, and it gives Bengali no indexable URL.
+- **Dashboard and admin → the locale cookie.** They read the session, so they are already `ƒ (Dynamic)` and a
+  cookie costs nothing — and nobody shares a link to their own dashboard in a particular language. Putting them
+  under `[locale]` would double the authenticated route surface for no benefit.
+
+- [x] `src/lib/i18n/config.ts` — locales, cookie, `splitLocale`/`localePath`, and `Accept-Language` negotiation.
+      **Dependency-free**, so `proxy.ts` can import it (§3.5: the proxy bundle cannot be async). Hand-rolled rather
+      than adding `negotiator` + `@formatjs/intl-localematcher` for two locales.
+- [x] `src/lib/i18n/dictionaries/{en,bn}.ts` — chrome, shared UI, and auth. `bn` is typed as the `Dictionary`
+      derived from `en`, so **adding an English key fails the build until it is translated** — the mechanism that
+      stops Bengali drifting behind (§11).
+- [x] `getDictionary()` + `getSessionDictionary()` for the cookie-based authenticated surface.
+- [ ] Move public routes under `src/app/[locale]/` with `generateStaticParams`; locale redirect in `proxy.ts`.
+      One atomic commit — a half-moved tree means `/bn/...` 404s on whatever was left behind.
+- [ ] Locale-aware `Link` wrapper, and the language toggle in the header.
 - [ ] `alternates.languages` in `pageMetadata()` and `hreflang` pairs in the sitemap.
-- [ ] Translate: site chrome, all forms and validation messages, the dashboard, and the admin console.
+- [ ] Translate the rest: page prose, all form and validation messages, the dashboard, and the admin console.
+      Note that page prose (about, rules, syllabus, guidelines) is **content, not UI** — the guideline and FAQ are
+      already Bengali, but the rules and syllabus are not, and machine-translating formal competition rules is a
+      call for the team, not for me.
 - [ ] Transactional email and SMS templates in both languages (the SMS 160-character budget is GSM-7; Bengali is
       UCS-2 at 70 characters, so Bengali texts cost more — decide per template).
 
