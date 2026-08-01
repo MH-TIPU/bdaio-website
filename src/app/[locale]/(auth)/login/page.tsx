@@ -1,13 +1,21 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/dal";
 import { LoginForm } from "./LoginForm";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Sign in",
-  description: "Sign in to your BdAIO account.",
-};
+export async function generateMetadata(
+  { params }: PageProps<"/[locale]/login">,
+): Promise<Metadata> {
+  const { locale } = await params;
+  return pageMetadata({
+    locale,
+    path: "/login",
+    title: "Sign in",
+    description: "Sign in to your BdAIO account."
+  });
+}
 
 export default async function LoginPage(props: PageProps<"/[locale]/login">) {
   if (await getCurrentUser()) redirect("/dashboard");

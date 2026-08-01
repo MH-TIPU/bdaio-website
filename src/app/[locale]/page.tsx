@@ -3,13 +3,22 @@ import { HeroSection, IntroSection, MissionSection } from "@/components/HomeSect
 import { CelebrationSection } from "@/components/CelebrationSection";
 import { SponsorsSection } from "@/components/Sponsors";
 import { JourneySection } from "@/components/JourneySection";
-import { absoluteUrl } from "@/lib/seo";
+import { SITE_TITLE, pageMetadata } from "@/lib/seo";
+import { DESCRIPTION } from "@/lib/rootMetadata";
 
-export const metadata: Metadata = {
-  // Title and description come from the root layout; the canonical URL is set
-  // here so the home page has exactly one address in search results.
-  alternates: { canonical: absoluteUrl("/") },
-};
+export async function generateMetadata(
+  { params }: PageProps<"/[locale]">,
+): Promise<Metadata> {
+  const { locale } = await params;
+  // Title and description match the site defaults; this exists so the home page
+  // has exactly one canonical address per language, with hreflang pairs.
+  return pageMetadata({
+    locale,
+    path: "/",
+    title: SITE_TITLE,
+    description: DESCRIPTION,
+  });
+}
 
 export default function HomePage() {
   return (

@@ -1,10 +1,18 @@
 import type { Metadata } from "next";
 import { Accordion } from "@/components/Accordion";
 import { db } from "@/lib/db";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "FAQ",
-};
+export async function generateMetadata(
+  { params }: PageProps<"/[locale]/faq">,
+): Promise<Metadata> {
+  const { locale } = await params;
+  return pageMetadata({
+    locale,
+    path: "/faq",
+    title: "FAQ"
+  });
+}
 
 // Editable in the admin panel, so this must not freeze at build time.
 export const revalidate = 60;

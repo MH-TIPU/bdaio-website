@@ -1,17 +1,24 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import { db } from "@/lib/db";
 import { InstitutionSearch } from "./InstitutionSearch";
-import { absoluteUrl } from "@/lib/seo";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Institutions & Clubs",
-  description:
-    "Schools, colleges, universities, and AI clubs taking part in BdAIO across Bangladesh.",
-  // Every filter combination is a distinct URL for the same directory, so they
-  // all canonicalise to the unfiltered page.
-  alternates: { canonical: absoluteUrl("/institutions") },
-};
+export async function generateMetadata(
+  { params }: PageProps<"/[locale]/institutions">,
+): Promise<Metadata> {
+  const { locale } = await params;
+  // `path` carries no query string, so every filter combination canonicalises to
+  // the unfiltered directory — otherwise each division × district pair would be
+  // its own indexable near-duplicate.
+  return pageMetadata({
+    locale,
+    path: "/institutions",
+    title: "Institutions & Clubs",
+    description:
+      "Schools, colleges, universities, and AI clubs taking part in BdAIO across Bangladesh.",
+  });
+}
 
 // Filters come from the query string, so this page must render per request.
 export const dynamic = "force-dynamic";

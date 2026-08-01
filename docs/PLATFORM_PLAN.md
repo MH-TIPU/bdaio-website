@@ -7,8 +7,10 @@
 > This is written for **me, the implementer** — decisions are made, not offered. Where a call is really the
 > team's (pricing, policy), I state the **default I'm building to** and flag it; override anytime and I adjust.
 >
-> **Status:** **Phases 0–7a built.** Phases 0–5 are committed and pushed to `main` (and `prod`); **Phase 6 is
-> committed but unpushed; Phase 7a is complete and uncommitted.** Remaining: **7b i18n**, 8 ShurjoPay, 9 LMS.
+> **Status:** **Phases 0–7a built and pushed to `main`. Phase 7b (i18n) is largely done** — the public site is
+> bilingual end to end; what remains is translating page bodies, the dashboard, and the admin console (§13.2).
+> Remaining phases: **8 ShurjoPay** and **9 LMS** — *both deferred by the team on 2026‑08‑01*, along with VPS
+> provisioning, in favour of finishing the development work first (§13).
 > **Owner:** Engineering (CTO). **Updated:** 2026‑08‑01.
 >
 > **Picking this up in a fresh session?** Read §3.4–§3.12 first — they record the Next 16 traps and the security
@@ -745,9 +747,13 @@ different constraints.
       is the usual bug and the reason people stop using a toggle.
 - [x] `hreflang` pairs for every URL in `sitemap.xml`, and `alternates.languages` + `x-default` +
       `og:locale:alternate` from `pageMetadata()`.
-- [ ] **`hreflang` link tags on the statically-titled pages.** The six pages that call `pageMetadata()` emit them;
-      the ~16 list and marketing pages still use a plain `export const metadata`, so they have a title but no
-      canonical or alternates. The sitemap covers them, which is the stronger signal, but the tags should follow.
+- [x] `hreflang` link tags on every public page: the 22 pages that carried a plain `export const metadata` now
+      route through `pageMetadata()`, so each emits a locale-correct canonical, `hreflang` pairs, `x-default`,
+      and `og:locale`. The two token-bearing auth pages stay static and explicitly `noindex`.
+- [x] Locale-aware `Link` (`src/components/Link.tsx`). Internal `href="/events"` still *worked* through the
+      proxy redirect, but every navigation cost a round trip and prefetch cannot follow a redirect. It takes the
+      locale from the current pathname, so it is a drop-in swap and degrades correctly in the authenticated tree,
+      where there is no prefix — which is what makes it safe in components shared by both.
 - [ ] Translate the rest: page prose, form and validation messages, the dashboard, and the admin console. The
       dictionary and the chrome are done; the page bodies still render English in both trees.
       Prose is **content, not UI** — demo-quality Bengali is fine here since the team replaces copy in production,

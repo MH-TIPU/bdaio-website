@@ -1,12 +1,20 @@
 import type { Metadata } from "next";
 import { db } from "@/lib/db";
 import { EventCard } from "@/components/events/EventCard";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Workshops & Courses",
-  description:
-    "Hands-on BdAIO workshops, seminars, courses, and bootcamps — online and in person across Bangladesh.",
-};
+export async function generateMetadata(
+  { params }: PageProps<"/[locale]/workshops">,
+): Promise<Metadata> {
+  const { locale } = await params;
+  return pageMetadata({
+    locale,
+    path: "/workshops",
+    title: "Workshops & Courses",
+    description:
+    "Hands-on BdAIO workshops, seminars, courses, and bootcamps — online and in person across Bangladesh."
+  });
+}
 
 // Database-driven: re-render at most once a minute rather than freezing at build.
 export const revalidate = 60;

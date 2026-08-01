@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import { useActionState } from "react";
 import { registerForEvent } from "@/server/registrations/actions";
 import { Button } from "@/components/ui/Button";

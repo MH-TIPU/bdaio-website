@@ -1,11 +1,19 @@
 import type { Metadata } from "next";
 import { getCurrentUser } from "@/lib/auth/dal";
 import { visibleAnnouncements } from "@/lib/cms/announcements";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Announcements",
-  description: "Latest notices and updates from the Bangladesh AI Olympiad.",
-};
+export async function generateMetadata(
+  { params }: PageProps<"/[locale]/announcements">,
+): Promise<Metadata> {
+  const { locale } = await params;
+  return pageMetadata({
+    locale,
+    path: "/announcements",
+    title: "Announcements",
+    description: "Latest notices and updates from the Bangladesh AI Olympiad."
+  });
+}
 
 // Depends on who is signed in, so it cannot be prerendered.
 export const dynamic = "force-dynamic";

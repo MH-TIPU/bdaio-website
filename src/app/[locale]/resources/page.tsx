@@ -1,13 +1,21 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/dal";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Resources",
-  description:
-    "Syllabuses, guidelines, past problems, and learning materials for the Bangladesh AI Olympiad.",
-};
+export async function generateMetadata(
+  { params }: PageProps<"/[locale]/resources">,
+): Promise<Metadata> {
+  const { locale } = await params;
+  return pageMetadata({
+    locale,
+    path: "/resources",
+    title: "Resources",
+    description:
+    "Syllabuses, guidelines, past problems, and learning materials for the Bangladesh AI Olympiad."
+  });
+}
 
 const KIND_LABELS = {
   SYLLABUS: "Syllabus",

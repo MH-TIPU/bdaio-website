@@ -1,8 +1,18 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import { ForgotPasswordForm } from "./ForgotPasswordForm";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = { title: "Forgot password" };
+export async function generateMetadata(
+  { params }: PageProps<"/[locale]/forgot-password">,
+): Promise<Metadata> {
+  const { locale } = await params;
+  return pageMetadata({
+    locale,
+    path: "/forgot-password",
+    title: "Forgot password"
+  });
+}
 
 export default function ForgotPasswordPage() {
   return (

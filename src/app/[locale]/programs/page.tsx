@@ -1,12 +1,20 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import { db } from "@/lib/db";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Programs",
-  description:
-    "The olympiads, competitions, and workshop series run by BdAIO — and the international competitions we nominate students to.",
-};
+export async function generateMetadata(
+  { params }: PageProps<"/[locale]/programs">,
+): Promise<Metadata> {
+  const { locale } = await params;
+  return pageMetadata({
+    locale,
+    path: "/programs",
+    title: "Programs",
+    description:
+    "The olympiads, competitions, and workshop series run by BdAIO — and the international competitions we nominate students to."
+  });
+}
 
 // Database-driven: re-render at most once a minute rather than freezing at build.
 export const revalidate = 60;

@@ -1,13 +1,21 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import { getCurrentUser } from "@/lib/auth/dal";
 import { RegisterInstitutionForm } from "./RegisterInstitutionForm";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Register your institution",
-  description:
-    "Register your school, college, university, or AI club to take part in BdAIO.",
-};
+export async function generateMetadata(
+  { params }: PageProps<"/[locale]/institutions/register">,
+): Promise<Metadata> {
+  const { locale } = await params;
+  return pageMetadata({
+    locale,
+    path: "/institutions/register",
+    title: "Register your institution",
+    description:
+    "Register your school, college, university, or AI club to take part in BdAIO."
+  });
+}
 
 export default async function RegisterInstitutionPage() {
   const user = await getCurrentUser();

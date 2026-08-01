@@ -1,12 +1,20 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import { db } from "@/lib/db";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Results",
-  description:
-    "Published results and medallists from the Bangladesh AI Olympiad and related competitions.",
-};
+export async function generateMetadata(
+  { params }: PageProps<"/[locale]/results">,
+): Promise<Metadata> {
+  const { locale } = await params;
+  return pageMetadata({
+    locale,
+    path: "/results",
+    title: "Results",
+    description:
+    "Published results and medallists from the Bangladesh AI Olympiad and related competitions."
+  });
+}
 
 export const revalidate = 60;
 

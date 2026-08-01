@@ -1,14 +1,22 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/dal";
 import { RegisterForm } from "./RegisterForm";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Create an account",
-  description:
-    "Create a BdAIO account to register for the Bangladesh AI Olympiad, workshops, and more.",
-};
+export async function generateMetadata(
+  { params }: PageProps<"/[locale]/register">,
+): Promise<Metadata> {
+  const { locale } = await params;
+  return pageMetadata({
+    locale,
+    path: "/register",
+    title: "Create an account",
+    description:
+    "Create a BdAIO account to register for the Bangladesh AI Olympiad, workshops, and more."
+  });
+}
 
 export default async function RegisterPage() {
   if (await getCurrentUser()) redirect("/dashboard");

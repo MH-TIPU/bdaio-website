@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import { ResetPasswordForm } from "./ResetPasswordForm";
 
-export const metadata: Metadata = { title: "Reset password" };
+export const metadata: Metadata = { title: "Reset password",
+  // Carries a single-use token in the query string; robots.ts disallows it too.
+  robots: { index: false, follow: false },
+};
 
 export default async function ResetPasswordPage(
   props: PageProps<"/[locale]/reset-password">,

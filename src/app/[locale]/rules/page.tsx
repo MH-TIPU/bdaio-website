@@ -1,9 +1,17 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Link } from "@/components/Link";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Competition Rules",
-};
+export async function generateMetadata(
+  { params }: PageProps<"/[locale]/rules">,
+): Promise<Metadata> {
+  const { locale } = await params;
+  return pageMetadata({
+    locale,
+    path: "/rules",
+    title: "Competition Rules"
+  });
+}
 
 export default function RulesPage() {
   return (

@@ -1,9 +1,17 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Link } from "@/components/Link";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Participation Guideline",
-};
+export async function generateMetadata(
+  { params }: PageProps<"/[locale]/participation-guideline">,
+): Promise<Metadata> {
+  const { locale } = await params;
+  return pageMetadata({
+    locale,
+    path: "/participation-guideline",
+    title: "Participation Guideline"
+  });
+}
 
 function ExternalLink({ href, children }: { href: string; children: React.ReactNode }) {
   return (

@@ -1,9 +1,17 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Results",
-};
+export async function generateMetadata(
+  { params }: PageProps<"/[locale]/result">,
+): Promise<Metadata> {
+  const { locale } = await params;
+  return pageMetadata({
+    locale,
+    path: "/result",
+    title: "Results"
+  });
+}
 
 const mockStandings = [
   { rank: 1, name: "Misbah Uddin Inan", institution: "Notre Dame College", category: "AI Problem Solving", award: "Gold Medal & IOAI Team" },

@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import { verifyEmailToken } from "@/server/auth/actions";
 
-export const metadata: Metadata = { title: "Verify your email" };
+export const metadata: Metadata = { title: "Verify your email",
+  // Carries a single-use token in the query string; robots.ts disallows it too.
+  robots: { index: false, follow: false },
+};
 
 const MESSAGES = {
   verified: {

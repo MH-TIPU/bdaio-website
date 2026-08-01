@@ -1,12 +1,20 @@
 import type { Metadata } from "next";
 import { db } from "@/lib/db";
 import { EventCard } from "@/components/events/EventCard";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Events",
-  description:
-    "Upcoming BdAIO olympiad rounds, workshops, seminars, and courses — and the archive of past events.",
-};
+export async function generateMetadata(
+  { params }: PageProps<"/[locale]/events">,
+): Promise<Metadata> {
+  const { locale } = await params;
+  return pageMetadata({
+    locale,
+    path: "/events",
+    title: "Events",
+    description:
+    "Upcoming BdAIO olympiad rounds, workshops, seminars, and courses — and the archive of past events."
+  });
+}
 
 // This list is database-driven, so it must not be frozen at build time.
 // Re-render at most once a minute; admin changes appear without a redeploy.

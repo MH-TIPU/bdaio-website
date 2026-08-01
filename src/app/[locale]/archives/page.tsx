@@ -1,10 +1,18 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { galleryMedia } from "@/data/media";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Archives",
-};
+export async function generateMetadata(
+  { params }: PageProps<"/[locale]/archives">,
+): Promise<Metadata> {
+  const { locale } = await params;
+  return pageMetadata({
+    locale,
+    path: "/archives",
+    title: "Archives"
+  });
+}
 
 const pastEvents = [
   {

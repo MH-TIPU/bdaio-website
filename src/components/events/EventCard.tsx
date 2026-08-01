@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import type { EventMode, EventStatus, EventType } from "@/generated/prisma/enums";
 
 export const TYPE_LABELS: Record<EventType, string> = {

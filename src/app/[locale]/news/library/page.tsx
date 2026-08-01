@@ -1,11 +1,19 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import { newsLinks } from "@/data/news";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "News Link Library",
-  description: "External media coverage links for Bangladesh Artificial Intelligence Olympiad.",
-};
+export async function generateMetadata(
+  { params }: PageProps<"/[locale]/news/library">,
+): Promise<Metadata> {
+  const { locale } = await params;
+  return pageMetadata({
+    locale,
+    path: "/news/library",
+    title: "News Link Library",
+    description: "External media coverage links for Bangladesh Artificial Intelligence Olympiad."
+  });
+}
 
 export default function NewsLibraryPage() {
   return (

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/components/Link";
 import Image from "next/image";
 import { brandMedia } from "@/data/media";
 import { DEFAULT_LOCALE, localePath, type Locale } from "@/lib/i18n/config";

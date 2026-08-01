@@ -1,8 +1,16 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "About",
-};
+export async function generateMetadata(
+  { params }: PageProps<"/[locale]/about">,
+): Promise<Metadata> {
+  const { locale } = await params;
+  return pageMetadata({
+    locale,
+    path: "/about",
+    title: "About"
+  });
+}
 
 export default function AboutPage() {
   return (

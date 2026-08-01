@@ -1,10 +1,18 @@
 import type { Metadata } from "next";
 import { Accordion } from "@/components/Accordion";
 import { syllabusSections } from "@/data/syllabus";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Syllabus",
-};
+export async function generateMetadata(
+  { params }: PageProps<"/[locale]/syllabus">,
+): Promise<Metadata> {
+  const { locale } = await params;
+  return pageMetadata({
+    locale,
+    path: "/syllabus",
+    title: "Syllabus"
+  });
+}
 
 export default function SyllabusPage() {
   return (
