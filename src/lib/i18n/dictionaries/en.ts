@@ -72,6 +72,51 @@ export const en = {
     invalidCredentials: "Incorrect email or password.",
   },
 
+  /**
+   * Page headings, leads, and empty states for the public list pages.
+   *
+   * Only the framing copy lives here — the rows themselves come from the
+   * database, where an event or a resource carries its own `*Bn` field.
+   */
+  pages: {
+    events: {
+      title: "Events",
+      lead: "Olympiad rounds, workshops, seminars, and courses across every BdAIO program.",
+      empty: "No events are scheduled right now. Please check back soon.",
+      past: "Past events",
+    },
+    programs: {
+      title: "Programs",
+      lead: "Every competition and workshop series we run, plus the international olympiads we nominate Bangladeshi students to.",
+      empty: "No programs are published yet.",
+    },
+    workshops: {
+      title: "Workshops & Courses",
+      lead: "Hands-on sessions to build the skills the olympiad asks for — open to everyone with a BdAIO account.",
+      empty: "No workshops are open right now. Please check back soon.",
+    },
+    resources: {
+      title: "Resources",
+      lead: "Syllabuses, guidelines, past problems, and learning materials.",
+      empty: "No resources have been published yet.",
+    },
+    results: {
+      title: "Results",
+      lead: "Published standings and medallists.",
+      empty: "No results have been published yet.",
+    },
+    institutions: {
+      title: "Institutions & Clubs",
+      lead: "Schools, colleges, universities, and AI clubs taking part in BdAIO.",
+      empty: "No institutions match your search.",
+    },
+    announcements: {
+      title: "Announcements",
+      lead: "Notices from the BdAIO organising team.",
+      empty: "There are no announcements right now.",
+    },
+  },
+
   offline: {
     title: "You are offline",
     body: "We could not reach BdAIO because your device has no internet connection. Your work is not lost — reconnect and try again.",

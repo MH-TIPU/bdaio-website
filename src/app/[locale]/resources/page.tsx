@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Link } from "@/components/Link";
+import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
+import { getDictionary, isLocale } from "@/lib/i18n";
 import { getCurrentUser } from "@/lib/auth/dal";
 import { pageMetadata } from "@/lib/seo";
 
@@ -26,7 +28,11 @@ const KIND_LABELS = {
   LINK: "Link",
 } as const;
 
-export default async function ResourcesPage() {
+export default async function ResourcesPage({ params }: PageProps<"/[locale]/resources">) {
+  const { locale } = await params;
+  if (!isLocale(locale)) notFound();
+  const t = getDictionary(locale).pages.resources;
+
   const user = await getCurrentUser();
 
   // Members-only rows are filtered out of the *query* for guests, so restricted
@@ -60,11 +66,9 @@ export default async function ResourcesPage() {
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto mb-10 max-w-3xl text-center">
           <h1 className="text-4xl font-black text-bdaio-blue sm:text-5xl">
-            Resources
+            {t.title}
           </h1>
-          <p className="mt-3 text-lg text-slate-500">
-            Syllabuses, guidelines, past problems, and learning materials.
-          </p>
+          <p className="mt-3 text-lg text-slate-500">{t.lead}</p>
           <div className="mx-auto mt-6 h-1 w-20 rounded bg-blue-500" />
         </div>
 
@@ -81,9 +85,7 @@ export default async function ResourcesPage() {
         )}
 
         {resources.length === 0 ? (
-          <p className="text-center text-sm text-slate-500">
-            No resources have been published yet.
-          </p>
+          <p className="text-center text-sm text-slate-500">{t.empty}</p>
         ) : (
           <div className="space-y-8">
             {[...groups.entries()].map(([category, items]) => (

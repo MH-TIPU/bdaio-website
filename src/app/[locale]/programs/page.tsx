@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Link } from "@/components/Link";
+import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
+import { getDictionary, isLocale } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
 
 export async function generateMetadata(
@@ -26,7 +28,11 @@ const SCOPE_LABELS = {
   INTERNATIONAL: "International",
 } as const;
 
-export default async function ProgramsPage() {
+export default async function ProgramsPage({ params }: PageProps<"/[locale]/programs">) {
+  const { locale } = await params;
+  if (!isLocale(locale)) notFound();
+  const t = getDictionary(locale).pages.programs;
+
   const programs = await db.program.findMany({
     where: { active: true },
     orderBy: [{ isExternal: "asc" }, { title: "asc" }],
@@ -44,12 +50,9 @@ export default async function ProgramsPage() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto mb-12 max-w-3xl text-center">
           <h1 className="text-4xl font-black text-bdaio-blue sm:text-5xl">
-            Programs
+            {t.title}
           </h1>
-          <p className="mt-4 text-lg text-slate-600">
-            Every competition and workshop series we run, plus the international
-            olympiads we nominate Bangladeshi students to.
-          </p>
+          <p className="mt-4 text-lg text-slate-600">{t.lead}</p>
         </div>
 
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">

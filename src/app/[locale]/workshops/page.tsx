@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
+import { getDictionary, isLocale } from "@/lib/i18n";
 import { EventCard } from "@/components/events/EventCard";
 import { pageMetadata } from "@/lib/seo";
 
@@ -23,7 +25,11 @@ export const revalidate = 60;
 // learning-oriented types.
 const LEARNING_TYPES = ["WORKSHOP", "SEMINAR", "COURSE", "BOOTCAMP"] as const;
 
-export default async function WorkshopsPage() {
+export default async function WorkshopsPage({ params }: PageProps<"/[locale]/workshops">) {
+  const { locale } = await params;
+  if (!isLocale(locale)) notFound();
+  const t = getDictionary(locale).pages.workshops;
+
   const events = await db.event.findMany({
     where: { type: { in: [...LEARNING_TYPES] }, status: { not: "DRAFT" } },
     orderBy: [{ startsAt: "asc" }],
@@ -38,12 +44,9 @@ export default async function WorkshopsPage() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto mb-12 max-w-3xl text-center">
           <h1 className="text-4xl font-black text-bdaio-blue sm:text-5xl">
-            Workshops & Courses
+            {t.title}
           </h1>
-          <p className="mt-3 text-lg text-slate-500">
-            Hands-on sessions to build the skills the olympiad asks for — open to
-            everyone with a BdAIO account.
-          </p>
+          <p className="mt-3 text-lg text-slate-500">{t.lead}</p>
           <div className="mx-auto mt-6 h-1 w-20 rounded bg-blue-500" />
         </div>
 
@@ -54,9 +57,7 @@ export default async function WorkshopsPage() {
             ))}
           </div>
         ) : (
-          <p className="text-center text-sm text-slate-500">
-            No workshops are scheduled right now. Please check back soon.
-          </p>
+          <p className="text-center text-sm text-slate-500">{t.empty}</p>
         )}
 
         {past.length > 0 && (

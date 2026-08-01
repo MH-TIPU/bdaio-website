@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/dal";
+import { getDictionary, isLocale } from "@/lib/i18n";
 import { visibleAnnouncements } from "@/lib/cms/announcements";
 import { pageMetadata } from "@/lib/seo";
 
@@ -18,7 +20,13 @@ export async function generateMetadata(
 // Depends on who is signed in, so it cannot be prerendered.
 export const dynamic = "force-dynamic";
 
-export default async function AnnouncementsPage() {
+export default async function AnnouncementsPage({
+  params,
+}: PageProps<"/[locale]/announcements">) {
+  const { locale } = await params;
+  if (!isLocale(locale)) notFound();
+  const t = getDictionary(locale).pages.announcements;
+
   const user = await getCurrentUser();
   const announcements = await visibleAnnouncements(user, 50);
 
@@ -27,15 +35,14 @@ export default async function AnnouncementsPage() {
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         <div className="mb-10 text-center">
           <h1 className="text-4xl font-black text-bdaio-blue sm:text-5xl">
-            Announcements
+            {t.title}
           </h1>
+          <p className="mt-3 text-lg text-slate-500">{t.lead}</p>
           <div className="mx-auto mt-6 h-1 w-20 rounded bg-blue-500" />
         </div>
 
         {announcements.length === 0 ? (
-          <p className="text-center text-sm text-slate-500">
-            No announcements right now.
-          </p>
+          <p className="text-center text-sm text-slate-500">{t.empty}</p>
         ) : (
           <ul className="space-y-4">
             {announcements.map((a) => (

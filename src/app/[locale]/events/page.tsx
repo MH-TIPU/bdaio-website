@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
+import { getDictionary, isLocale } from "@/lib/i18n";
 import { EventCard } from "@/components/events/EventCard";
 import { pageMetadata } from "@/lib/seo";
 
@@ -20,7 +22,11 @@ export async function generateMetadata(
 // Re-render at most once a minute; admin changes appear without a redeploy.
 export const revalidate = 60;
 
-export default async function EventsPage() {
+export default async function EventsPage({ params }: PageProps<"/[locale]/events">) {
+  const { locale } = await params;
+  if (!isLocale(locale)) notFound();
+  const t = getDictionary(locale).pages.events;
+
   const events = await db.event.findMany({
     where: { status: { not: "DRAFT" } },
     orderBy: [{ startsAt: "asc" }, { year: "desc" }],
@@ -35,12 +41,9 @@ export default async function EventsPage() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto mb-12 max-w-3xl text-center">
           <h1 className="text-4xl font-black text-bdaio-blue sm:text-5xl">
-            Events
+            {t.title}
           </h1>
-          <p className="mt-3 text-lg text-slate-500">
-            Olympiad rounds, workshops, seminars, and courses across every BdAIO
-            program.
-          </p>
+          <p className="mt-3 text-lg text-slate-500">{t.lead}</p>
           <div className="mx-auto mt-6 h-1 w-20 rounded bg-blue-500" />
         </div>
 
@@ -51,14 +54,12 @@ export default async function EventsPage() {
             ))}
           </div>
         ) : (
-          <p className="text-center text-sm text-slate-500">
-            No events are scheduled right now. Please check back soon.
-          </p>
+          <p className="text-center text-sm text-slate-500">{t.empty}</p>
         )}
 
         {past.length > 0 && (
           <div className="mt-14">
-            <h2 className="text-lg font-bold text-slate-900">Past events</h2>
+            <h2 className="text-lg font-bold text-slate-900">{t.past}</h2>
             <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {past.map((event) => (
                 <EventCard key={event.id} event={event} />

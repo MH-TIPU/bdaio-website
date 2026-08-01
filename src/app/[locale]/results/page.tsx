@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Link } from "@/components/Link";
+import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
+import { getDictionary, isLocale } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
 
 export async function generateMetadata(
@@ -18,7 +20,11 @@ export async function generateMetadata(
 
 export const revalidate = 60;
 
-export default async function ResultsIndexPage() {
+export default async function ResultsIndexPage({ params }: PageProps<"/[locale]/results">) {
+  const { locale } = await params;
+  if (!isLocale(locale)) notFound();
+  const t = getDictionary(locale).pages.results;
+
   // An event appears here only once at least one of its rounds is published.
   const events = await db.event.findMany({
     where: { rounds: { some: { results: { some: { published: true } } } } },
@@ -40,17 +46,13 @@ export default async function ResultsIndexPage() {
     <section className="bg-slate-50/50 py-16">
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto mb-10 max-w-3xl text-center">
-          <h1 className="text-4xl font-black text-bdaio-blue sm:text-5xl">Results</h1>
-          <p className="mt-3 text-lg text-slate-500">
-            Published standings and medallists.
-          </p>
+          <h1 className="text-4xl font-black text-bdaio-blue sm:text-5xl">{t.title}</h1>
+          <p className="mt-3 text-lg text-slate-500">{t.lead}</p>
           <div className="mx-auto mt-6 h-1 w-20 rounded bg-blue-500" />
         </div>
 
         {events.length === 0 ? (
-          <p className="text-center text-sm text-slate-500">
-            No results have been published yet.
-          </p>
+          <p className="text-center text-sm text-slate-500">{t.empty}</p>
         ) : (
           <ul className="space-y-4">
             {events.map((event) => (
