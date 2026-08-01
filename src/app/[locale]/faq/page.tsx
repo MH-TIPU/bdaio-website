@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Accordion } from "@/components/Accordion";
 import { db } from "@/lib/db";
 import { pageMetadata } from "@/lib/seo";
+import { notFound } from "next/navigation";
+import { getDictionary, isLocale } from "@/lib/i18n";
 
 export async function generateMetadata(
   { params }: PageProps<"/[locale]/faq">,
@@ -17,7 +19,11 @@ export async function generateMetadata(
 // Editable in the admin panel, so this must not freeze at build time.
 export const revalidate = 60;
 
-export default async function FaqPage() {
+export default async function FaqPage({ params }: PageProps<"/[locale]/faq">) {
+  const { locale } = await params;
+  if (!isLocale(locale)) notFound();
+  const t = getDictionary(locale).pages.faq;
+
   const items = await db.faqItem.findMany({
     where: { published: true },
     orderBy: { order: "asc" },
@@ -38,14 +44,16 @@ export default async function FaqPage() {
     <section className="py-16 bg-white">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Main Title - Matches the old site screenshot */}
-        <h1 className="font-bengali text-center text-3xl font-bold text-[#1e5a8a] mb-12">
-          প্রশ্নাবলী
+        <h1
+          className={`text-center text-3xl font-bold text-[#1e5a8a] mb-12 ${
+            locale === "bn" ? "font-bengali" : ""
+          }`}
+        >
+          {t.title}
         </h1>
 
         {sections.length === 0 ? (
-          <p className="text-center text-sm text-slate-500">
-            No questions have been published yet.
-          </p>
+          <p className="text-center text-sm text-slate-500">{t.empty}</p>
         ) : (
           <div className="space-y-10">
             {sections.map((section) => (

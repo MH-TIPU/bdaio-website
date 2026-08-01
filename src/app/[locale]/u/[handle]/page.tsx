@@ -6,6 +6,7 @@ import { getPublicProfile } from "@/lib/community/publicProfile";
 import { BadgeChip } from "@/components/community/BadgeChip";
 import { JsonLd } from "@/components/JsonLd";
 import { metaDescription, pageMetadata, personJsonLd } from "@/lib/seo";
+import { dictionaryFor } from "@/lib/i18n";
 
 const KIND_LABELS: Record<string, string> = {
   ORGANIZING: "Organising",
@@ -40,7 +41,8 @@ function initials(name: string): string {
 }
 
 export default async function PublicProfilePage(props: PageProps<"/[locale]/u/[handle]">) {
-  const { handle } = await props.params;
+  const { locale, handle } = await props.params;
+  const common = dictionaryFor(locale).common;
   const profile = await getPublicProfile(handle);
 
   // A private or non-existent profile is indistinguishable from outside.
@@ -134,7 +136,7 @@ export default async function PublicProfilePage(props: PageProps<"/[locale]/u/[h
 
         {profile.roles.length > 0 && (
           <div className="mt-6 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
-            <h2 className="text-sm font-semibold text-slate-900">Community roles</h2>
+            <h2 className="text-sm font-semibold text-slate-900">{common.communityRoles}</h2>
             <ul className="mt-3 space-y-2">
               {profile.roles.map((role) => (
                 <li key={`${role.type}-${role.institution ?? "global"}`} className="text-sm text-slate-700">
@@ -156,7 +158,7 @@ export default async function PublicProfilePage(props: PageProps<"/[locale]/u/[h
 
         {profile.contributions.length > 0 && (
           <div className="mt-6 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
-            <h2 className="text-sm font-semibold text-slate-900">Contributions</h2>
+            <h2 className="text-sm font-semibold text-slate-900">{common.contributions}</h2>
             <ul className="mt-3 divide-y divide-slate-100">
               {profile.contributions.map((c) => (
                 <li key={c.id} className="py-3 first:pt-0 last:pb-0">

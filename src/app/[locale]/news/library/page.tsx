@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Link } from "@/components/Link";
 import { newsLinks } from "@/data/news";
 import { pageMetadata } from "@/lib/seo";
+import { dictionaryFor } from "@/lib/i18n";
 
 export async function generateMetadata(
   { params }: PageProps<"/[locale]/news/library">,
@@ -15,7 +16,9 @@ export async function generateMetadata(
   });
 }
 
-export default function NewsLibraryPage() {
+export default async function NewsLibraryPage({ params }: PageProps<"/[locale]/news/library">) {
+  const { locale } = await params;
+  const common = dictionaryFor(locale).common;
   return (
     <section className="bg-white py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -84,7 +87,7 @@ export default function NewsLibraryPage() {
           </div>
         ) : (
           <div className="mx-auto max-w-2xl rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 px-6 py-12 text-center">
-            <h2 className="text-xl font-black text-slate-800">No external news links yet</h2>
+            <h2 className="text-xl font-black text-slate-800">{common.noExternalLinks}</h2>
             <p className="mt-3 text-sm leading-relaxed text-slate-500">
               Published links from outlets such as Prothom Alo, Kaler Kantho, and other media will appear here.
             </p>

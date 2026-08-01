@@ -48,6 +48,13 @@ export const en = {
     readMore: "Read more",
     // Used wherever a list has nothing in it yet.
     nothingYet: "Nothing here yet.",
+    pastSessions: "Past sessions",
+    pastEditions: "Past editions",
+    currentUpcoming: "Current & upcoming",
+    communityRoles: "Community roles",
+    contributions: "Contributions",
+    notRecognised: "Not recognised",
+    noExternalLinks: "No external news links yet",
   },
 
   language: {
@@ -84,6 +91,25 @@ export const en = {
     newPasswordTitle: "Choose a new password",
     newPasswordBody: "Signing in elsewhere will end once your password changes.",
     savePassword: "Save password",
+    invalidResetTitle: "Invalid reset link",
+    invalidResetBody: "This link is missing its reset token. Please request a new one.",
+    requestNewLink: "Request a new link",
+    goToSignIn: "Go to sign in",
+    goToDashboard: "Go to dashboard",
+    /** The four outcomes of consuming an email-verification token. */
+    verify: {
+      verifiedTitle: "Email verified",
+      verifiedBody:
+        "Thank you — your email address is confirmed and your account is now active.",
+      alreadyTitle: "Already verified",
+      alreadyBody:
+        "This email address has already been verified. You can sign in as usual.",
+      expiredTitle: "Link expired",
+      expiredBody:
+        "This verification link has expired. Sign in and request a new one from your dashboard.",
+      invalidTitle: "Invalid link",
+      invalidBody: "This verification link is not valid. It may have already been used.",
+    },
   },
 
   /**
@@ -209,6 +235,87 @@ export const en = {
           button: "Our Archives",
         },
       ],
+    },
+
+    faq: {
+      // The FAQ *content* is Bengali-only for now (the rows came from the old
+      // site). This heading was hardcoded Bengali even on the English page.
+      title: "Frequently Asked Questions",
+      empty: "No questions have been published yet.",
+    },
+
+    news: {
+      kicker: "BdAIO Updates",
+      title: "News",
+      lead: "Official announcements, achievements, event updates, and stories from the Bangladesh Artificial Intelligence Olympiad.",
+      libraryCta: "News Link Library",
+      coverageTitle: "External Media Coverage",
+      coverageBody:
+        "Find direct links to BdAIO coverage from outlets such as Prothom Alo, Kaler Kantho, and other media.",
+      openLibrary: "Open Library",
+      emptyTitle: "No news published yet",
+      emptyBody: "The first BdAIO news post will appear here once it is added.",
+    },
+
+    archives: {
+      title: "Archives",
+      lead: "A history of Bangladesh's journey and achievements at international AI Olympiads.",
+      kicker: "Olympiad Archive",
+      achievements: "Team Achievements",
+      highlights: "Highlights",
+      gallery: "Activities Gallery",
+    },
+
+    /**
+     * Four rule cards. Icons and card order stay in the page; only the words are
+     * here, and bullets are plain strings — the inline <strong> the English
+     * markup used does not survive translation, where the emphasised phrase
+     * lands in a different place.
+     */
+    rules: {
+      title: "Competition Rules",
+      lead: "Rules, eligibility criteria, and segment guidelines for BdAIO 2026.",
+      cards: [
+        {
+          title: "Eligibility",
+          items: [
+            "Students up to Grade 12 or equivalent may participate.",
+            "Polytechnic students up to the 4th semester are eligible.",
+            "University students are not eligible for this competition.",
+            "Participants can register for Quiz, AI Problem Solving, or both segments.",
+          ],
+        },
+        {
+          title: "Competition Phases",
+          items: [
+            "Regional Round: online and regional rounds held in May 2026.",
+            "National Round: top qualifiers compete at the national final round.",
+            "Selection Camp: top performers participate in grooming sessions.",
+            "International Gateway: best camp students selected for IAIO / IOAI.",
+          ],
+        },
+        {
+          title: "AI Segment Rules",
+          items: [
+            "All programming and modeling must be done on the Kaggle platform.",
+            "Usage of LLM assistants (ChatGPT, Gemini, Claude, etc.) is strictly prohibited.",
+            "Notebooks must remain private and shared with organizers upon request.",
+            "Submission files must exactly match the required template CSV format.",
+          ],
+        },
+        {
+          title: "Quiz Segment Rules",
+          items: [
+            "Quiz registration is completely free of charge.",
+            "Questions are formulated in both Bengali and English.",
+            "Participants compete individually; team setups are not allowed.",
+          ],
+        },
+      ],
+      ctaTitle: "Ready to participate?",
+      ctaBody:
+        "Read our step-by-step registration instructions, learning playlists, and Kaggle guidelines.",
+      ctaButton: "Read Participation Guideline",
     },
 
     syllabus: {

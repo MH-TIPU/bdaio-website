@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { galleryMedia } from "@/data/media";
 import { pageMetadata } from "@/lib/seo";
+import { notFound } from "next/navigation";
+import { getDictionary, isLocale } from "@/lib/i18n";
 
 export async function generateMetadata(
   { params }: PageProps<"/[locale]/archives">,
@@ -37,16 +39,20 @@ const pastEvents = [
   },
 ];
 
-export default function ArchivesPage() {
+export default async function ArchivesPage({ params }: PageProps<"/[locale]/archives">) {
+  const { locale } = await params;
+  if (!isLocale(locale)) notFound();
+  const t = getDictionary(locale).pages.archives;
+
   return (
     <section className="py-20 bg-slate-50/50">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <h1 className="text-4xl font-black text-[#1e5a8a] sm:text-5xl">
-            Archives
+            {t.title}
           </h1>
           <p className="mt-3 text-lg text-slate-500">
-            A history of Bangladesh&apos;s journey and achievements at international AI Olympiads.
+            {t.lead}
           </p>
           <div className="mx-auto mt-6 h-1 w-20 rounded bg-blue-500" />
         </div>
@@ -61,7 +67,7 @@ export default function ArchivesPage() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4 mb-6">
                 <div>
                   <span className="text-sm font-extrabold uppercase tracking-widest text-blue-500">
-                    Olympiad Archive
+                    {t.kicker}
                   </span>
                   <h2 className="text-2xl font-black text-slate-800">
                     BdAIO {event.year}
@@ -76,7 +82,7 @@ export default function ArchivesPage() {
               <div className="grid gap-6 md:grid-cols-2">
                 <div>
                   <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
-                    Team Achievements
+                    {t.achievements}
                   </h3>
                   <ul className="space-y-2.5">
                     {event.achievements.map((ach, idx) => (
@@ -91,7 +97,7 @@ export default function ArchivesPage() {
                 </div>
                 <div>
                   <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
-                    Highlights
+                    {t.highlights}
                   </h3>
                   <p className="text-sm leading-relaxed text-slate-600">
                     {event.highlights}
@@ -104,7 +110,7 @@ export default function ArchivesPage() {
 
         {/* Gallery Section */}
         <div>
-          <h2 className="text-2xl font-black text-[#1e5a8a] text-center mb-10">Activities Gallery</h2>
+          <h2 className="text-2xl font-black text-[#1e5a8a] text-center mb-10">{t.gallery}</h2>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {galleryMedia.map((img, idx) => (
               <div

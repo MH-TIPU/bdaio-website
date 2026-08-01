@@ -28,6 +28,7 @@ const LEARNING_TYPES = ["WORKSHOP", "SEMINAR", "COURSE", "BOOTCAMP"] as const;
 
 export default async function WorkshopsPage({ params }: PageProps<"/[locale]/workshops">) {
   const { locale } = await params;
+  const common = dictionaryFor(locale).common;
   if (!isLocale(locale)) notFound();
   const t = getDictionary(locale).pages.workshops;
 
@@ -63,7 +64,7 @@ export default async function WorkshopsPage({ params }: PageProps<"/[locale]/wor
 
         {past.length > 0 && (
           <div className="mt-14">
-            <h2 className="text-lg font-bold text-slate-900">Past sessions</h2>
+            <h2 className="text-lg font-bold text-slate-900">{common.pastSessions}</h2>
             <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {past.map((event) => (
                 <EventCard key={event.id} event={event} />
