@@ -16,6 +16,10 @@ const eslintConfig = defineConfig([
     "src/generated/**",
     "public/bdaio-site-static/**",
     "scripts/build-static.js",
+    // Scratch worktrees left by coding agents. They contain copies of the repo,
+    // so without this a bare `eslint` (which is what CI runs) reports the same
+    // file several times over and fails on code that is not in the branch.
+    ".claude/**",
   ]),
 ]);
 

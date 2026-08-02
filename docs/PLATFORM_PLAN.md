@@ -249,7 +249,8 @@ user proposes institution → status PENDING, invisible, no powers
         → MODERATOR verifies it  → Verified Student badge granted
 ```
 
-Enforced rules, each covered by a test:
+Enforced rules. **Read the coverage note below before trusting the word "enforced" here** — these are enforced in
+code, but only some of them are currently held down by a test:
 - **Pending institutions are invisible** — excluded from every public query (directory, page, join list) and 404 on
   direct hit. A fake institution therefore cannot mint badges while awaiting review.
 - **Approval is what installs moderators** — moderator memberships are created `PENDING` and only flip to
@@ -270,6 +271,13 @@ Enforced rules, each covered by a test:
 - **Minors get a reduced profile**: given name only — no surname, Bengali name, bio, district, date of birth,
   phone, or address, whatever they filled in — plus `robots: noindex` and an on-page explanation.
 - Institution member lists name only members who opted into a public profile.
+
+**Coverage, honestly.** The public-profile rules above *are* tested: `toPublicProfile()` is a pure function over a
+row, and `tests/publicProfile.test.ts` states the visibility gate and the minor redaction directly — including
+that no `dateOfBirth`, `phone` or `address` key exists in the shape at all, and that an institution id never
+appears in the serialised output. The trust-chain rules above are **not** yet: each one is a database interaction,
+and there is no integration harness. Until there is, treat them as reviewed code, not as verified behaviour — see
+§13.4.
 
 ### 3.8 Certificates (built in Phase 4)
 
@@ -789,17 +797,26 @@ properly Bengali and must not be overwritten with demo copy.
 - [ ] Transactional email and SMS templates in both languages (the SMS 160-character budget is GSM-7; Bengali is
       UCS-2 at 70 characters, so Bengali texts cost more — decide per template).
 
-### 13.3 Quality gates — never built
+### 13.3 Quality gates
 
-§10 commits to these and **none of them exist**. This is the largest gap in the project that isn't a feature.
+§10 commits to these. Typecheck, lint and a unit suite now run in CI on every push; what is left is the part that
+needs a database or a browser, which is also the part that covers the trust chain.
 
-- [ ] **Unit tests** for the logic the platform's credibility rests on: `lib/events/registration.ts` (eligibility,
-      capacity, windows, minor detection), `lib/community/badges.ts`, `lib/results` (rank derivation and ties),
-      `lib/security/rateLimit.ts`, `lib/sms/phone.ts`, `data/bd-geo.ts` (`isValidLocation`), and the
-      `publicProfile` minor-redaction DTO. Every trust rule in §3.7 is currently guarded by a code comment
-      claiming it is "covered by a test" — write those tests or correct the claim.
+- [x] **Unit tests** — Vitest, 68 assertions over the pure logic the platform's credibility rests on:
+      `lib/events/registration.ts` (windows, external programs, eligibility, guardian rules, capacity, and the
+      eighteenth-birthday boundary), the `publicProfile` visibility gate and minor redaction, `lib/sms/phone.ts`,
+      `data/bd-geo.ts`, `lib/results` (CSV quoting, BOM/CRLF, header aliasing, medal labels),
+      `lib/security/rateLimit.ts` (email bucketing keeps no address), the settings registry (defaults, boolean
+      decoding, `javascript:` URLs refused), and `metaDescription`. `toPublicProfile()` was extracted from the
+      query to make the redaction testable without a database.
+      §3.7's blanket "each covered by a test" claim has been corrected to say which rules are and are not.
+- [ ] **Integration tests for the trust chain** (§3.7) — every rule there is a database interaction, so they need
+      a test database and a truncate-between-tests harness. This is the remaining half of the coverage gap and the
+      more important one: `lib/community/badges.ts`, `requireModeratorOf` scoping, self-verification, badge
+      revocation, and "rejected attempts write nothing to `ActivityLog`".
 - [ ] **E2E smoke on the critical path** — register → verify → login → register for an event.
-- [ ] **CI** running typecheck + lint + tests. No `.github/workflows` exists.
+- [x] **CI** — `.github/workflows/ci.yml` runs typecheck, lint and tests on every push and PR to `main`, cheapest
+      gate first, with in-progress runs cancelled when a branch is pushed again.
 - [ ] **Accessibility pass (WCAG AA)** — never audited.
 - [ ] **Lighthouse budget for the BD network** — Core Web Vitals are now measured in production
       (`/admin/analytics`), but nothing gates a regression at build time.

@@ -1,0 +1,39 @@
+name: CI
+
+# Runs on every push and pull request to main. Three gates, cheapest first, so a
+# type error fails in under a minute rather than after a build.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# A new push supersedes the run already in flight for the same branch.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # `npm ci` runs the postinstall `prisma generate`, which needs the schema
+      # but not a database — the generated client is committed, and this proves
+      # the commit is in step with the schema.
+      - run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test
