@@ -1,7 +1,7 @@
 name: CI
 
-# Runs on every push and pull request to main. Three gates, cheapest first, so a
-# type error fails in under a minute rather than after a build.
+# Runs on every push and pull request to main. Gates are ordered cheapest first,
+# so a type error fails in under a minute rather than after the database is up.
 on:
   push:
     branches: [main]
@@ -16,6 +16,30 @@ concurrency:
 jobs:
   check:
     runs-on: ubuntu-latest
+
+    # The integration suite runs server actions against a real database — that
+    # is the point of it, since every trust-chain rule is a database
+    # interaction. `_test` in the name is not decoration: the suite refuses to
+    # run against a database whose name does not end in it.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: bdaio
+          POSTGRES_PASSWORD: bdaio
+          POSTGRES_DB: bdaio_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      TEST_DATABASE_URL: postgresql://bdaio:bdaio@localhost:5432/bdaio_test?schema=public
+      AUTH_SECRET: ci-secret-not-used-for-anything-real
+      APP_URL: https://bdaio.example
+
     steps:
       - uses: actions/checkout@v4
 
@@ -34,6 +58,13 @@ jobs:
 
       - name: Lint
         run: npm run lint
+
+      # Migrations, not `db push`: this also proves the migration history applies
+      # cleanly to an empty database, which is exactly what a deploy does.
+      - name: Migrate the test database
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: ${{ env.TEST_DATABASE_URL }}
 
       - name: Test
         run: npm test

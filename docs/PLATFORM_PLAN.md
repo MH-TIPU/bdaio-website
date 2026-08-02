@@ -249,8 +249,7 @@ user proposes institution → status PENDING, invisible, no powers
         → MODERATOR verifies it  → Verified Student badge granted
 ```
 
-Enforced rules. **Read the coverage note below before trusting the word "enforced" here** — these are enforced in
-code, but only some of them are currently held down by a test:
+Enforced rules, each covered by a test (see the coverage note below for exactly where):
 - **Pending institutions are invisible** — excluded from every public query (directory, page, join list) and 404 on
   direct hit. A fake institution therefore cannot mint badges while awaiting review.
 - **Approval is what installs moderators** — moderator memberships are created `PENDING` and only flip to
@@ -272,12 +271,12 @@ code, but only some of them are currently held down by a test:
   phone, or address, whatever they filled in — plus `robots: noindex` and an on-page explanation.
 - Institution member lists name only members who opted into a public profile.
 
-**Coverage, honestly.** The public-profile rules above *are* tested: `toPublicProfile()` is a pure function over a
-row, and `tests/publicProfile.test.ts` states the visibility gate and the minor redaction directly — including
-that no `dateOfBirth`, `phone` or `address` key exists in the shape at all, and that an institution id never
-appears in the serialised output. The trust-chain rules above are **not** yet: each one is a database interaction,
-and there is no integration harness. Until there is, treat them as reviewed code, not as verified behaviour — see
-§13.4.
+**Coverage.** Both halves are now held down by tests. The public-profile rules are unit-tested through
+`toPublicProfile()`, a pure function over a row (`tests/publicProfile.test.ts`) — including that no `dateOfBirth`,
+`phone` or `address` key exists in the shape at all, and that an institution id never appears in the serialised
+output. The trust-chain rules are integration-tested against a real database
+(`tests/integration/trustChain.test.ts`), calling the server actions themselves so the DAL and the scoping run for
+real. The guards were checked by breaking them: removing the self-verification check makes exactly one test fail.
 
 ### 3.8 Certificates (built in Phase 4)
 
@@ -810,13 +809,25 @@ needs a database or a browser, which is also the part that covers the trust chai
       decoding, `javascript:` URLs refused), and `metaDescription`. `toPublicProfile()` was extracted from the
       query to make the redaction testable without a database.
       §3.7's blanket "each covered by a test" claim has been corrected to say which rules are and are not.
-- [ ] **Integration tests for the trust chain** (§3.7) — every rule there is a database interaction, so they need
-      a test database and a truncate-between-tests harness. This is the remaining half of the coverage gap and the
-      more important one: `lib/community/badges.ts`, `requireModeratorOf` scoping, self-verification, badge
-      revocation, and "rejected attempts write nothing to `ActivityLog`".
-- [ ] **E2E smoke on the critical path** — register → verify → login → register for an event.
-- [x] **CI** — `.github/workflows/ci.yml` runs typecheck, lint and tests on every push and PR to `main`, cheapest
-      gate first, with in-progress runs cancelled when a branch is pushed again.
+- [x] **Integration tests for the trust chain** (§3.7) — server actions run against a real PostgreSQL, with the
+      DAL, the session cookie and every query being the production code path; only Next's request-scoped plumbing
+      (`cookies`, `redirect`, `revalidatePath`) is stood in for. Covers: approval installing moderators (and never
+      demoting an admin), `requireModeratorOf` refusing a moderator of another institution, self-verification
+      refused, the badge granted once and revoked on both un-verification and rejection, verification refused on a
+      membership that is not approved, and **rejected attempts writing nothing to `ActivityLog`**. The suite
+      truncates between cases and refuses any database not named `*_test`.
+- [x] **Smoke test on the critical path** — register → verify → login → register for an event, at the action
+      level. The verification token is read out of the *queued email* rather than the database, so it also proves
+      the link we send is one that works. Also covers duplicate sign-up, identical answers for a wrong password
+      and an unknown address, an unverified account refused entry to a competition, and waitlisting at capacity.
+      A **browser** E2E (real forms, real navigation) is still absent — see below.
+- [ ] **Browser E2E** — the above exercises the server, not the pages. Forms, client validation and navigation are
+      still only covered by hand.
+- [x] **CI** — `.github/workflows/ci.yml` runs typecheck, lint and both test projects on every push and PR to
+      `main`, cheapest gate first, with in-progress runs cancelled when a branch is pushed again. A PostgreSQL 16
+      service backs the integration project, and it is set up with `prisma migrate deploy` rather than `db push`,
+      so every run also proves the migration history applies cleanly to an empty database — which is what a deploy
+      does.
 - [ ] **Accessibility pass (WCAG AA)** — never audited.
 - [ ] **Lighthouse budget for the BD network** — Core Web Vitals are now measured in production
       (`/admin/analytics`), but nothing gates a regression at build time.
