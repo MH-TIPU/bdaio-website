@@ -83,6 +83,10 @@ export const en = {
     forgotBody: "Enter your email and we\u2019ll send you a link to reset it.",
     rememberedIt: "Remembered it?",
     registerSubtitle: "One account for every BdAIO olympiad, workshop, and course.",
+    /** Shown in place of the sign-up form while `signup.enabled` is off. */
+    registerClosedTitle: "Registration is closed",
+    registerClosedBody:
+      "New accounts are not being accepted at the moment. Existing accounts still work — sign in as usual, or get in touch if you need help.",
     passwordHint: "At least 8 characters, with a letter and a number.",
     creatingAccount: "Creating account…",
     createAccount: "Create account",
@@ -174,8 +178,10 @@ export const en = {
     contact: {
       title: "Get In Touch",
       emailLabel: "E-Mail",
+      phoneLabel: "Phone",
+      // The address itself is a site setting, not a translation string: an
+      // organisation that moves should not need a deploy to say so.
       officeLabel: "Office",
-      office: "Green City Center, Level 12, 758 Satmasjid Road, Dhaka 1209, Bangladesh",
       formTitle: "Send us a message",
       formName: "Your name",
       formEmail: "Your email",

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { requireUser, logActivity } from "@/lib/auth/dal";
-import { sendMail } from "@/lib/email/mailer";
+import { queueMail } from "@/lib/email/queue";
 import { registrationConfirmationEmail } from "@/lib/email/templates";
 import { notify } from "@/lib/notifications/notify";
 import {
@@ -113,7 +113,7 @@ export async function registerForEvent(
     href: "/dashboard/registrations",
   });
 
-  await sendMail(
+  await queueMail(
     registrationConfirmationEmail(user.email, {
       eventTitle: event.title,
       roundName: round?.name ?? null,

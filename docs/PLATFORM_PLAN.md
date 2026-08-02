@@ -217,8 +217,24 @@ three modes, in order:
 
 A failed send never throws into a user flow: an account or registration must not roll back because mail was down.
 
-> **Known limitation:** sends are **synchronous inside the request** — a password reset measured ~5s end to end.
-> Acceptable now, but move to a background queue before opening registration to a full cohort.
+**Queued, not sent inline.** `queueMail()` writes an `EmailJob` row and returns; delivery happens after the
+response. The user waits on an insert instead of an SMTP handshake — the ~5s password reset is now the cost of one
+`INSERT`. Two things drain the queue:
+
+- **`after()`** (Next.js) runs the drain once the response is on the wire, so mail normally leaves within a second.
+  `cache()` dedupes it, so an action queueing three emails schedules one drain.
+- **`/api/cron/email`**, every minute, for what `after()` cannot cover: a retry whose backoff expires while the
+  site is idle, and jobs orphaned by a process that died mid-send (`SENDING` rows older than 10 minutes are
+  reclaimed — a duplicate verification link beats a missing one).
+
+Failures retry at 1, 5, 15 and 60 minutes, then land as `FAILED` on `/admin/email` for a human, with the last
+error on the row. A **skip** (SMTP unconfigured, or delivery suppressed outside production) is terminal rather
+than retried — nothing about retrying makes an unconfigured mailer configured, and treating the two alike is how
+a dev database fills with jobs looping forever. Bodies are stored rendered: what was sent is what we can read
+back, and editing a template must not change the meaning of a message queued last month.
+
+No broker, no worker process. A single VPS that already runs PostgreSQL does not need Redis for a few thousand
+rows a month, and a second process is a second thing to supervise and forget to restart.
 
 ### 3.7 The trust chain (built in Phase 3)
 
@@ -591,7 +607,7 @@ API        /api/institutions/search  /api/certificates/[serial]  /api/uploads �
 | **3 Community & Institutions** ✅ | trust & recognition | *Done:* `Institution` self‑registration → admin approval → moderators installed; `InstitutionMembership` + moderator console (approve/reject members, **verify students → Verified Student badge**); `CommunityRole` volunteer/mentor/contributor applications with scoped approval (moderator) vs global (admin); `Contribution` log gated on an approved role; `Badge` model with grant/revoke centralised in `src/lib/community/badges.ts`; **public profiles `/u/[handle]`** via a DTO that enforces opt‑in visibility and minor redaction; institution directory + pages; admin institution & community queues |
 | **4 Journey** ✅ | participant value | *Done:* activity feed (`ActivityLog` → readable sentences), achievements page with badge/stat summary, **certificates issued in bulk per event + PDF generated on demand (pdf-lib) + public `/verify/[serial]`**, revocation, resource library with public vs members‑only filtering, notification centre wired into registration/verification/role/certificate events, admin certificates screen |
 | **5 Results** ✅ | scoring | *Done:* `Result` + `RoundJudge` models; per‑round mark sheet with **ranks derived from marks** (ties share a rank); **publish gate** — nothing visible to participant or public until an admin publishes; judge assignment scoped per round; publishing awards medal badges, **auto‑issues achievement certificates**, and notifies; public `/results` index + per‑event leaderboard; participant `/dashboard/results`; judge `/dashboard/judging`. *Outstanding:* CSV score import, submissions |
-| **6 Admin/CMS** ✅ | organizer control | *Done:* user administration with role/status control, **announcements** (audience + scheduling + expiry), **editable CMS pages** at `/p/[slug]`, **FAQ moved from `src/data/faq.ts` into editable rows** (Bengali content preserved), **rounds CRUD** (Phase 2 carry‑over), audit‑log viewer with action filters, registrations CSV export. *Outstanding:* CSV score import, site settings UI |
+| **6 Admin/CMS** ✅ | organizer control | *Done:* user administration with role/status control, **announcements** (audience + scheduling + expiry), **editable CMS pages** at `/p/[slug]`, **FAQ moved from `src/data/faq.ts` into editable rows** (Bengali content preserved), **rounds CRUD** (Phase 2 carry‑over), audit‑log viewer with action filters, registrations CSV export, **site settings** — a typed registry (`src/lib/settings/registry.ts`) behind the `SiteSetting` key/value table, edited at `/admin/settings`, feeding the contact page, the contact‑form inbox, footer social links + `sameAs`, a site‑wide notice bar, and a sign‑up switch; **media library** (`/admin/media`), **sponsors** (`/admin/sponsors`, tiered placements reading that library — the home page is no longer hand‑written markup over `src/data/media.ts`), **resources CRUD** (`/admin/resources`, with categories) |
 | **7a Hardening** ✅ | polish | *Done:* **auth rate limiting** (Phase 1 carry‑over) on login/register/reset/resend plus the public search and institution registration; **SEO** — DB‑driven `sitemap.ts` that inherits the privacy rules, `robots.ts`, canonical + Open Graph/Twitter on every dynamic page, Organization/WebSite/Event/Person/EducationalOrganization/Breadcrumb JSON‑LD, `noindex` on `/verify/*`; **PWA** — generated icons, `manifest.ts`, hand‑written service worker with a bilingual `/offline` page, security headers; **first‑party analytics** — aggregate‑only, cookieless, with `/admin/analytics` and Core Web Vitals; **ops** — `/api/health`, verified backup + restore scripts, nightly prune endpoint, `docs/OPS.md`; **SMS** — provider‑agnostic sender with opt‑in, wired to registration decisions and published results. All of §3.12 |
 | **7b i18n** | bilingual UI | **The one Phase 7 item deliberately not done in 7a**, because it is not a polish task — it touches all 66 pages. Today "bilingual" means BN fields stored beside EN and rendered as secondary text; the chrome, forms, and admin are English‑only. Plan: `src/app/[locale]/` with `generateStaticParams` for `en`/`bn` (keeps public pages static and gives each language its own URL + `hreflang`, which a locale cookie cannot — a cookie read in the root layout would make every page dynamic and lose the §3.4 `revalidate` behaviour), `src/lib/i18n/{en,bn}.ts` dictionaries with a typed `t()`, a language toggle in the header, `alternates.languages` in `pageMetadata()` and the sitemap. Do it as one isolated, reviewable slice |
 | **8 Payments** | fees | **ShurjoPay** checkout on registration, `Payment` records + webhook, receipts, admin payments/reconciliation |
@@ -688,9 +704,8 @@ Phases 0–7a are built. In priority order:
    default and currently ship English-only chrome. One isolated slice, plan in the roadmap table.
 4. **Then Phase 8 (ShurjoPay).** Its open sub-questions — fee per edition vs per round, flat vs by category, refund
    policy — need answers before I build the checkout; the §9.3 default is flat fee per event, no refunds.
-5. Carried forward from earlier phases, none blocking: **CSV score import**, **submissions**, a **site settings UI**,
-   moving transactional email to a **background queue** before a full cohort registers (§3.6a), and checking the
-   upazila list against the official BBS list before go-live (§3.9).
+5. Carried forward from earlier phases, none blocking: checking the upazila list against the official BBS list
+   before go-live (§3.9).
 
 §13 is the full inventory behind this ordering.
 
@@ -814,9 +829,17 @@ properly Bengali and must not be overwritten with demo copy.
       another approved entrant on the same round got 404; a judge of a *different* round got 404 and 200 once
       assigned to this one; and closing the window removed the upload and withdraw forms while leaving the
       entrant's own download.
-- [ ] **Site settings UI** — the `SiteSetting` model exists and is unused; no admin screen reads or writes it.
-- [ ] **Email background queue** (§3.6a) — sends are synchronous inside the request (~5s for a password reset).
-      Fine now; move it before opening registration to a full cohort.
+- [x] **Site settings UI** — `src/lib/settings/registry.ts` declares every editable key with its type, default and
+      form copy; `getSettings()` resolves them per render pass and falls back to the defaults if the database is
+      unreachable, so a missing row can never blank the site. `/admin/settings` writes only the keys that changed,
+      records them in the audit log, and calls `revalidatePath("/", "layout")` — the settings reach the public root
+      layout, so every cached page holds a copy. No key exists without a consumer: contact details on `/contact` and
+      in the organisation JSON‑LD, the contact‑form inbox (setting wins over `CONTACT_INBOX`), footer social links
+      shared with `sameAs`, the notice bar, and a sign‑up switch enforced on both the page and the action.
+- [x] **Email background queue** (§3.6a) — `EmailJob` + `queueMail()`, drained by `after()` on the request that
+      queued it and by `/api/cron/email` every minute. Retries at 1/5/15/60 minutes, then `FAILED` and visible at
+      `/admin/email` with a retry button. Delivered rows are pruned after 90 days by the nightly job; failed ones
+      never are.
 
 ### 13.5 Content surfaces in §4/§6 with no model yet
 
@@ -829,9 +852,18 @@ Each is a `✗` in the §7 route map. None blocks go-live; all were scoped as CM
       Admin inbox at `/admin/messages` with an unhandled-first queue.
       This also added `escapeHtml` to the email templates: every other template interpolates values we generate,
       but this one carries a stranger's text into an organiser's HTML inbox.
-- [ ] **`Sponsor`** — the sponsor logos on the home page are hard-coded in `src/data/media.ts`.
-- [ ] **`MediaAsset`** + `/admin/media` — uploads are per-feature; there is no library.
-- [ ] **`/admin/resources`** — resources are seeded, not manageable in the UI.
+- [x] **`Sponsor`** — a row is a *placement*, not an organisation: BUBT is both the platinum sponsor and a venue
+      host, so it is two rows sharing one logo. Tier order, heading and column width live in `src/lib/sponsors.ts`,
+      which both the home page and `/admin/sponsors` read, so the hand-written per-tier markup is now one loop.
+      The 2026 logos moved out of `src/data/media.ts` into the seed, which imports them into the library once.
+- [x] **`MediaAsset`** + `/admin/media` — upload once, reference anywhere. Files are re-encoded to WebP by
+      `saveImage()` (the same "it decoded, so it is an image" guarantee as avatars) but not cropped, because a
+      square-cropped logo is a logo with its wordmark cut off. Deleting an asset a sponsor still uses is refused
+      rather than silently nulled: the relation is `SetNull`, and the database would happily leave a live sponsor
+      with no logo.
+- [x] **`/admin/resources`** — resources and their categories are editable, including the members-only switch.
+      `Resource.filePath` stays unexposed: serving arbitrary documents needs a validated upload path and an
+      attachment-only route (the submissions machinery), so for now a resource is a link.
 - [ ] **`Team`** — individual entry only, by decision (§9.5). Build it only if a team round actually appears.
 
 ### 13.6 Phase 8 — Payments (ShurjoPay)

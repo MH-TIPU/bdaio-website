@@ -51,16 +51,35 @@ function getTransporter(): Transporter {
 }
 
 /**
- * Sends mail when SMTP is configured; otherwise logs the message so the flow
- * stays testable before credentials exist. Never throws into a user flow —
- * a failed send must not roll back an account the user just created.
+ * What became of one delivery attempt.
+ *
+ * `skipped` and `failed` are kept apart because the queue treats them
+ * differently: an unconfigured mailer or a development run will never succeed no
+ * matter how often it is retried, while a refused connection very well might.
+ * Collapsing both into "not delivered" is how a dev environment ends up with a
+ * table of jobs retrying forever.
  */
-export async function sendMail(mail: Mail): Promise<{ delivered: boolean }> {
+export type SendOutcome =
+  | { status: "delivered" }
+  | { status: "skipped"; reason: string }
+  | { status: "failed"; error: string };
+
+/**
+ * Sends one message. Logs instead of delivering when SMTP is unconfigured or
+ * delivery is suppressed, so the flow stays testable before credentials exist.
+ *
+ * Never throws: callers are the queue worker, which records the outcome, and
+ * nothing here should be able to take down a request.
+ *
+ * Most callers want `queueMail` (src/lib/email/queue.ts) rather than this —
+ * queued mail is durable, retried, and off the request's critical path.
+ */
+export async function sendMail(mail: Mail): Promise<SendOutcome> {
   if (!smtpConfigured()) {
     console.info(
       `[email:not-configured] To: ${mail.to}\nSubject: ${mail.subject}\n${mail.text}\n`,
     );
-    return { delivered: false };
+    return { status: "skipped", reason: "SMTP is not configured." };
   }
 
   if (deliverySuppressed()) {
@@ -68,7 +87,10 @@ export async function sendMail(mail: Mail): Promise<{ delivered: boolean }> {
       `[email:dev-suppressed] To: ${mail.to}\nSubject: ${mail.subject}\n${mail.text}\n` +
         `(SMTP is configured but delivery is off outside production — set EMAIL_DEV_SEND=true to send.)\n`,
     );
-    return { delivered: false };
+    return {
+      status: "skipped",
+      reason: "Delivery is off outside production (EMAIL_DEV_SEND).",
+    };
   }
 
   try {
@@ -80,10 +102,10 @@ export async function sendMail(mail: Mail): Promise<{ delivered: boolean }> {
       text: mail.text,
       html: mail.html,
     });
-    return { delivered: true };
+    return { status: "delivered" };
   } catch (error) {
     console.error("Failed to send email", error);
-    return { delivered: false };
+    return { status: "failed", error: error instanceof Error ? error.message : String(error) };
   }
 }
 

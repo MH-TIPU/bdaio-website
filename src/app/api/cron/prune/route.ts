@@ -39,7 +39,12 @@ export async function POST(request: Request) {
 
   const now = new Date();
 
-  const [sessions, tokens, rateLimits, analytics] = await Promise.all([
+  // Delivered mail is worth keeping long enough to answer "did we send it?"
+  // about anything anyone is still asking about, and no longer. FAILED rows are
+  // never pruned — those are the ones somebody has to act on.
+  const sentCutoff = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+
+  const [sessions, tokens, rateLimits, analytics, sentEmails] = await Promise.all([
     // Expired sessions are already refused by the DAL; this reclaims the rows
     // left behind by anyone who simply closed the tab and never came back.
     db.session.deleteMany({ where: { expiresAt: { lt: now } } }),
@@ -48,6 +53,7 @@ export async function POST(request: Request) {
     db.authToken.deleteMany({ where: { expiresAt: { lt: now } } }),
     db.rateLimit.deleteMany({ where: { expiresAt: { lt: now } } }),
     pruneAnalytics(),
+    db.emailJob.deleteMany({ where: { status: "SENT", createdAt: { lt: sentCutoff } } }),
   ]);
 
   const summary = {
@@ -55,6 +61,7 @@ export async function POST(request: Request) {
     authTokens: tokens.count,
     rateLimits: rateLimits.count,
     analyticsRows: analytics,
+    sentEmails: sentEmails.count,
   };
   console.log("[cron/prune]", JSON.stringify(summary));
 

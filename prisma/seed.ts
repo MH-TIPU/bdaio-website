@@ -1,10 +1,16 @@
 // Phase 0 seed — minimal, idempotent baseline data so the app has something to render.
 // Run with: npm run db:seed   (or `npx prisma db seed`)
 import "dotenv/config";
+import { randomBytes } from "node:crypto";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import path from "node:path";
+import sharp from "sharp";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { hash } from "@node-rs/argon2";
 import { PrismaClient, type Prisma } from "../src/generated/prisma/client";
+import type { SponsorTier } from "../src/generated/prisma/enums";
 import { faqSections } from "../src/data/faq";
+import { brandMedia } from "../src/data/media";
 
 const db = new PrismaClient({
   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
@@ -922,8 +928,11 @@ async function main() {
     });
   }
 
+  const sponsorCount = await seedSponsors(admin.id);
+
   console.log("Seed complete:", {
     admin: admin.email,
+    sponsors: sponsorCount,
     participants: created.length,
     registrations: plan.length,
     institution: institution.slug,
@@ -932,6 +941,136 @@ async function main() {
     rounds: rounds.length,
     password: SEED_PASSWORD,
   });
+}
+
+// --- Sponsors and their logos ----------------------------------------------
+
+/**
+ * Imports the 2026 sponsor logos out of `public/media` and into the media
+ * library, then places each one in its tier.
+ *
+ * These used to be a hard-coded map read directly by the home page. They are
+ * seed data now: the files stay in the repo because that is where this edition's
+ * artwork arrived, but the page reads rows, so next year's changes are a form
+ * rather than a deploy.
+ *
+ * Idempotent on the asset's title and the sponsor's (name, tier) pair, so a
+ * re-run does not duplicate anything — but it also does not overwrite edits made
+ * in the admin, which is the behaviour you want from a seed on a live database.
+ *
+ * The encode mirrors `saveImage()` in `src/lib/storage/uploads.ts`; that module
+ * is `server-only` and cannot be imported here. Keep the two in step.
+ */
+async function seedSponsors(adminId: string): Promise<number> {
+  const uploadRoot = process.env.UPLOAD_DIR
+    ? path.resolve(process.env.UPLOAD_DIR)
+    : path.join(process.cwd(), "uploads");
+  const mediaDir = path.join(uploadRoot, "media");
+
+  async function asset(title: string, source: string, alt: string): Promise<string | null> {
+    const existing = await db.mediaAsset.findFirst({ where: { title }, select: { id: true } });
+    if (existing) return existing.id;
+
+    const absolute = path.join(process.cwd(), "public", source.replace(/^\//, ""));
+    let output: { data: Buffer; info: { width: number; height: number } };
+    try {
+      output = await sharp(await readFile(absolute), { failOn: "error" })
+        .rotate()
+        .resize(1600, 1600, { fit: "inside", withoutEnlargement: true })
+        .webp({ quality: 85 })
+        .toBuffer({ resolveWithObject: true });
+    } catch {
+      console.warn(`  skipped missing or unreadable logo: ${source}`);
+      return null;
+    }
+
+    const filename = `${randomBytes(16).toString("hex")}.webp`;
+    await mkdir(mediaDir, { recursive: true });
+    await writeFile(path.join(mediaDir, filename), output.data);
+
+    const created = await db.mediaAsset.create({
+      data: {
+        filename,
+        title,
+        alt,
+        width: output.info.width,
+        height: output.info.height,
+        sizeBytes: output.data.byteLength,
+        uploadedById: adminId,
+      },
+    });
+    return created.id;
+  }
+
+  // name, tier, order, logo title, source file. The same organisation appears
+  // twice where it supports us in two capacities — one row per placement,
+  // sharing a single logo.
+  const logos: Record<string, { source: string; alt: string }> = {
+    BDOSN: { source: brandMedia.bdosnLogo, alt: "BDOSN logo" },
+    BUBT: { source: brandMedia.bubtLogo, alt: "BUBT logo" },
+    "REVE Chat": { source: brandMedia.reveChat, alt: "REVE Chat logo" },
+    "Brain Station 23": { source: brandMedia.brainStation23, alt: "Brain Station 23 logo" },
+    "MillionX Bangladesh": { source: brandMedia.millionx, alt: "MillionX Bangladesh logo" },
+    "Creative IT Institute": { source: brandMedia.creativeIt, alt: "Creative IT Institute logo" },
+    BITNA: { source: brandMedia.bitna, alt: "BITNA logo" },
+    "IIT, University of Dhaka": { source: brandMedia.iitDhaka, alt: "IIT, University of Dhaka logo" },
+    "Deepto TV": { source: brandMedia.deeptoTv, alt: "Deepto TV logo" },
+    SPSB: { source: brandMedia.spsb, alt: "SPSB logo" },
+    "Rokomari.com": { source: brandMedia.rokomari, alt: "Rokomari.com logo" },
+    JaduPC: { source: brandMedia.jadupc, alt: "JaduPC logo" },
+    "Kishor Alo": { source: brandMedia.kishorAlo, alt: "Kishor Alo logo" },
+    "Biggan Chinta": { source: brandMedia.bigganChinta, alt: "Biggan Chinta logo" },
+    CIU: { source: brandMedia.ciu, alt: "Chittagong Independent University logo" },
+    KUET: { source: brandMedia.kuet, alt: "KUET logo" },
+    "Rajshahi College": { source: brandMedia.rajshahiCollege, alt: "Rajshahi College logo" },
+  };
+
+  const placements: { name: string; tier: SponsorTier; order: number }[] = [
+    { name: "BDOSN", tier: "ORGANIZER", order: 0 },
+    { name: "BUBT", tier: "PLATINUM", order: 0 },
+    { name: "REVE Chat", tier: "POWERED_BY", order: 0 },
+    { name: "Brain Station 23", tier: "GOLD", order: 0 },
+    { name: "MillionX Bangladesh", tier: "SILVER", order: 0 },
+    { name: "Creative IT Institute", tier: "SILVER", order: 1 },
+    { name: "BITNA", tier: "BRONZE", order: 0 },
+    { name: "IIT, University of Dhaka", tier: "KNOWLEDGE", order: 0 },
+    { name: "Deepto TV", tier: "TV", order: 0 },
+    { name: "SPSB", tier: "PARTNER", order: 0 },
+    { name: "Rokomari.com", tier: "PARTNER", order: 1 },
+    { name: "JaduPC", tier: "PARTNER", order: 2 },
+    { name: "Kishor Alo", tier: "MAGAZINE", order: 0 },
+    { name: "Biggan Chinta", tier: "MAGAZINE", order: 1 },
+    { name: "BUBT", tier: "VENUE", order: 0 },
+    { name: "CIU", tier: "VENUE", order: 1 },
+    { name: "IIT, University of Dhaka", tier: "VENUE", order: 2 },
+    { name: "KUET", tier: "VENUE", order: 3 },
+    { name: "Rajshahi College", tier: "VENUE", order: 4 },
+  ];
+
+  const assetIds = new Map<string, string | null>();
+  for (const [title, spec] of Object.entries(logos)) {
+    assetIds.set(title, await asset(title, spec.source, spec.alt));
+  }
+
+  for (const placement of placements) {
+    const existing = await db.sponsor.findFirst({
+      where: { name: placement.name, tier: placement.tier },
+      select: { id: true },
+    });
+    if (existing) continue;
+
+    await db.sponsor.create({
+      data: {
+        name: placement.name,
+        tier: placement.tier,
+        order: placement.order,
+        assetId: assetIds.get(placement.name) ?? null,
+        published: true,
+      },
+    });
+  }
+
+  return db.sponsor.count();
 }
 
 main()

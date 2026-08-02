@@ -2,10 +2,12 @@ import { notFound } from "next/navigation";
 import { Inter, Hind_Siliguri } from "next/font/google";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { SiteNotice } from "@/components/SiteNotice";
 import { Analytics } from "@/components/Analytics";
 import { ServiceWorker } from "@/components/ServiceWorker";
 import { JsonLd } from "@/components/JsonLd";
 import { organizationJsonLd, websiteJsonLd } from "@/lib/seo";
+import { getSettings, socialLinks } from "@/lib/settings";
 import { rootMetadata, rootViewport } from "@/lib/rootMetadata";
 import { LOCALES, LOCALE_HREFLANG, getDictionary, isLocale } from "@/lib/i18n";
 import "../globals.css";
@@ -56,6 +58,8 @@ export default async function LocaleRootLayout({
   if (!isLocale(locale)) notFound();
 
   const t = getDictionary(locale);
+  const settings = await getSettings();
+  const social = socialLinks(settings);
 
   return (
     <html
@@ -66,11 +70,23 @@ export default async function LocaleRootLayout({
       <body className="flex min-h-full flex-col">
         {/* Site-wide structured data. Page-level entities (Event, Person,
             EducationalOrganization) are added by the pages themselves. */}
-        <JsonLd data={organizationJsonLd()} />
+        <JsonLd
+          data={organizationJsonLd({
+            email: settings["contact.email"],
+            sameAs: social.map((link) => link.url),
+          })}
+        />
         <JsonLd data={websiteJsonLd()} />
+        {settings["site.noticeEnabled"] && (
+          <SiteNotice
+            locale={locale}
+            text={settings["site.notice"]}
+            textBn={settings["site.noticeBn"]}
+          />
+        )}
         <Header locale={locale} t={t} />
         <main className="site-main flex-1">{children}</main>
-        <Footer locale={locale} t={t} />
+        <Footer locale={locale} t={t} social={social} />
         <Analytics />
         <ServiceWorker />
       </body>

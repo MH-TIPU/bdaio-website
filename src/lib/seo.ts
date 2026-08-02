@@ -142,7 +142,18 @@ export function metaDescription(
 
 type JsonLdObject = Record<string, unknown>;
 
-export function organizationJsonLd(): JsonLdObject {
+/**
+ * The organisation entity, emitted on every public page.
+ *
+ * The contact address and `sameAs` profiles come from site settings rather than
+ * this file: they are the parts an organiser changes, and a search engine
+ * reading a decommissioned address is a support burden nobody sees coming.
+ * Both are omitted when unset — an empty `sameAs` is a claim we do not want to
+ * make.
+ */
+export function organizationJsonLd(
+  contact: { email?: string; sameAs?: string[] } = {},
+): JsonLdObject {
   return {
     "@context": "https://schema.org",
     "@type": "EducationalOrganization",
@@ -153,6 +164,8 @@ export function organizationJsonLd(): JsonLdObject {
     description:
       "The national Artificial Intelligence Olympiad for Bangladeshi students, and their pathway to international olympiads such as IOAI and APAIO.",
     address: { "@type": "PostalAddress", addressCountry: "BD" },
+    ...(contact.email ? { email: contact.email } : {}),
+    ...(contact.sameAs?.length ? { sameAs: contact.sameAs } : {}),
   };
 }
 

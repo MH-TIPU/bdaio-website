@@ -13,22 +13,28 @@ export function Field({
   errors,
   hint,
   className = "",
+  id,
   ...props
 }: FieldProps) {
-  const errorId = `${name}-error`;
-  const hintId = `${name}-hint`;
+  // The same field name can appear more than once on a page — a list of rows
+  // that each POST their own `title`, say — so the DOM id can be overridden
+  // without changing what the form posts. Label, input and the described-by
+  // ids all follow it, or the label would point at another row's input.
+  const fieldId = id ?? name;
+  const errorId = `${fieldId}-error`;
+  const hintId = `${fieldId}-hint`;
   const invalid = Boolean(errors?.length);
 
   return (
     <div className={className}>
       <label
-        htmlFor={name}
+        htmlFor={fieldId}
         className="block text-sm font-medium text-slate-700"
       >
         {label}
       </label>
       <input
-        id={name}
+        id={fieldId}
         name={name}
         aria-invalid={invalid || undefined}
         aria-describedby={

@@ -160,8 +160,15 @@ failure, so cron will mail you.
 30 2 * * * BACKUP_DIR=/var/backups/bdaio /srv/bdaio/scripts/backup.sh >> /var/log/bdaio-backup.log 2>&1
 
 # Nightly housekeeping at 03:15 — expired sessions, used tokens, rate-limit
-# rows, analytics past retention
+# rows, analytics past retention, delivered mail older than 90 days
 15 3 * * * curl -fsS -X POST -H "Authorization: Bearer $CRON_SECRET" https://bdaio.org/api/cron/prune >> /var/log/bdaio-prune.log 2>&1
+
+# Outgoing mail queue, every minute. Most mail is already gone before this runs
+# — the request that queued it drains the queue after responding — so this is
+# the safety net: retry backoffs that expire while the site is idle, and jobs
+# left behind by a process that died mid-send. Cheap when there is nothing to do
+# and it only logs when it did something.
+* * * * * curl -fsS -X POST -H "Authorization: Bearer $CRON_SECRET" https://bdaio.org/api/cron/email > /dev/null 2>&1
 ```
 
 Set `CRON_SECRET` in the crontab environment (or inline the token — the crontab

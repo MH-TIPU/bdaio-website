@@ -19,10 +19,19 @@ export const AVATAR_DIR = "avatars";
 export const MAX_AVATAR_BYTES = 1024 * 1024; // 1 MB
 const AVATAR_EDGE_PX = 512;
 
+export const MEDIA_DIR = "media";
+export const MAX_MEDIA_BYTES = 2 * 1024 * 1024; // 2 MB
+/** Longest edge kept for a library image. Wide enough for a full-width banner. */
+const MEDIA_EDGE_PX = 1600;
+
 const ALLOWED_INPUT_FORMATS = new Set(["jpeg", "png", "webp", "avif"]);
 
 export type UploadResult =
   | { ok: true; filename: string }
+  | { ok: false; error: string };
+
+export type ImageSaveResult =
+  | { ok: true; filename: string; width: number; height: number; sizeBytes: number }
   | { ok: false; error: string };
 
 /**
@@ -68,6 +77,76 @@ export async function saveAvatar(file: File): Promise<UploadResult> {
   await writeFile(path.join(dir, filename), output);
 
   return { ok: true, filename };
+}
+
+/**
+ * Validates and stores a library image (sponsor logos, gallery pictures).
+ *
+ * Same re-encode guarantee as `saveAvatar` — a renamed script cannot survive
+ * being decoded and written back out — but the geometry differs: nothing is
+ * cropped. A logo cropped to a square is a logo with its wordmark cut off, so
+ * this only bounds the longest edge and lets the aspect ratio be whatever it is.
+ *
+ * `withoutEnlargement` matters for the same reason: a small transparent PNG
+ * upscaled to 1600px is a blurrier file, not a better one.
+ */
+export async function saveImage(file: File): Promise<ImageSaveResult> {
+  if (file.size === 0) return { ok: false, error: "The file is empty." };
+  if (file.size > MAX_MEDIA_BYTES) {
+    return { ok: false, error: "Image must be 2 MB or smaller." };
+  }
+
+  const input = Buffer.from(await file.arrayBuffer());
+
+  let pipeline: Sharp;
+  let format: string | undefined;
+  try {
+    pipeline = sharp(input, { failOn: "error" });
+    format = (await pipeline.metadata()).format;
+  } catch {
+    return { ok: false, error: "That file is not a readable image." };
+  }
+
+  if (!format || !ALLOWED_INPUT_FORMATS.has(format)) {
+    return { ok: false, error: "Use a JPEG, PNG, or WebP image." };
+  }
+
+  const output = await pipeline
+    .rotate()
+    .resize(MEDIA_EDGE_PX, MEDIA_EDGE_PX, { fit: "inside", withoutEnlargement: true })
+    // Alpha is kept: most sponsor logos are transparent PNGs, and flattening
+    // them onto white is exactly the artefact people notice on a tinted section.
+    .webp({ quality: 85 })
+    .toBuffer({ resolveWithObject: true });
+
+  const filename = `${randomBytes(16).toString("hex")}.webp`;
+  const dir = path.join(UPLOAD_ROOT, MEDIA_DIR);
+  await mkdir(dir, { recursive: true });
+  await writeFile(path.join(dir, filename), output.data);
+
+  return {
+    ok: true,
+    filename,
+    width: output.info.width,
+    height: output.info.height,
+    sizeBytes: output.data.byteLength,
+  };
+}
+
+/** Removes a stored library image; missing files are not an error. */
+export async function deleteImage(filename: string | null | undefined) {
+  if (!filename) return;
+  if (!/^[a-f0-9]{32}\.webp$/.test(filename)) return;
+  try {
+    await unlink(path.join(UPLOAD_ROOT, MEDIA_DIR, filename));
+  } catch {
+    // Already gone — nothing to do.
+  }
+}
+
+/** Public URL for a stored library image. */
+export function mediaUrl(filename: string): string {
+  return `/uploads/${MEDIA_DIR}/${filename}`;
 }
 
 /** Removes a previously stored avatar; missing files are not an error. */

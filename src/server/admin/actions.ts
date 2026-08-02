@@ -4,7 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { logActivity, requireRole } from "@/lib/auth/dal";
-import { appUrl, sendMail } from "@/lib/email/mailer";
+import { appUrl } from "@/lib/email/mailer";
+import { queueMail } from "@/lib/email/queue";
 import { registrationDecisionEmail } from "@/lib/email/templates";
 import { notify } from "@/lib/notifications/notify";
 import {
@@ -285,7 +286,7 @@ export async function decideRegistration(formData: FormData): Promise<void> {
   if (decision === "APPROVED" || decision === "REJECTED") {
     const approved = decision === "APPROVED";
 
-    await sendMail(
+    await queueMail(
       registrationDecisionEmail(registration.user.email, {
         eventTitle: registration.event.title,
         roundName: registration.round?.name ?? null,

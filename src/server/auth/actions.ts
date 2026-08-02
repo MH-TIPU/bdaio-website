@@ -20,7 +20,8 @@ import {
   revokeAllSessions,
 } from "@/lib/auth/session";
 import { getCurrentUser, logActivity } from "@/lib/auth/dal";
-import { sendMail } from "@/lib/email/mailer";
+import { getSettings } from "@/lib/settings";
+import { queueMail } from "@/lib/email/queue";
 import { passwordResetEmail, verificationEmail } from "@/lib/email/templates";
 import {
   forgotPasswordSchema,
@@ -36,10 +37,21 @@ const RESET_TTL_MS = 60 * 60 * 1000; // 1 hour
 /** Same message whether the email is unknown or the password is wrong. */
 const INVALID_CREDENTIALS = "Incorrect email or password.";
 
+/** Shown if the sign-up form is posted while `signup.enabled` is off. */
+const SIGNUP_CLOSED = "New accounts are not being accepted at the moment.";
+
 export async function register(
   _prev: AuthFormState,
   formData: FormData,
 ): Promise<AuthFormState> {
+  // The register page already hides the form when sign-ups are closed; this is
+  // the half that matters, because a form does not have to be rendered to be
+  // posted.
+  const settings = await getSettings();
+  if (!settings["signup.enabled"]) {
+    return { message: SIGNUP_CLOSED };
+  }
+
   const parsed = registerSchema.safeParse({
     fullName: formData.get("fullName"),
     email: formData.get("email"),
@@ -108,7 +120,7 @@ export async function register(
     entityId: user.id,
   });
 
-  await sendMail(verificationEmail(user.email, token));
+  await queueMail(verificationEmail(user.email, token));
 
   const meta = await requestMeta();
   await createSession(user.id, meta);
@@ -282,7 +294,7 @@ export async function resendVerification(): Promise<AuthFormState> {
     },
   });
 
-  await sendMail(verificationEmail(user.email, token));
+  await queueMail(verificationEmail(user.email, token));
   return { message: "Verification email sent. Please check your inbox." };
 }
 
@@ -341,7 +353,7 @@ export async function requestPasswordReset(
       },
     });
 
-    await sendMail(passwordResetEmail(user.email, token));
+    await queueMail(passwordResetEmail(user.email, token));
     await logActivity({
       userId: user.id,
       action: "user.password_reset_requested",

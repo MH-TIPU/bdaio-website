@@ -19,19 +19,23 @@ export function TextArea({
   hint,
   className = "",
   rows = 6,
+  id,
   ...props
 }: TextAreaProps) {
-  const errorId = `${name}-error`;
-  const hintId = `${name}-hint`;
+  // Overridable for the same reason as `Field`: several rows on one page can
+  // post the same field name, but they cannot share a DOM id.
+  const fieldId = id ?? name;
+  const errorId = `${fieldId}-error`;
+  const hintId = `${fieldId}-hint`;
   const invalid = Boolean(errors?.length);
 
   return (
     <div className={className}>
-      <label htmlFor={name} className="block text-sm font-medium text-slate-700">
+      <label htmlFor={fieldId} className="block text-sm font-medium text-slate-700">
         {label}
       </label>
       <textarea
-        id={name}
+        id={fieldId}
         name={name}
         rows={rows}
         aria-invalid={invalid || undefined}

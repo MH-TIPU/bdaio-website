@@ -3,10 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { getCurrentUser, logActivity, requireRole } from "@/lib/auth/dal";
-import { sendMail } from "@/lib/email/mailer";
+import { queueMail } from "@/lib/email/queue";
 import { contactMessageEmail } from "@/lib/email/templates";
 import { limitByIp, retryAfterMessage } from "@/lib/security/rateLimit";
 import { contactSchema, type ContactFormState } from "@/lib/validation/contact";
+import { getSettings } from "@/lib/settings";
 
 /**
  * Receives a public contact message.
@@ -94,9 +95,15 @@ export async function sendContactMessage(
 
   // Best effort: the message is already safely stored, so a mail failure must
   // not tell the sender their question was lost.
-  const inbox = process.env.CONTACT_INBOX ?? process.env.SMTP_USER;
+  //
+  // The site setting wins over the environment so an organiser can redirect the
+  // inbox themselves; the env vars stay as the fallback for a deployment where
+  // nobody has opened the settings screen yet.
+  const settings = await getSettings();
+  const inbox =
+    settings["contact.inbox"] || process.env.CONTACT_INBOX || process.env.SMTP_USER;
   if (inbox) {
-    await sendMail(contactMessageEmail(inbox, data));
+    await queueMail(contactMessageEmail(inbox, data));
   }
 
   return { success: true, message: SUCCESS_MESSAGE };

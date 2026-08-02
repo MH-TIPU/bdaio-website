@@ -1,3 +1,12 @@
+/**
+ * Paths to artwork that ships in `public/`.
+ *
+ * What is left here is design, not content: the hero art and the brand mark,
+ * which change when the site is redesigned. The sponsor logos below are **seed
+ * data** — the home page reads `Sponsor` rows and their `MediaAsset` logos, and
+ * `prisma/seed.ts` imports these files into that library once. Changing who
+ * sponsors us is `/admin/sponsors`, not this file.
+ */
 export const heroMedia = {
   heroBanner: "/media/2026/06/apoai-gold-2026.jpg",
   regionalRound: "/media/2026/05/WhatsApp-Image-2026-04-29-at-17.05.14.jpeg",

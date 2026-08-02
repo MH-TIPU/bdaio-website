@@ -8,11 +8,15 @@ import { UPLOAD_ROOT } from "@/lib/storage/uploads";
 // In production nginx should serve UPLOAD_DIR at /uploads directly, so these
 // bytes never pass through Node.
 //
-// Only generated avatar filenames are accepted, and the resolved path is
-// re-checked against UPLOAD_ROOT so traversal (`..`, encoded separators,
+// Only generated filenames in a known directory are accepted, and the resolved
+// path is re-checked against UPLOAD_ROOT so traversal (`..`, encoded separators,
 // symlink tricks) cannot escape the upload directory.
+//
+// Both directories hold re-encoded WebP under a 32-hex generated name, so one
+// pattern covers them; anything else — including a file that really is sitting
+// in UPLOAD_ROOT — is a 404.
 
-const ALLOWED = /^avatars\/[a-f0-9]{32}\.webp$/;
+const ALLOWED = /^(avatars|media)\/[a-f0-9]{32}\.webp$/;
 
 function toWebStream(nodePath: string, options?: ReadableOptions) {
   const nodeStream = createReadStream(nodePath, options);

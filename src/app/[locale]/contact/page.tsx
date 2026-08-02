@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { pageMetadata } from "@/lib/seo";
 import { notFound } from "next/navigation";
 import { dictionaryFor, getDictionary, isLocale } from "@/lib/i18n";
+import { getSettings } from "@/lib/settings";
 import { ContactForm } from "./ContactForm";
 
 export async function generateMetadata(
@@ -20,6 +21,13 @@ export default async function ContactPage({ params }: PageProps<"/[locale]/conta
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const t = getDictionary(locale).pages.contact;
+  const settings = await getSettings();
+
+  // Bengali falls back to the English address rather than showing nothing when
+  // the translation has not been filled in.
+  const address =
+    (locale === "bn" ? settings["contact.addressBn"] : settings["contact.address"]) ||
+    settings["contact.address"];
 
   return (
     <section className="bg-white py-20">
@@ -33,17 +41,31 @@ export default async function ContactPage({ params }: PageProps<"/[locale]/conta
         <p className="text-sm font-semibold text-slate-700">
           {t.emailLabel}:{" "}
           <a
-            href="mailto:bdaio@bdosn.org"
+            href={`mailto:${settings["contact.email"]}`}
             className="text-[#1e5a8a] hover:underline"
           >
-            bdaio@bdosn.org
+            {settings["contact.email"]}
           </a>
         </p>
 
+        {settings["contact.phone"] && (
+          <p className="text-sm font-semibold text-slate-700">
+            {t.phoneLabel}:{" "}
+            <a
+              href={`tel:${settings["contact.phone"].replace(/\s+/g, "")}`}
+              className="text-[#1e5a8a] hover:underline"
+            >
+              {settings["contact.phone"]}
+            </a>
+          </p>
+        )}
+
         {/* Office Details - Matches the old site screenshot */}
-        <p className="text-sm font-semibold text-slate-500 leading-relaxed max-w-2xl mx-auto">
-          {t.officeLabel}: {t.office}
-        </p>
+        {address && (
+          <p className="text-sm font-semibold text-slate-500 leading-relaxed max-w-2xl mx-auto">
+            {t.officeLabel}: {address}
+          </p>
+        )}
 
         <div className="mt-10 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm sm:p-8">
           <h2 className="mb-5 text-left text-lg font-bold text-slate-900">

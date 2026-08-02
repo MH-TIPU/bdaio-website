@@ -80,6 +80,9 @@ export const bn: Dictionary = {
     forgotBody: "আপনার ইমেইল দিন, আমরা পাসওয়ার্ড রিসেট করার লিংক পাঠিয়ে দেব।",
     rememberedIt: "মনে পড়েছে?",
     registerSubtitle: "BdAIO-র সব অলিম্পিয়াড, কর্মশালা ও কোর্সের জন্য একটিই অ্যাকাউন্ট।",
+    registerClosedTitle: "নিবন্ধন বন্ধ আছে",
+    registerClosedBody:
+      "এই মুহূর্তে নতুন অ্যাকাউন্ট নেওয়া হচ্ছে না। বিদ্যমান অ্যাকাউন্টগুলো আগের মতোই কাজ করছে — যথারীতি সাইন ইন করুন, প্রয়োজনে আমাদের সঙ্গে যোগাযোগ করুন।",
     passwordHint: "অন্তত ৮ অক্ষর, একটি বর্ণ ও একটি সংখ্যা থাকতে হবে।",
     creatingAccount: "অ্যাকাউন্ট তৈরি হচ্ছে…",
     createAccount: "অ্যাকাউন্ট তৈরি করুন",
@@ -158,8 +161,8 @@ export const bn: Dictionary = {
     contact: {
       title: "যোগাযোগ করুন",
       emailLabel: "ই-মেইল",
+      phoneLabel: "ফোন",
       officeLabel: "অফিস",
-      office: "গ্রিন সিটি সেন্টার, লেভেল ১২, ৭৫৮ সাতমসজিদ রোড, ঢাকা ১২০৯, বাংলাদেশ",
       formTitle: "আমাদের বার্তা পাঠান",
       formName: "আপনার নাম",
       formEmail: "আপনার ইমেইল",

@@ -34,7 +34,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
       <IntroSection t={t} />
       <MissionSection t={t} />
       <JourneySection t={t} />
-      <SponsorsSection />
+      <SponsorsSection locale={locale} />
     </>
   );
 }

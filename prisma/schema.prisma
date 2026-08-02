@@ -177,6 +177,7 @@ model User {
   notifications Notification[]
   judgeRoles    RoundJudge[]
   contactMessages ContactMessage[]
+  mediaUploads  MediaAsset[]
 
   @@index([role])
 }
@@ -463,10 +464,129 @@ model FaqItem {
 }
 
 /// Simple key/value settings an admin can change at runtime.
+///
+/// The keys are not free-form: `src/lib/settings/registry.ts` declares every one
+/// of them with its type, default and admin-form copy, and `getSettings()`
+/// resolves a missing or unparseable row back to that default.
 model SiteSetting {
   key       String   @id
   value     String
   updatedAt DateTime @updatedAt
+}
+
+/// The image library: every picture an organiser uploads through the admin,
+/// stored once and referenced wherever it is used.
+///
+/// Uploads elsewhere in the platform (avatars, event banners) belong to the
+/// thing they picture and are replaced with it. These do not — a sponsor logo
+/// outlives the tier it was placed in, and the same logo appears in several
+/// places. Hence a library with its own screen rather than a file field.
+///
+/// `filename` is server-generated and unique; the bytes live under
+/// `UPLOAD_ROOT/media` and are re-encoded to WebP on the way in, which is what
+/// makes "it decoded, so it is an image" true. Dimensions are stored because
+/// `next/image` needs them and re-reading the file to find out would be silly.
+model MediaAsset {
+  id           String    @id @default(cuid())
+  filename     String    @unique
+  /// What this picture is, for the admin listing. Not shown publicly.
+  title        String
+  /// Alternative text, shown to assistive technology wherever it is rendered.
+  /// Empty means decorative — a deliberate choice, so it is nullable rather
+  /// than defaulted to the title, which would put filler in the accessible name.
+  alt          String?
+  width        Int
+  height       Int
+  sizeBytes    Int
+  uploadedById String?
+  uploadedBy   User?     @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+  createdAt    DateTime  @default(now())
+  sponsors     Sponsor[]
+
+  @@index([createdAt])
+}
+
+/// Where a sponsor appears on the home page. The order here is the order the
+/// sections are rendered in.
+enum SponsorTier {
+  ORGANIZER
+  PLATINUM
+  POWERED_BY
+  GOLD
+  SILVER
+  BRONZE
+  KNOWLEDGE
+  TV
+  PARTNER
+  MAGAZINE
+  VENUE
+}
+
+/// A sponsor's placement on the home page — not the organisation itself.
+///
+/// An organisation that supports us in two capacities (BUBT is both the platinum
+/// sponsor and a regional venue host) is two rows pointing at one `MediaAsset`.
+/// Modelling the organisation separately would buy a canonical name and cost a
+/// join plus an editing screen nobody asked for; the logo, which is the part
+/// that is expensive to keep in step, is already shared.
+model Sponsor {
+  id        String      @id @default(cuid())
+  name      String
+  nameBn    String?
+  tier      SponsorTier
+  /// Optional link out. Rendered as a plain image when absent.
+  url       String?
+  assetId   String?
+  asset     MediaAsset? @relation(fields: [assetId], references: [id], onDelete: SetNull)
+  /// Position within the tier. Ties fall back to name.
+  order     Int         @default(0)
+  published Boolean     @default(true)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@index([published, tier, order])
+}
+
+enum EmailJobStatus {
+  PENDING
+  SENDING
+  SENT
+  FAILED
+}
+
+/// One outgoing email, durable and retryable.
+///
+/// Sending used to happen inside the request: a password reset held the response
+/// for ~5 seconds while we waited on Google's SMTP, and an SMTP blip meant the
+/// mail was simply lost — the flow deliberately never throws, so nothing was
+/// left to retry from. Both problems are the same problem: the only record of
+/// the email lived in a stack frame.
+///
+/// The row is written first and the delivery attempted after the response, so
+/// the user waits on a database insert instead of a mail server, and a failure
+/// is a row with `attempts` and `lastError` on it rather than a line in a log.
+///
+/// The body is stored rendered rather than as a template name plus arguments:
+/// what was sent should be what we can read back, and a template edited next
+/// month must not change the meaning of a message queued today.
+model EmailJob {
+  id        String         @id @default(cuid())
+  to        String
+  subject   String
+  text      String
+  html      String
+  replyTo   String?
+  status    EmailJobStatus @default(PENDING)
+  attempts  Int            @default(0)
+  lastError String?
+  /// Earliest time a worker may claim this job — this is the retry backoff.
+  runAfter  DateTime       @default(now())
+  sentAt    DateTime?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@index([status, runAfter])
+  @@index([createdAt])
 }
 
 /// Messages sent through the public contact form.
