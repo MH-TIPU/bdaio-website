@@ -192,6 +192,8 @@ export const en = {
     },
 
     home: {
+      /** Visually hidden h1 on the home page — the hero itself is artwork. */
+      heroHeading: "Bangladesh Artificial Intelligence Olympiad",
       introTitle: "What is BdAIO?",
       introBody:
         "The Bangladesh Artificial Intelligence Olympiad (BdAIO) is the premier national competition designed to discover, groom, and inspire young minds in AI. Students up to Grade 12 showcase their skills in Python coding, machine learning models, and algorithm development. BdAIO acts as the official pathway to represent the country on the global stage, including IOAI and IAIO.",

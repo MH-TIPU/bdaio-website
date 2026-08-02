@@ -5,17 +5,28 @@ import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 
 type Home = Dictionary["pages"]["home"];
 
-export function HeroSection() {
+export function HeroSection({ t }: { t: Home }) {
   return (
     <section className="site-hero-media relative w-full overflow-hidden bg-[#050f21]">
+      {/*
+        The hero is artwork, so the page had no heading at all — every other
+        section starts at h2. A screen reader reaching the home page was told
+        nothing about what it is, and a heading outline that starts at level 2
+        fails WCAG 1.3.1. Visually hidden rather than drawn, because the banner
+        already says this in the design.
+      */}
+      <h1 className="sr-only">{t.heroHeading}</h1>
       <div className="relative w-full aspect-[16/9]">
         <Image
           src={heroMedia.heroBanner}
           alt="BdAIO 2026 Dhaka Regional Round Banner"
           fill
+          // Explicit sizes, or next/image assumes 100vw and serves the widest
+          // candidate to a phone. This is the LCP element on the busiest page.
+          sizes="100vw"
           className="object-cover"
           priority
-          unoptimized
+          quality={70}
         />
       </div>
     </section>

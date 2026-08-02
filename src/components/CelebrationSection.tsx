@@ -66,7 +66,9 @@ export function CelebrationSection({ t }: { t: Home }) {
             {t.achievementEvent}
           </span>
           {t.achievementWinning}{" "}
-          <span className="font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded">
+          {/* amber-800 rather than amber-600: on the amber-50 chip, 600 lands at
+              about 3.3:1 and WCAG AA wants 4.5:1 for text this size. */}
+          <span className="font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded">
             {t.achievementMedals}
           </span>
           !

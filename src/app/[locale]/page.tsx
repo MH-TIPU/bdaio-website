@@ -29,7 +29,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
 
   return (
     <>
-      <HeroSection />
+      <HeroSection t={t} />
       <CelebrationSection t={t} />
       <IntroSection t={t} />
       <MissionSection t={t} />

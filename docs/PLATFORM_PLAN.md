@@ -821,16 +821,37 @@ needs a database or a browser, which is also the part that covers the trust chai
       the link we send is one that works. Also covers duplicate sign-up, identical answers for a wrong password
       and an unknown address, an unverified account refused entry to a competition, and waitlisting at capacity.
       A **browser** E2E (real forms, real navigation) is still absent — see below.
-- [ ] **Browser E2E** — the above exercises the server, not the pages. Forms, client validation and navigation are
-      still only covered by hand.
+- [x] **Browser E2E** — Playwright against a **production build** (`next dev` would measure bundles nobody ships),
+      emulating a Pixel 7 because that is closer to what an entrant is holding than a laptop. Covers sign-up →
+      verification → sign-in → enrolment through the real forms, a duplicate address, the identical answer for a
+      wrong password and an unknown one, and the whole journey **keyboard-only**. Sign-up is capped at 5/hour per
+      IP, so the suite clears the rate-limit rows between cases rather than weakening the limit.
 - [x] **CI** — `.github/workflows/ci.yml` runs typecheck, lint and both test projects on every push and PR to
       `main`, cheapest gate first, with in-progress runs cancelled when a branch is pushed again. A PostgreSQL 16
       service backs the integration project, and it is set up with `prisma migrate deploy` rather than `db push`,
       so every run also proves the migration history applies cleanly to an empty database — which is what a deploy
       does.
-- [ ] **Accessibility pass (WCAG AA)** — never audited.
-- [ ] **Lighthouse budget for the BD network** — Core Web Vitals are now measured in production
-      (`/admin/analytics`), but nothing gates a regression at build time.
+- [x] **Accessibility — automated WCAG 2.1 A/AA gate.** axe-core runs over eight public pages (both languages) on
+      every push, plus a one-`h1`-per-page check and a keyboard-only run through sign-up. It found two real
+      defects, now fixed: the amber "3 Gold Medals" chip on the home page sat at about 3.3:1 against its
+      background where AA wants 4.5:1, and the home page **had no `h1` at all** — the hero is artwork, so the
+      heading outline started at level 2 and a screen reader was told nothing about what the page was. There is
+      now a visually hidden `h1` carrying the olympiad's name, translated.
+      **This is a floor, not a certificate.** Automated rules catch roughly a third of real accessibility
+      problems: they find a missing label, not a form that is labelled and still incomprehensible. A pass with
+      someone actually using a screen reader is still owed, and is tracked below.
+- [ ] **Accessibility — human audit.** Someone who uses assistive technology daily going through registration and
+      the dashboard. The automated gate cannot tell us whether the journey makes sense, only that it is labelled.
+- [x] **Lighthouse budget for the BD network** — `lighthouserc.cjs`, run in CI against a production build with
+      mobile emulation and explicit throttling (150ms RTT, ~1.6Mbps, 4× CPU slowdown) rather than Lighthouse's
+      defaults, so the goalposts cannot move under us. Budgets on the metrics people feel (FCP, LCP, TBT, CLS,
+      Speed Index) and on transfer weight, which is what costs a participant money. Three runs per URL, median
+      taken, because one run on a shared CI box swings enough to fail for no reason.
+      Writing it found the obvious thing first: the hero image was still marked `unoptimized`, left over from the
+      static-export era. Removing it took the home page from **601 KB of image to 71 KB**, total weight 1061 KB →
+      532 KB, LCP 7.6s → 4.9s and the performance score 59 → 82 on the throttled profile. Budgets are set just
+      above today's numbers, so this is a ratchet against regressions; tighten them as pages improve, and do not
+      loosen them to make a build pass.
 
 ### 13.4 Carried forward from Phases 5–6
 

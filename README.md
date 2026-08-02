@@ -59,6 +59,20 @@ and in CI a missing database fails the run. The suite truncates every table
 between cases, so it refuses to start against a database whose name does not end
 in `_test`.
 
+### Browser tests and the performance budget
+
+Both run against a production build, started for you:
+
+```bash
+npm run build
+npm run test:e2e          # critical path + WCAG 2.1 AA scans (Playwright + axe)
+npm run test:lighthouse   # performance budget, throttled to a mid-range phone
+```
+
+`test:e2e` needs `TEST_DATABASE_URL` too, seeded (`npm run db:seed` against it).
+The budget lives in `lighthouserc.cjs`; tighten it when a page improves, and do
+not loosen it to make a build pass.
+
 ## Production Build
 
 ```bash

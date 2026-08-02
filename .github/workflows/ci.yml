@@ -68,3 +68,69 @@ jobs:
 
       - name: Test
         run: npm test
+
+  # Split from `check` on purpose: this one has to build the app and drive a
+  # browser, so it takes minutes rather than seconds. A type error should not
+  # wait behind it.
+  browser:
+    runs-on: ubuntu-latest
+    needs: check
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: bdaio
+          POSTGRES_PASSWORD: bdaio
+          POSTGRES_DB: bdaio_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      TEST_DATABASE_URL: postgresql://bdaio:bdaio@localhost:5432/bdaio_test?schema=public
+      DATABASE_URL: postgresql://bdaio:bdaio@localhost:5432/bdaio_test?schema=public
+      AUTH_SECRET: ci-secret-not-used-for-anything-real
+      APP_URL: http://127.0.0.1:3100
+      PORT: "3100"
+      HOSTNAME: 127.0.0.1
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - run: npx prisma migrate deploy
+
+      # The browser tests need something to look at — an event to enrol on and
+      # content on the public pages.
+      - run: npm run db:seed
+
+      - run: npm run build
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Browser tests (critical path + WCAG AA)
+        run: npm run test:e2e
+
+      - name: Performance budget
+        run: npm run test:lighthouse
+
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-test-output
+          path: |
+            playwright-report/
+            test-results/
+            .lighthouseci/
+          retention-days: 7

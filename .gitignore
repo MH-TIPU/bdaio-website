@@ -53,3 +53,11 @@ next-env.d.ts
 # Submission files (answer uploads). Never served by nginx — reads go through
 # an authenticated route handler.
 /private-uploads
+
+# testing
+/coverage
+/.lighthouseci
+/test-results
+/playwright-report
+/blob-report
+/playwright/.cache
