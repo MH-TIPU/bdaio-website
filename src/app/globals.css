@@ -29,6 +29,11 @@
 
 html {
   scroll-behavior: smooth;
+  /* The header is `sticky top-0`, so anything scrolled to the top of the
+     viewport lands underneath it — an anchor link, or the browser moving focus
+     to a control below the fold. Clearing the header's height means the thing
+     you were sent to is the thing you can see and click. */
+  scroll-padding-top: 6rem;
 }
 
 body {

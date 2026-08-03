@@ -69,6 +69,11 @@ npm run test:e2e          # critical path + WCAG 2.1 AA scans (Playwright + axe)
 npm run test:lighthouse   # performance budget, throttled to a mid-range phone
 ```
 
+Both start the server themselves with `npm run start:standalone`, which is also
+the correct way to run a production build locally — `next start` refuses an
+`output: "standalone"` build, and the standalone bundle does not carry its own
+static assets.
+
 `test:e2e` needs `TEST_DATABASE_URL` too, seeded (`npm run db:seed` against it).
 The budget lives in `lighthouserc.cjs`; tighten it when a page improves, and do
 not loosen it to make a build pass.

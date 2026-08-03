@@ -7,11 +7,13 @@
 > This is written for **me, the implementer** — decisions are made, not offered. Where a call is really the
 > team's (pricing, policy), I state the **default I'm building to** and flag it; override anytime and I adjust.
 >
-> **Status:** **Phases 0–7a built and pushed to `main`. Phase 7b (i18n) is largely done** — the public site is
-> bilingual end to end; what remains is translating page bodies, the dashboard, and the admin console (§13.2).
-> Remaining phases: **8 ShurjoPay** and **9 LMS** — *both deferred by the team on 2026‑08‑01*, along with VPS
-> provisioning, in favour of finishing the development work first (§13).
-> **Owner:** Engineering (CTO). **Updated:** 2026‑08‑01.
+> **Status:** **Phases 0–7 and 9 built and pushed to `main`.** Phase 7b (i18n) is largely done — the public site
+> is bilingual end to end, including transactional email and SMS; what remains is translating page bodies, the
+> dashboard, and the admin console (§13.2). **Phase 9 (LMS) is built** — courses, enrolment, progress, quizzes and
+> course certificates. The one remaining phase is **8 ShurjoPay**, which is blocked on product decisions rather
+> than engineering (§13.6), and **VPS provisioning has not started** (§13.1) — the platform is finished and
+> undeployed.
+> **Owner:** Engineering (CTO). **Updated:** 2026‑08‑03.
 >
 > **Picking this up in a fresh session?** Read §3.4–§3.12 first — they record the Next 16 traps and the security
 > decisions that are expensive to rediscover. Dev login: `admin@bdaio.org` / `BdAIO-dev-2026` (seeded participants
@@ -618,7 +620,7 @@ API        /api/institutions/search  /api/certificates/[serial]  /api/uploads �
 | **7a Hardening** ✅ | polish | *Done:* **auth rate limiting** (Phase 1 carry‑over) on login/register/reset/resend plus the public search and institution registration; **SEO** — DB‑driven `sitemap.ts` that inherits the privacy rules, `robots.ts`, canonical + Open Graph/Twitter on every dynamic page, Organization/WebSite/Event/Person/EducationalOrganization/Breadcrumb JSON‑LD, `noindex` on `/verify/*`; **PWA** — generated icons, `manifest.ts`, hand‑written service worker with a bilingual `/offline` page, security headers; **first‑party analytics** — aggregate‑only, cookieless, with `/admin/analytics` and Core Web Vitals; **ops** — `/api/health`, verified backup + restore scripts, nightly prune endpoint, `docs/OPS.md`; **SMS** — provider‑agnostic sender with opt‑in, wired to registration decisions and published results. All of §3.12 |
 | **7b i18n** | bilingual UI | **The one Phase 7 item deliberately not done in 7a**, because it is not a polish task — it touches all 66 pages. Today "bilingual" means BN fields stored beside EN and rendered as secondary text; the chrome, forms, and admin are English‑only. Plan: `src/app/[locale]/` with `generateStaticParams` for `en`/`bn` (keeps public pages static and gives each language its own URL + `hreflang`, which a locale cookie cannot — a cookie read in the root layout would make every page dynamic and lose the §3.4 `revalidate` behaviour), `src/lib/i18n/{en,bn}.ts` dictionaries with a typed `t()`, a language toggle in the header, `alternates.languages` in `pageMetadata()` and the sitemap. Do it as one isolated, reviewable slice |
 | **8 Payments** | fees | **ShurjoPay** checkout on registration, `Payment` records + webhook, receipts, admin payments/reconciliation |
-| **9 LMS** | learning | Courses/modules/lessons, enrollment + progress, auto‑graded quizzes, course certificates, "My Learning" + admin authoring |
+| **9 LMS** ✅ | learning | Courses/modules/lessons, enrolment + progress, auto‑graded quizzes, course certificates through the existing pipeline, "My Learning" + admin authoring at `/admin/courses` |
 
 ---
 
@@ -793,8 +795,14 @@ English. If that changes, the mechanism is already in place: add the key to `en.
 Deliberately left English: the certificate-verification detail labels, the `/result` reference table, the
 `news/library` heading, and the dashboard + admin consoles. The participation guideline and FAQ bodies are already
 properly Bengali and must not be overwritten with demo copy.
-- [ ] Transactional email and SMS templates in both languages (the SMS 160-character budget is GSM-7; Bengali is
-      UCS-2 at 70 characters, so Bengali texts cost more — decide per template).
+- [x] Transactional email and SMS in both languages. The email bodies were already bilingual; the subjects now are
+      too (`English · বাংলা`), except the contact-form notification, which goes to organisers rather than
+      participants. **SMS segmentation was the real bug**: `oneSegment` trimmed at a fixed 160 characters, but one
+      non-GSM-7 character forces the whole message into UCS-2 at **70** — so a "short" Bengali message was being
+      split and billed as three. The budget now follows the script, and `bilingualSms()` sends Bengali when it fits
+      one segment and falls back to English when it does not, because a truncated Bengali sentence is worse than a
+      complete English one. That is the per-template decision this item asked for, made once instead of at every
+      call site.
 
 ### 13.3 Quality gates
 
@@ -926,8 +934,22 @@ Blocked on product answers, not engineering. I'll build to the §9.3 defaults if
 
 ### 13.7 Phase 9 — LMS
 
-- [ ] `Course` → `CourseModule` → `Lesson`; `Enrollment`, `LessonProgress`; `Quiz` → `Question`, `QuizAttempt`.
-- [ ] `/learn` routes, `/dashboard/learning`, admin authoring, course certificates through the existing pipeline.
+- [x] `Course` → `CourseModule` → `Lesson`; `Enrollment`, `LessonProgress`; `Quiz` → `Question` →
+      `QuestionOption`, `QuizAttempt`. Its **own hierarchy, not an extension of Event/Round** — an event happens on
+      a date and everyone sits it together, while a course is taken at the learner's own pace with no capacity, no
+      venue and no judges. Forcing them together would have meant a `Registration` whose window fields are always
+      null and a `Round` that never runs; the shapes only look alike.
+- [x] `/learn` and `/learn/[slug]` (public, with the resource library's visibility rule — a `MEMBERS` course is
+      filtered out of the *query* for a signed-out visitor), `/dashboard/learning` and a lesson player at
+      `/dashboard/learning/[slug]?lesson=`, admin authoring at `/admin/courses`, and **course certificates through
+      the existing pipeline** — a `COURSE` certificate verifies at `/verify/[serial]` exactly like a competition one.
+- [x] **The completion rule is pure and tested** (`src/lib/learn/progress.ts`): a course is finished only when
+      every lesson is read *and* every quiz passed, an empty course is never complete (it would otherwise certify
+      everyone), and a quiz question counts only when the chosen options exactly match the correct set — partial
+      credit would let someone select everything and pass. The answer key is never selected into the page, so the
+      only way to find out is to answer.
+- [ ] **Richer lesson content** — lessons are plain text with blank-line paragraphs, the same shape as `Page.body`.
+      Code blocks with syntax highlighting are the obvious next thing for a Python course.
 
 ### 13.8 Open product questions
 

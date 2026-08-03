@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { formatBdMobile, normalizeBdMobile } from "@/lib/sms/phone";
+import { bilingualSms, oneSegment, segmentBudget } from "@/lib/sms/sender";
 import { districtNamesOf, isValidLocation, upazilasOf } from "@/data/bd-geo";
 import { findColumn, headerIndex, parseCsv } from "@/lib/results/csv";
 import { medalLabel } from "@/lib/results/medals";
@@ -39,6 +40,40 @@ describe("Bangladeshi mobile numbers", () => {
   it("formats for display without changing what it means", () => {
     expect(formatBdMobile("01712345678")).toBe("+880 1712-345678");
     expect(formatBdMobile("nonsense")).toBeNull();
+  });
+});
+
+describe("SMS segmentation", () => {
+  it("allows 160 GSM-7 characters but only 70 in Bengali", () => {
+    expect(segmentBudget("plain ascii")).toBe(160);
+    expect(segmentBudget("বাংলা")).toBe(70);
+    // One non-GSM character forces the whole message into UCS-2.
+    expect(segmentBudget("BdAIO: ফলাফল published")).toBe(70);
+  });
+
+  it("trims to the budget that applies, not a fixed 160", () => {
+    const longAscii = "a".repeat(200);
+    expect(oneSegment(longAscii)).toHaveLength(160);
+
+    const longBengali = "অ".repeat(200);
+    expect(oneSegment(longBengali)).toHaveLength(70);
+  });
+
+  it("collapses whitespace so a wrapped template does not spill a segment", () => {
+    expect(oneSegment("  two   words \n here ")).toBe("two words here");
+  });
+
+  it("prefers Bengali when it fits whole", () => {
+    expect(bilingualSms({ bn: "ফলাফল প্রকাশিত হয়েছে।", en: "Results published." })).toBe(
+      "ফলাফল প্রকাশিত হয়েছে।",
+    );
+  });
+
+  it("falls back to English rather than sending half a Bengali sentence", () => {
+    const tooLong = "অ".repeat(80); // over the 70-character UCS-2 budget
+    expect(bilingualSms({ bn: tooLong, en: "Results published." })).toBe(
+      "Results published.",
+    );
   });
 });
 

@@ -116,6 +116,55 @@ export async function ensureOpenEvent(): Promise<{ slug: string; id: string }> {
   return { slug: EVENT_SLUG, id: event.rows[0].id };
 }
 
+const COURSE_SLUG = "e2e-course";
+
+/**
+ * A published course with one lesson.
+ *
+ * The suite owns its fixtures rather than leaning on the seed, because the
+ * Vitest integration project truncates this database between its own cases —
+ * anything these tests assume was seeded is gone the moment both suites run.
+ */
+export async function ensureCourse(): Promise<{ slug: string }> {
+  const course = await query<{ id: string }>(
+    `INSERT INTO "Course" (id, title, slug, summary, level, status, visibility, certificate, "order", "createdAt", "updatedAt")
+     VALUES (gen_random_uuid()::text, 'E2E Course', $1, 'Created by the browser test suite.',
+             'BEGINNER', 'PUBLISHED', 'PUBLIC', false, 0, now(), now())
+     ON CONFLICT (slug) DO UPDATE SET status = 'PUBLISHED'
+     RETURNING id`,
+    [COURSE_SLUG],
+  );
+  const courseId = course.rows[0].id;
+
+  const existingModule = await query<{ id: string }>(
+    `SELECT id FROM "CourseModule" WHERE "courseId" = $1 LIMIT 1`,
+    [courseId],
+  );
+  const moduleId =
+    existingModule.rows[0]?.id ??
+    (
+      await query<{ id: string }>(
+        `INSERT INTO "CourseModule" (id, "courseId", title, "order")
+         VALUES (gen_random_uuid()::text, $1, 'Module one', 0) RETURNING id`,
+        [courseId],
+      )
+    ).rows[0].id;
+
+  const lesson = await query(`SELECT id FROM "Lesson" WHERE "moduleId" = $1 LIMIT 1`, [
+    moduleId,
+  ]);
+  if (lesson.rows.length === 0) {
+    await query(
+      `INSERT INTO "Lesson" (id, "moduleId", title, kind, body, minutes, "order")
+       VALUES (gen_random_uuid()::text, $1, 'First lesson', 'TEXT',
+               'Some lesson prose for the accessibility scan.', 5, 0)`,
+      [moduleId],
+    );
+  }
+
+  return { slug: COURSE_SLUG };
+}
+
 export async function registrationStatus(
   email: string,
   eventId: string,

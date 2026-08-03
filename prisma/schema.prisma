@@ -125,6 +125,7 @@ enum CertificateType {
   MERIT
   MEDAL
   APPRECIATION
+  COURSE
 }
 
 enum ResourceVisibility {
@@ -178,6 +179,7 @@ model User {
   judgeRoles    RoundJudge[]
   contactMessages ContactMessage[]
   mediaUploads  MediaAsset[]
+  enrollments   Enrollment[]
 
   @@index([role])
 }
@@ -502,6 +504,7 @@ model MediaAsset {
   uploadedBy   User?     @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
   createdAt    DateTime  @default(now())
   sponsors     Sponsor[]
+  courses      Course[]
 
   @@index([createdAt])
 }
@@ -712,6 +715,201 @@ model Resource {
   updatedAt   DateTime           @updatedAt
 
   @@index([visibility, published])
+}
+
+// ---------------------------------------------------------------------------
+// Phase 9 — LMS
+//
+// Deliberately its own hierarchy rather than an extension of Event/Round. An
+// event happens on a date and everyone sits it together; a course is taken at
+// the learner's own pace and has no capacity, no venue and no judges. Forcing
+// the two together would have meant a `Registration` whose window fields were
+// always null and a `Round` that never ran — the shapes only look alike.
+//
+// What *is* reused: certificates go through the existing pipeline (a `COURSE`
+// certificate is verified at `/verify/[serial]` exactly like a competition one),
+// visibility follows `ResourceVisibility`, and cover images come from the media
+// library.
+// ---------------------------------------------------------------------------
+
+enum CourseLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum CourseStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum LessonKind {
+  /// Prose written in the admin, rendered on the page.
+  TEXT
+  /// An embedded video, with the prose as its notes.
+  VIDEO
+  /// A link out — a Kaggle notebook, a dataset, someone else's tutorial.
+  EXTERNAL
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  COMPLETED
+  WITHDRAWN
+}
+
+model Course {
+  id          String             @id @default(cuid())
+  title       String
+  titleBn     String?
+  slug        String             @unique
+  /// One or two lines for the course card.
+  summary     String?
+  summaryBn   String?
+  description String?
+  level       CourseLevel        @default(BEGINNER)
+  status      CourseStatus       @default(DRAFT)
+  visibility  ResourceVisibility @default(PUBLIC)
+  coverId     String?
+  cover       MediaAsset?        @relation(fields: [coverId], references: [id], onDelete: SetNull)
+  /// Issue a certificate when every lesson is done and every quiz passed.
+  certificate Boolean            @default(false)
+  order       Int                @default(0)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  modules     CourseModule[]
+  enrollments Enrollment[]
+
+  @@index([status, visibility])
+}
+
+model CourseModule {
+  id       String   @id @default(cuid())
+  courseId String
+  course   Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title    String
+  titleBn  String?
+  order    Int      @default(0)
+  lessons  Lesson[]
+
+  @@index([courseId, order])
+}
+
+model Lesson {
+  id       String       @id @default(cuid())
+  moduleId String
+  module   CourseModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  title    String
+  titleBn  String?
+  kind     LessonKind   @default(TEXT)
+  /// Prose for TEXT, notes for VIDEO. Plain text with blank-line paragraphs —
+  /// the same shape as `Page.body`, for the same reason: an organiser is not
+  /// going to learn a markup language to publish a lesson.
+  body     String?
+  bodyBn   String?
+  /// VIDEO: the embed URL. EXTERNAL: where the link goes.
+  url      String?
+  /// Rough reading/watching time, shown so a learner can plan a sitting.
+  minutes  Int?
+  order    Int          @default(0)
+
+  quiz     Quiz?
+  progress LessonProgress[]
+
+  @@index([moduleId, order])
+}
+
+/// One enrolment of one person on one course.
+///
+/// Separate from `Registration` on purpose (see the note above), and the anchor
+/// for progress: deleting an enrolment takes its progress and attempts with it,
+/// which is what "withdraw and start again" should mean.
+model Enrollment {
+  id            String           @id @default(cuid())
+  userId        String
+  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId      String
+  course        Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  status        EnrollmentStatus @default(ACTIVE)
+  startedAt     DateTime         @default(now())
+  completedAt   DateTime?
+  /// The certificate issued on completion, if the course grants one.
+  certificateId String?
+  progress      LessonProgress[]
+  attempts      QuizAttempt[]
+
+  @@unique([userId, courseId])
+  @@index([courseId, status])
+}
+
+model LessonProgress {
+  id           String     @id @default(cuid())
+  enrollmentId String
+  enrollment   Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  lessonId     String
+  lesson       Lesson     @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  completedAt  DateTime   @default(now())
+
+  @@unique([enrollmentId, lessonId])
+  @@index([lessonId])
+}
+
+/// A check at the end of a lesson. One per lesson, or none.
+model Quiz {
+  id       String     @id @default(cuid())
+  lessonId String     @unique
+  lesson   Lesson     @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  title    String     @default("Check your understanding")
+  /// Percentage needed to pass. A course certificate requires every quiz passed.
+  passMark Int        @default(60)
+  questions Question[]
+  attempts  QuizAttempt[]
+}
+
+model Question {
+  id       String           @id @default(cuid())
+  quizId   String
+  quiz     Quiz             @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  prompt   String
+  promptBn String?
+  order    Int              @default(0)
+  options  QuestionOption[]
+
+  @@index([quizId, order])
+}
+
+/// An answer option.
+///
+/// `isCorrect` lives here rather than as an index on the question so a quiz can
+/// have more than one right answer later without a migration — and so no query
+/// that selects options for display can accidentally include the key, because
+/// selecting it has to be deliberate.
+model QuestionOption {
+  id         String   @id @default(cuid())
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  text       String
+  textBn     String?
+  isCorrect  Boolean  @default(false)
+  order      Int      @default(0)
+
+  @@index([questionId, order])
+}
+
+model QuizAttempt {
+  id           String     @id @default(cuid())
+  quizId       String
+  quiz         Quiz       @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  enrollmentId String
+  enrollment   Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  /// Percentage, rounded.
+  score        Int
+  passed       Boolean
+  createdAt    DateTime   @default(now())
+
+  @@index([enrollmentId, quizId])
 }
 
 /// Earned marks shown publicly: system badges (verified student, roles) and

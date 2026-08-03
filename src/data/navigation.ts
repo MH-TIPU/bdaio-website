@@ -47,6 +47,7 @@ export const navItems: NavItem[] = [
     href: "/resources",
     children: [
       { key: "resourceLibrary", href: "/resources" },
+      { key: "learn", href: "/learn" },
       { key: "syllabus", href: "/syllabus" },
       { key: "participationGuideline", href: "/participation-guideline" },
     ],

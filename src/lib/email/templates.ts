@@ -39,7 +39,7 @@ export function verificationEmail(to: string, token: string): Mail {
   const link = appUrl(`/verify-email?token=${token}`);
   return {
     to,
-    subject: "Verify your BdAIO email address",
+    subject: "Verify your BdAIO email address · ইমেইল যাচাই করুন",
     text: `Welcome to BdAIO!\n\nVerify your email address by opening this link (valid for 24 hours):\n${link}\n\nবিডিএআইও-তে স্বাগতম! উপরের লিংকে ক্লিক করে আপনার ইমেইল যাচাই করুন।\n\nIf you did not create this account, you can ignore this email.`,
     html: layout(
       "Verify your email address",
@@ -94,8 +94,8 @@ export function registrationConfirmationEmail(
   return {
     to,
     subject: details.waitlisted
-      ? `Waitlisted: ${what}`
-      : `Registration confirmed: ${what}`,
+      ? `Waitlisted · অপেক্ষমাণ: ${what}`
+      : `Registration confirmed · নিবন্ধন নিশ্চিত: ${what}`,
     text: `${headline}\n\n${body}\n${lines.join("\n")}\n\n${bodyBn}\n\nSee your registrations: ${appUrl("/dashboard/registrations")}`,
     html: layout(
       headline,
@@ -129,7 +129,9 @@ export function registrationDecisionEmail(
 
   return {
     to,
-    subject: details.approved ? `Confirmed: ${what}` : `Update: ${what}`,
+    subject: details.approved
+      ? `Confirmed · নিশ্চিত: ${what}`
+      : `Update · হালনাগাদ: ${what}`,
     text: `${headline}\n\n${body}\n\n${bodyBn}\n\n${appUrl("/dashboard/registrations")}`,
     html: layout(
       headline,
@@ -144,7 +146,7 @@ export function passwordResetEmail(to: string, token: string): Mail {
   const link = appUrl(`/reset-password?token=${token}`);
   return {
     to,
-    subject: "Reset your BdAIO password",
+    subject: "Reset your BdAIO password · পাসওয়ার্ড রিসেট করুন",
     text: `Reset your BdAIO password using this link (valid for 1 hour):\n${link}\n\nআপনার পাসওয়ার্ড রিসেট করতে উপরের লিংকে ক্লিক করুন।\n\nIf you did not request this, you can ignore this email — your password will not change.`,
     html: layout(
       "Reset your password",

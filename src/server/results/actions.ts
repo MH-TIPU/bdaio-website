@@ -7,6 +7,7 @@ import { logActivity, requireRole, requireUser } from "@/lib/auth/dal";
 import { grantBadge } from "@/lib/community/badges";
 import { notify } from "@/lib/notifications/notify";
 import { appUrl } from "@/lib/email/mailer";
+import { bilingualSms } from "@/lib/sms/sender";
 import { certificateSerial } from "@/lib/certificates/pdf";
 import { medalLabel } from "@/lib/results/medals";
 import { findColumn, headerIndex, parseCsv } from "@/lib/results/csv";
@@ -225,7 +226,10 @@ export async function publishRoundResults(formData: FormData): Promise<void> {
         // participants receive one (see notify()), and the message carries no
         // mark or rank — an SMS is not a private channel, and a phone is often
         // shared within a family.
-        sms: `BdAIO: your ${round.name} result has been published. See it at ${appUrl("/dashboard/results")}`,
+        sms: bilingualSms({
+          bn: `BdAIO: ${round.name}-এর ফলাফল প্রকাশিত হয়েছে।`,
+          en: `BdAIO: your ${round.name} result has been published. See it at ${appUrl("/dashboard/results")}`,
+        }),
       });
 
       if (!result.medal) continue;

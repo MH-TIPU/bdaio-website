@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { logActivity, requireRole } from "@/lib/auth/dal";
 import { appUrl } from "@/lib/email/mailer";
+import { bilingualSms } from "@/lib/sms/sender";
 import { queueMail } from "@/lib/email/queue";
 import { registrationDecisionEmail } from "@/lib/email/templates";
 import { notify } from "@/lib/notifications/notify";
@@ -305,8 +306,13 @@ export async function decideRegistration(formData: FormData): Promise<void> {
         : `Registration not accepted: ${registration.event.title}`,
       body: registration.round?.name ?? undefined,
       href: "/dashboard/registrations",
+      // Bengali if it fits one segment, English otherwise — the event title is
+      // whatever an organiser typed, so which one wins depends on the event.
       sms: approved
-        ? `BdAIO: your registration for ${registration.event.title} is APPROVED. Details: ${appUrl("/dashboard/registrations")}`
+        ? bilingualSms({
+            bn: `BdAIO: ${registration.event.title} — আপনার নিবন্ধন অনুমোদিত হয়েছে।`,
+            en: `BdAIO: your registration for ${registration.event.title} is APPROVED. Details: ${appUrl("/dashboard/registrations")}`,
+          })
         : undefined,
     });
   }

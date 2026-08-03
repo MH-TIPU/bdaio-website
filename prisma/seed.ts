@@ -929,10 +929,12 @@ async function main() {
   }
 
   const sponsorCount = await seedSponsors(admin.id);
+  const courseCount = await seedCourses();
 
   console.log("Seed complete:", {
     admin: admin.email,
     sponsors: sponsorCount,
+    courses: courseCount,
     participants: created.length,
     registrations: plan.length,
     institution: institution.slug,
@@ -941,6 +943,132 @@ async function main() {
     rounds: rounds.length,
     password: SEED_PASSWORD,
   });
+}
+
+// --- Courses (Phase 9) -----------------------------------------------------
+
+/**
+ * One complete course, so the LMS has something real to render: two modules,
+ * four lessons of three kinds, and a quiz whose pass mark actually gates the
+ * certificate.
+ *
+ * Idempotent on the course slug — a re-run leaves an edited course alone rather
+ * than overwriting whatever an organiser has since written.
+ */
+async function seedCourses(): Promise<number> {
+  const existing = await db.course.findUnique({ where: { slug: "python-for-ai" } });
+  if (!existing) {
+    const course = await db.course.create({
+      data: {
+        title: "Python for AI — the basics",
+        titleBn: "এআই-এর জন্য পাইথন — শুরুর পাঠ",
+        slug: "python-for-ai",
+        summary:
+          "The Python you need before any of the machine-learning material makes sense.",
+        summaryBn: "মেশিন লার্নিং শুরুর আগে যতটুকু পাইথন জানা দরকার।",
+        description:
+          "Written for students preparing for BdAIO who have never written Python before.\n\nWork through it at your own pace. Each lesson is short enough for one sitting, and the quiz at the end of the first module checks that the basics have landed before you move on.",
+        level: "BEGINNER",
+        status: "PUBLISHED",
+        visibility: "PUBLIC",
+        certificate: true,
+        order: 0,
+      },
+    });
+
+    const basics = await db.courseModule.create({
+      data: { courseId: course.id, title: "Getting started", titleBn: "শুরু করা", order: 0 },
+    });
+    const data = await db.courseModule.create({
+      data: { courseId: course.id, title: "Working with data", titleBn: "ডেটা নিয়ে কাজ", order: 1 },
+    });
+
+    await db.lesson.create({
+      data: {
+        moduleId: basics.id,
+        title: "What a program is",
+        titleBn: "প্রোগ্রাম কী",
+        kind: "TEXT",
+        minutes: 8,
+        order: 0,
+        body: "A program is a list of instructions a computer follows in order.\n\nPython reads your file from the top down, one line at a time. That is the whole model, and almost everything else is a detail on top of it.",
+        bodyBn: "প্রোগ্রাম হলো নির্দেশের একটি তালিকা, যা কম্পিউটার ক্রমান্বয়ে অনুসরণ করে।\n\nপাইথন আপনার ফাইলটি উপর থেকে নিচে, এক লাইন করে পড়ে।",
+      },
+    });
+
+    const variables = await db.lesson.create({
+      data: {
+        moduleId: basics.id,
+        title: "Variables and types",
+        titleBn: "ভেরিয়েবল ও টাইপ",
+        kind: "TEXT",
+        minutes: 12,
+        order: 1,
+        body: "A variable is a name for a value.\n\nPython has a few basic types you will use constantly: int for whole numbers, float for decimals, str for text, and bool for true or false.",
+      },
+    });
+
+    await db.quiz.create({
+      data: {
+        lessonId: variables.id,
+        title: "Check your understanding",
+        passMark: 60,
+        questions: {
+          create: [
+            {
+              prompt: "Which type would you use for the number 3.14?",
+              order: 0,
+              options: {
+                create: [
+                  { text: "int", order: 0 },
+                  { text: "float", isCorrect: true, order: 1 },
+                  { text: "str", order: 2 },
+                ],
+              },
+            },
+            {
+              prompt: 'What is the type of the value "42"?',
+              order: 1,
+              options: {
+                create: [
+                  { text: "int", order: 0 },
+                  { text: "str — the quotes make it text", isCorrect: true, order: 1 },
+                  { text: "bool", order: 2 },
+                ],
+              },
+            },
+          ],
+        },
+      },
+    });
+
+    await db.lesson.create({
+      data: {
+        moduleId: data.id,
+        title: "Lists and loops",
+        titleBn: "লিস্ট ও লুপ",
+        kind: "TEXT",
+        minutes: 15,
+        order: 0,
+        body: "A list holds many values in order, and a for-loop visits each one.\n\nThis pair is most of what you need to process a dataset row by row.",
+      },
+    });
+
+    await db.lesson.create({
+      data: {
+        moduleId: data.id,
+        title: "Practice on Kaggle",
+        titleBn: "কাগলে অনুশীলন",
+        kind: "EXTERNAL",
+        url: "https://www.kaggle.com/competitions",
+        minutes: 30,
+        order: 1,
+        body: "Try a beginner competition. Reading other people's notebooks is the fastest way to learn what good code looks like.",
+      },
+    });
+  }
+
+  return db.course.count();
 }
 
 // --- Sponsors and their logos ----------------------------------------------

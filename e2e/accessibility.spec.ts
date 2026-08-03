@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
-import { closeDb } from "./helpers";
+import { closeDb, ensureCourse } from "./helpers";
 
 /**
  * WCAG 2.1 AA, checked automatically on the pages a participant actually meets.
@@ -23,7 +23,12 @@ const PAGES = [
   { name: "contact", path: "/en/contact" },
   { name: "FAQ", path: "/en/faq" },
   { name: "resources", path: "/en/resources" },
+  { name: "courses", path: "/en/learn" },
+  { name: "a course", path: "/en/learn/e2e-course" },
 ];
+
+// The course pages need a course to look at, and the suite owns its fixtures.
+test.beforeAll(ensureCourse);
 
 test.afterAll(async () => {
   await closeDb();

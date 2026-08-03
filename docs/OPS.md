@@ -71,9 +71,16 @@ curl -fsS https://bdaio.org/api/health   # must return {"ok":true,...}
 `standalone` builds do **not** copy static assets. After every build:
 
 ```bash
+rm -rf .next/standalone/public .next/standalone/.next/static
 cp -r public .next/standalone/
 cp -r .next/static .next/standalone/.next/
 ```
+
+The `rm -rf` is not tidiness. `cp -r src dst` **copies into** `dst` when `dst`
+already exists, so on the second deploy you get
+`.next/standalone/.next/static/static/…` and the server keeps serving the
+*previous* build's CSS and JS. The symptom is a site that renders unstyled after
+a deploy that reported success. `npm run start:standalone` does this correctly.
 
 Check the build output each time a database-backed page is added: a page that
 only queries Prisma is marked `○ (Static)` and its data **freezes until the next
