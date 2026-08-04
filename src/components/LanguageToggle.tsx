@@ -6,6 +6,7 @@ import {
   LOCALE_COOKIE,
   LOCALE_COOKIE_MAX_AGE,
   LOCALE_LABELS,
+  LOCALE_SHORT,
   localePath,
   type Locale,
 } from "@/lib/i18n/config";
@@ -59,7 +60,7 @@ export function LanguageToggle({
 
   return (
     <div
-      className="flex items-center gap-0.5 rounded-lg bg-bdaio-gray-light/60 p-0.5"
+      className="flex items-center rounded-md bg-bdaio-gray-light/60 p-px"
       role="group"
       aria-label={t.language.label}
     >
@@ -71,14 +72,17 @@ export function LanguageToggle({
             type="button"
             onClick={() => switchTo(option)}
             aria-current={active ? "true" : undefined}
+            // The visible label is two letters; the accessible name is the
+            // language's own name, so a screen reader announces "Switch to
+            // বাংলা" rather than spelling out "B N".
             aria-label={`${t.language.switchTo} ${LOCALE_LABELS[option]}`}
-            className={`rounded-md px-2 py-1 text-xs font-semibold transition-colors ${
+            className={`flex min-h-6 min-w-7 items-center justify-center rounded-[5px] px-1 text-[10px] font-bold uppercase leading-none tracking-wide transition-colors ${
               active
                 ? "bg-white text-bdaio-blue-dark shadow-sm"
                 : "text-bdaio-gray hover:text-bdaio-blue-dark"
-            } ${option === "bn" ? "font-bengali" : ""}`}
+            }`}
           >
-            {LOCALE_LABELS[option]}
+            {LOCALE_SHORT[option]}
           </button>
         );
       })}

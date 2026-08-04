@@ -32,6 +32,18 @@ export const LOCALE_LABELS: Record<Locale, string> = {
   bn: "বাংলা",
 };
 
+/**
+ * Two-letter codes for the compact toggle in the header.
+ *
+ * Latin for both, including Bengali: "BN" in a 10px chip stays legible where
+ * "বাং" would be a smudge, and the full name is still what a screen reader
+ * announces — see the `aria-label` in `LanguageToggle`.
+ */
+export const LOCALE_SHORT: Record<Locale, string> = {
+  en: "EN",
+  bn: "BN",
+};
+
 /** The `lang` attribute / `hreflang` value for each locale. */
 export const LOCALE_HREFLANG: Record<Locale, string> = {
   en: "en",
