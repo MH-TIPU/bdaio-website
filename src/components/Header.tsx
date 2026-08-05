@@ -21,6 +21,33 @@ function isActive(pathname: string, href: string, children?: { href: string }[])
   return children?.some((c) => rest === c.href || rest.startsWith(c.href + "/")) ?? false;
 }
 
+/**
+ * One definition of a nav item's size and spacing.
+ *
+ * There used to be four hand-written variants of this — `px-3.5`, `px-3`,
+ * `px-2.5` — which is how a menu ends up looking different depending on which
+ * branch rendered it. Shared, so they cannot drift again.
+ */
+const NAV_ITEM = "px-2.5 py-2 font-semibold transition-colors duration-200";
+
+/**
+ * Bengali labels are rendered a notch smaller than English ones.
+ *
+ * Not a fudge: Bengali script carries a taller x-height and matras above and
+ * below the baseline, so Hind Siliguri at 14px occupies visibly more room than
+ * Inter at 14px. Ten menu items in Bengali at the Latin size crowd the header
+ * and read as oversized next to the logo. 13px against 14px is the size at
+ * which the two scripts look like the same menu.
+ *
+ * The font itself matters as much as the size. Without `font-bengali` these
+ * labels fall out of Inter — which has no Bengali glyphs — into whatever the
+ * operating system supplies, so the nav looked different on every device and
+ * none of them were the typeface the site loads.
+ */
+function navText(locale: Locale): string {
+  return locale === "bn" ? "font-bengali text-[13px]" : "text-sm";
+}
+
 export function Header({ locale, t }: { locale: Locale; t: Dictionary }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -28,6 +55,7 @@ export function Header({ locale, t }: { locale: Locale; t: Dictionary }) {
 
   /** Nav hrefs are stored locale-free; every link gets the active prefix. */
   const href = (path: string) => localePath(locale, path);
+  const text = navText(locale);
 
   return (
     <header className="site-header sticky top-0 z-50 border-b py-4 shadow-sm">
@@ -35,7 +63,7 @@ export function Header({ locale, t }: { locale: Locale; t: Dictionary }) {
         <Logo locale={locale} />
 
         {/* Desktop Navigation - Clean text links matching screenshots */}
-        <nav className="hidden items-center gap-1.5 lg:flex">
+        <nav className="hidden items-center gap-0.5 lg:flex">
           {navItems.map((item) => {
             const active = isActive(pathname, item.href, item.children);
             const label = t.nav[item.key];
@@ -48,7 +76,7 @@ export function Header({ locale, t }: { locale: Locale; t: Dictionary }) {
                   onMouseLeave={() => setOpenDropdown(null)}
                 >
                   <button
-                    className={`flex items-center gap-1 px-3.5 py-2 text-sm font-semibold transition-colors duration-200 focus:outline-none ${
+                    className={`flex items-center gap-1 focus:outline-none ${NAV_ITEM} ${text} ${
                       active
                         ? "text-bdaio-blue-dark"
                         : "text-bdaio-gray hover:text-bdaio-blue-dark"
@@ -71,7 +99,7 @@ export function Header({ locale, t }: { locale: Locale; t: Dictionary }) {
                         <Link
                           key={child.href}
                           href={href(child.href)}
-                          className="block rounded px-3.5 py-2 text-sm font-semibold text-bdaio-gray transition-colors hover:bg-bdaio-gray-light hover:text-bdaio-blue-dark"
+                          className={`block rounded text-bdaio-gray hover:bg-bdaio-gray-light hover:text-bdaio-blue-dark ${NAV_ITEM} ${text}`}
                         >
                           {t.nav[child.key]}
                         </Link>
@@ -85,7 +113,7 @@ export function Header({ locale, t }: { locale: Locale; t: Dictionary }) {
               <Link
                 key={item.href}
                 href={href(item.href)}
-                className={`px-3.5 py-2 text-sm font-semibold transition-colors duration-200 ${
+                className={`${NAV_ITEM} ${text} ${
                   active
                     ? "text-bdaio-blue-dark"
                     : "text-bdaio-gray hover:text-bdaio-blue-dark"
@@ -135,7 +163,7 @@ export function Header({ locale, t }: { locale: Locale; t: Dictionary }) {
                           key={child.href}
                           href={href(child.href)}
                           onClick={() => setMobileOpen(false)}
-                          className="block rounded px-2.5 py-2 text-sm font-semibold text-bdaio-gray transition-colors hover:text-bdaio-blue-dark"
+                          className={`block rounded text-bdaio-gray hover:text-bdaio-blue-dark ${NAV_ITEM} ${text}`}
                         >
                           {t.nav[child.key]}
                         </Link>
@@ -146,7 +174,7 @@ export function Header({ locale, t }: { locale: Locale; t: Dictionary }) {
                   <Link
                     href={href(item.href)}
                     onClick={() => setMobileOpen(false)}
-                    className={`block rounded px-3 py-2 text-sm font-semibold transition-colors ${
+                    className={`block rounded ${NAV_ITEM} ${text} ${
                       isActive(pathname, item.href)
                         ? "text-bdaio-blue-dark"
                         : "text-bdaio-gray hover:text-bdaio-blue-dark"
