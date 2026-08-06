@@ -90,7 +90,8 @@ export function CelebrationSection({ t }: { t: Home }) {
                 <span>🏅</span>
               </div>
               <h3 className="text-lg font-bold text-[#1e5a8a]">{medalist.name}</h3>
-              <p className="text-xs font-semibold text-amber-600 uppercase tracking-wider mt-1">
+              {/* amber-700, not 600: at this size AA wants 4.5:1 and 600 lands at 3.3. */}
+              <p className="text-xs font-semibold text-amber-700 uppercase tracking-wider mt-1">
                 {t.goldMedalist}
               </p>
             </div>

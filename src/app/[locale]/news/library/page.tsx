@@ -63,7 +63,7 @@ export default async function NewsLibraryPage({ params }: PageProps<"/[locale]/n
                       <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-600">
                         {item.source}
                       </span>
-                      <time className="text-xs font-semibold text-slate-400">
+                      <time className="text-xs font-semibold text-slate-500">
                         {item.publishedAt}
                       </time>
                     </div>

@@ -80,7 +80,7 @@ export default async function NewsPage({ params }: PageProps<"/[locale]/news">) 
                   <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-600">
                     {post.category}
                   </span>
-                  <time className="text-xs font-semibold text-slate-400">{post.date}</time>
+                  <time className="text-xs font-semibold text-slate-500">{post.date}</time>
                 </div>
                 <h2 className="text-xl font-black leading-snug text-slate-800">
                   {post.title}

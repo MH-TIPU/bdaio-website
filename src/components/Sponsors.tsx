@@ -124,7 +124,7 @@ export async function SponsorsSection({ locale }: { locale: Locale }) {
 
           return (
             <div key={tier} className={`mx-auto text-center ${WIDTH_CLASS[columns] ?? "max-w-4xl"}`}>
-              <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-blue-500">
+              <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-bdaio-blue">
                 {TIER_LABELS[tier]}
               </h3>
               <div className={`grid gap-4 ${COLUMN_CLASS[columns] ?? "grid-cols-3"}`}>

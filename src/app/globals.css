@@ -1,17 +1,27 @@
 @import "tailwindcss";
 
+/**
+ * Design tokens.
+ *
+ * The palette is the brand's; the surfaces are plain white and slate. Components
+ * are written in ordinary Tailwind (`bg-white`, `text-slate-600`, `ring-slate-100`)
+ * and are left to render as written — see the note under `body`.
+ */
 :root {
-  --background: #e6fbfb;
-  --foreground: #062f3f;
+  --background: #ffffff;
+  --foreground: #0f172a; /* slate-900 */
+
+  /* Brand */
   --bdaio-blue: #026f89;
   --bdaio-blue-light: #0391a2;
   --bdaio-blue-dark: #024a63;
   --bdaio-accent: #19b8b8;
-  --bdaio-gray: #476a73;
-  --bdaio-gray-light: #e8f8f8;
-  --panel-bg: rgba(244, 253, 253, 0.86);
-  --panel-bg-strong: rgba(255, 255, 255, 0.9);
-  --panel-border: rgba(2, 111, 137, 0.18);
+
+  /* Neutrals, so brand-token text sits in the same family as the Tailwind
+     slate used throughout the components rather than a second, teal-tinted
+     grey next to it. */
+  --bdaio-gray: #475569; /* slate-600 */
+  --bdaio-gray-light: #f1f5f9; /* slate-100 */
 }
 
 @theme inline {
@@ -36,10 +46,24 @@ html {
   scroll-padding-top: 6rem;
 }
 
+/**
+ * A plain white page.
+ *
+ * This used to be a fixed photographic background under a teal gradient, with a
+ * block of `!important` rules below it that repainted every Tailwind utility the
+ * components use — `bg-white` became a translucent panel, `text-slate-600`
+ * became teal, every shadow became the same large glow. The components were
+ * written in ordinary Tailwind and then overridden, so what a page looked like
+ * could not be read from its own markup, and a new component had to be added to
+ * the override list before it matched anything around it.
+ *
+ * All of that is gone. Sections set their own background (`bg-white`,
+ * `bg-slate-50/50`), cards their own ring and shadow, and the page beneath is
+ * white. Brand colour now comes from where it should: the tokens above, applied
+ * deliberately with `text-bdaio-blue` and friends.
+ */
 body {
-  background:
-    linear-gradient(180deg, rgba(2, 94, 123, 0.1), rgba(3, 145, 162, 0.06) 46%, rgba(2, 90, 120, 0.14)),
-    url("/media/backgrounds/download%20(2).jfif") center / cover fixed;
+  background-color: var(--background);
   color: var(--foreground);
   font-family: var(--font-inter), system-ui, sans-serif;
   text-rendering: optimizeLegibility;
@@ -47,104 +71,29 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-.site-main > section:not(.site-hero-media) {
-  background-color: transparent !important;
-  backdrop-filter: none;
-}
-
-.site-main > section.bg-white:not(.site-hero-media) {
-  background-color: transparent !important;
-}
-
-.site-main h1,
-.site-main h2,
-.site-main h3 {
-  color: var(--bdaio-blue-dark);
-}
-
-.site-main .text-\[\#1e5a8a\],
-.site-main .text-blue-500,
-.site-main .text-blue-600,
-.site-main .text-blue-700,
-.site-main .text-emerald-600 {
-  color: var(--bdaio-blue) !important;
-}
-
-.site-main .text-slate-400,
-.site-main .text-slate-500,
-.site-main .text-slate-550,
-.site-main .text-slate-600,
-.site-main .text-slate-655,
-.site-main .text-slate-700 {
-  color: var(--bdaio-gray) !important;
-}
-
-.site-main .text-slate-800,
-.site-main .text-slate-900 {
-  color: var(--foreground) !important;
-}
-
-.site-main .bg-white,
-.site-main .bg-white\/85,
-.site-main .bg-slate-50,
-.site-main .bg-slate-50\/40,
-.site-main .bg-slate-50\/50,
-.site-main .bg-slate-50\/70,
-.site-main .bg-slate-50\/80,
-.site-main .bg-\[\#f0fdf4\] {
-  background-color: var(--panel-bg-strong) !important;
-}
-
-.site-main .bg-blue-50,
-.site-main .bg-emerald-50 {
-  background-color: rgba(25, 184, 184, 0.12) !important;
-}
-
-.site-main .bg-blue-500,
-.site-main .bg-emerald-500,
-.site-main .bg-\[\#1e5a8a\] {
-  background-color: var(--bdaio-blue) !important;
-}
-
-.site-main .hover\:bg-blue-600:hover,
-.site-main .hover\:bg-emerald-600:hover,
-.site-main .hover\:bg-\[\#0d3d6b\]:hover,
-.site-main .hover\:bg-\[\#1e5a8a\]:hover {
-  background-color: var(--bdaio-blue-dark) !important;
-}
-
-.site-main .border-slate-50,
-.site-main .border-slate-100,
-.site-main .border-slate-150,
-.site-main .border-slate-200,
-.site-main .border-slate-200\/60,
-.site-main .border-slate-200\/80,
-.site-main .border-blue-100,
-.site-main .border-\[\#1e5a8a\] {
-  border-color: var(--panel-border) !important;
-}
-
-.site-main .shadow-sm,
-.site-main .shadow-md,
-.site-main .shadow-xs {
-  box-shadow: 0 14px 40px rgba(2, 74, 99, 0.1) !important;
-}
-
+/**
+ * Chrome: opaque white, sitting on a hairline rather than a tinted panel.
+ *
+ * The header is sticky, so it has to be opaque — a translucent one over white
+ * content is a smear of half-legible text as the page scrolls under it.
+ */
 .site-header,
 .site-footer,
 .site-nav-panel {
-  border-color: var(--panel-border);
-  background-color: rgba(244, 253, 253, 0.92);
-  backdrop-filter: blur(12px);
+  background-color: #ffffff;
+  border-color: var(--color-slate-200, #e2e8f0);
+}
+
+.site-footer {
+  border-top-width: 1px;
 }
 
 .font-bengali {
   font-family: var(--font-hind-siliguri), system-ui, sans-serif;
 }
 
-/* Custom Text Selection */
 ::selection {
-  background-color: rgba(25, 184, 184, 0.28);
+  background-color: rgba(2, 111, 137, 0.16);
   color: var(--bdaio-blue-dark);
 }
 
@@ -182,4 +131,3 @@ body {
 .animate-pulse-glow {
   animation: pulseGlow 8s ease-in-out infinite;
 }
-

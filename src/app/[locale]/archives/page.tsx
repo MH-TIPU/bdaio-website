@@ -75,13 +75,13 @@ export default async function ArchivesPage({ params }: PageProps<"/[locale]/arch
                 </div>
                 <div className="text-left sm:text-right">
                   <p className="text-sm font-bold text-[#1e5a8a]">{event.olympiad}</p>
-                  <p className="text-xs text-slate-400 font-semibold">{event.location}</p>
+                  <p className="text-xs text-slate-500 font-semibold">{event.location}</p>
                 </div>
               </div>
 
               <div className="grid gap-6 md:grid-cols-2">
                 <div>
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">
                     {t.achievements}
                   </h3>
                   <ul className="space-y-2.5">
@@ -96,7 +96,7 @@ export default async function ArchivesPage({ params }: PageProps<"/[locale]/arch
                   </ul>
                 </div>
                 <div>
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">
                     {t.highlights}
                   </h3>
                   <p className="text-sm leading-relaxed text-slate-600">

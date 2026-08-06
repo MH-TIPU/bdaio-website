@@ -140,7 +140,7 @@ export default async function CoursePage({ params }: PageProps<"/[locale]/learn/
                       {bengali && lesson.titleBn ? lesson.titleBn : lesson.title}
                     </span>
                     {lesson.minutes ? (
-                      <span className="shrink-0 text-xs text-slate-400">
+                      <span className="shrink-0 text-xs text-slate-500">
                         {lesson.minutes} {t.minutes}
                       </span>
                     ) : null}

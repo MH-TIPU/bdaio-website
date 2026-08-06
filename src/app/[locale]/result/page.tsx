@@ -56,7 +56,7 @@ export default function ResultPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-slate-150 text-xs font-bold uppercase tracking-wider text-slate-400 bg-slate-50/30">
+                <tr className="border-b border-slate-150 text-xs font-bold uppercase tracking-wider text-slate-500 bg-slate-50/30">
                   <th className="py-4 px-6 text-center w-20">Rank</th>
                   <th className="py-4 px-6">Contestant Name</th>
                   <th className="py-4 px-6">Institution</th>

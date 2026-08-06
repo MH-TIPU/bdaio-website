@@ -77,7 +77,7 @@ export default async function PublicProfilePage(props: PageProps<"/[locale]/u/[h
                   className="object-cover"
                 />
               ) : (
-                <span className="flex h-full w-full items-center justify-center text-xl font-semibold text-slate-400">
+                <span className="flex h-full w-full items-center justify-center text-xl font-semibold text-slate-500">
                   {initials(profile.displayName)}
                 </span>
               )}
