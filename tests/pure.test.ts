@@ -6,7 +6,7 @@ import { findColumn, headerIndex, parseCsv } from "@/lib/results/csv";
 import { medalLabel } from "@/lib/results/medals";
 import { emailBucket, retryAfterMessage } from "@/lib/security/rateLimit";
 import { SETTINGS, decodeSetting, settingsFormSchema } from "@/lib/settings/registry";
-import { SPONSOR_TIERS, TIER_LABELS, TIER_SIZE } from "@/lib/sponsors";
+import { SPONSOR_TIERS, TIER_LABELS, TIER_SIZE, TIER_SIZE_ORDER } from "@/lib/sponsors";
 import { metaDescription } from "@/lib/seo";
 
 describe("Bangladeshi mobile numbers", () => {
@@ -241,10 +241,28 @@ describe("site settings registry", () => {
 });
 
 describe("sponsor tiers", () => {
-  it("gives every tier a heading and a size", () => {
+  it("gives every tier a heading and a known size", () => {
     for (const tier of SPONSOR_TIERS) {
       expect(TIER_LABELS[tier], tier).toBeTruthy();
-      expect(["lg", "md", "sm"], tier).toContain(TIER_SIZE[tier]);
+      expect(TIER_SIZE_ORDER, tier).toContain(TIER_SIZE[tier]);
+    }
+  });
+
+  it("never sizes a lower tier larger than the one above it", () => {
+    // The visual ranking *is* the sizing: read down the list the logos get
+    // smaller and never larger, so a reader can see where a sponsor sits
+    // without reading the labels. Reordering the enum without revisiting the
+    // sizes would quietly break that.
+    const rank = (tier: (typeof SPONSOR_TIERS)[number]) =>
+      TIER_SIZE_ORDER.indexOf(TIER_SIZE[tier]);
+
+    for (let i = 1; i < SPONSOR_TIERS.length; i++) {
+      const previous = SPONSOR_TIERS[i - 1];
+      const current = SPONSOR_TIERS[i];
+      expect(
+        rank(current),
+        `${current} is sized larger than ${previous}, which sits above it`,
+      ).toBeGreaterThanOrEqual(rank(previous));
     }
   });
 

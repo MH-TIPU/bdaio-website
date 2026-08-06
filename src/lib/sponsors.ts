@@ -43,12 +43,20 @@ export const TIER_LABELS: Record<SponsorTier, string> = {
  * flatten it — the organiser would read the same as the ninth venue partner.
  * Size carries that now: the tiers all sit on one wrapping line, so a bigger box
  * is what makes a headline sponsor look like one.
+ *
+ * **This must never increase down the list.** It is the whole visual ranking:
+ * read top to bottom in `SPONSOR_TIERS` order, the logos get smaller and never
+ * larger, so where a sponsor sits in the order is legible at a glance without
+ * reading a single label. A test holds that.
  */
-export type TierSize = "lg" | "md" | "sm";
+export type TierSize = "xl" | "lg" | "md" | "sm" | "xs";
+
+/** Largest first — the index into this is what "monotonic" is measured against. */
+export const TIER_SIZE_ORDER: TierSize[] = ["xl", "lg", "md", "sm", "xs"];
 
 export const TIER_SIZE: Record<SponsorTier, TierSize> = {
-  ORGANIZER: "lg",
-  PLATINUM: "lg",
+  ORGANIZER: "xl",
+  PLATINUM: "xl",
   POWERED_BY: "lg",
   GOLD: "lg",
   SILVER: "md",
@@ -57,5 +65,5 @@ export const TIER_SIZE: Record<SponsorTier, TierSize> = {
   TV: "md",
   PARTNER: "sm",
   MAGAZINE: "sm",
-  VENUE: "sm",
+  VENUE: "xs",
 };

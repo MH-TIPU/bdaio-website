@@ -32,11 +32,17 @@ type SponsorRow = {
 /**
  * How much room one logo gets. The card around it belongs to the tier, so these
  * are the dimensions of the artwork alone.
+ *
+ * Both axes are fixed so every logo in a tier occupies the same footprint —
+ * artwork is landscape, square and portrait by turns, and sizing on height
+ * alone would leave a wide wordmark dwarfing the square logo beside it.
  */
 const BOX_CLASS: Record<TierSize, string> = {
+  xl: "h-20 w-48",
   lg: "h-16 w-40",
-  md: "h-12 w-32",
-  sm: "h-10 w-24",
+  md: "h-14 w-32",
+  sm: "h-12 w-28",
+  xs: "h-10 w-24",
 };
 
 function SponsorLogo({
@@ -143,7 +149,7 @@ export async function SponsorsSection({ locale }: { locale: Locale }) {
                 key={tier}
                 className="flex flex-col rounded-xl bg-white px-5 py-4 text-center shadow-sm ring-1 ring-slate-200/70"
               >
-                <h3 className="mb-3 text-[11px] font-bold uppercase tracking-widest text-bdaio-blue">
+                <h3 className="mb-4 text-sm font-bold uppercase tracking-widest text-bdaio-blue">
                   {TIER_LABELS[tier]}
                 </h3>
                 <div className="flex flex-1 flex-wrap items-center justify-center gap-x-6 gap-y-4">
