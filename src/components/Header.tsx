@@ -31,21 +31,23 @@ function isActive(pathname: string, href: string, children?: { href: string }[])
 const NAV_ITEM = "px-2.5 py-2 font-semibold transition-colors duration-200";
 
 /**
- * Bengali labels are rendered a notch smaller than English ones.
+ * Both languages set at the same size.
  *
- * Not a fudge: Bengali script carries a taller x-height and matras above and
- * below the baseline, so Hind Siliguri at 14px occupies visibly more room than
- * Inter at 14px. Ten menu items in Bengali at the Latin size crowd the header
- * and read as oversized next to the logo. 13px against 14px is the size at
- * which the two scripts look like the same menu.
+ * Bengali was a notch smaller for a while, on the theory that Hind Siliguri's
+ * taller x-height and its matras make it occupy more room than Inter at the
+ * same size. True, but the cure was worse: two sizes read as two different
+ * menus, and the Bengali one looked like the lesser of them.
  *
- * The font itself matters as much as the size. Without `font-bengali` these
- * labels fall out of Inter — which has no Bengali glyphs — into whatever the
- * operating system supplies, so the nav looked different on every device and
- * none of them were the typeface the site loads.
+ * The nesting below is what actually fixed the crowding — seven top-level items
+ * instead of ten leaves both scripts room at 14px.
+ *
+ * `font-bengali` still matters as much as the size. Without it these labels
+ * fall out of Inter — which has no Bengali glyphs — into whatever the operating
+ * system supplies, so the nav looked different on every device and none of them
+ * were the typeface the site loads.
  */
 function navText(locale: Locale): string {
-  return locale === "bn" ? "font-bengali text-[13px]" : "text-sm";
+  return locale === "bn" ? "font-bengali text-sm" : "text-sm";
 }
 
 export function Header({ locale, t }: { locale: Locale; t: Dictionary }) {

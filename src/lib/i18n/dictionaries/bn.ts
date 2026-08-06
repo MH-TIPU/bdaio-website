@@ -13,6 +13,7 @@ export const bn: Dictionary = {
   nav: {
     home: "হোম",
     about: "পরিচিতি",
+    aboutBdaio: "BdAIO সম্পর্কে",
     compete: "প্রতিযোগিতা",
     programs: "প্রোগ্রাম",
     events: "ইভেন্ট",

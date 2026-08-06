@@ -19,9 +19,29 @@ export type NavItem = {
   children?: { key: NavKey; href: string }[];
 };
 
+/**
+ * Eight top-level items, not ten.
+ *
+ * Ten crowded the header — badly enough in Bengali, whose script needs more room
+ * per label, that the two languages had to be set at different sizes to fit. The
+ * pages that were only ever one click deep now sit under the heading they belong
+ * to: About with Contact, and FAQ with the other things a participant reads
+ * before entering.
+ *
+ * A parent renders as a dropdown trigger rather than a link, so anything that
+ * has children also appears *as* a child — otherwise the parent's own page
+ * becomes unreachable from the menu.
+ */
 export const navItems: NavItem[] = [
   { key: "home", href: "/" },
-  { key: "about", href: "/about" },
+  {
+    key: "about",
+    href: "/about",
+    children: [
+      { key: "aboutBdaio", href: "/about" },
+      { key: "contact", href: "/contact" },
+    ],
+  },
   {
     key: "compete",
     href: "/programs",
@@ -50,8 +70,7 @@ export const navItems: NavItem[] = [
       { key: "learn", href: "/learn" },
       { key: "syllabus", href: "/syllabus" },
       { key: "participationGuideline", href: "/participation-guideline" },
+      { key: "faq", href: "/faq" },
     ],
   },
-  { key: "faq", href: "/faq" },
-  { key: "contact", href: "/contact" },
 ];

@@ -12,6 +12,8 @@ export const en = {
   nav: {
     home: "Home",
     about: "About",
+    /** The child link inside the About menu — the parent is the menu itself. */
+    aboutBdaio: "About BdAIO",
     compete: "Compete",
     programs: "Programs",
     events: "Events",
