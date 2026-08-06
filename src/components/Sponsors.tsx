@@ -38,11 +38,11 @@ type SponsorRow = {
  * alone would leave a wide wordmark dwarfing the square logo beside it.
  */
 const BOX_CLASS: Record<TierSize, string> = {
-  xl: "h-20 w-48",
-  lg: "h-16 w-40",
-  md: "h-14 w-32",
-  sm: "h-12 w-28",
-  xs: "h-10 w-24",
+  xl: "h-16 w-40",
+  lg: "h-14 w-32",
+  md: "h-12 w-28",
+  sm: "h-10 w-24",
+  xs: "h-9 w-20",
 };
 
 function SponsorLogo({
@@ -120,7 +120,7 @@ export async function SponsorsSection({ locale }: { locale: Locale }) {
   }
 
   return (
-    <section className="bg-slate-50/70 py-16 border-t border-slate-100">
+    <section className="bg-slate-50/70 py-14 border-t border-slate-100">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="text-center">
           <h2 className="text-3xl font-black text-bdaio-blue-dark">
@@ -139,7 +139,7 @@ export async function SponsorsSection({ locale }: { locale: Locale }) {
           flow together. `TIER_SIZE` carries the hierarchy that the
           row-per-tier layout used to carry by position.
         */}
-        <div className="mt-10 flex flex-wrap items-stretch justify-center gap-4">
+        <div className="mt-8 flex flex-wrap items-stretch justify-center gap-3.5">
           {SPONSOR_TIERS.map((tier) => {
             const rows = byTier.get(tier);
             if (!rows?.length) return null;
@@ -147,12 +147,12 @@ export async function SponsorsSection({ locale }: { locale: Locale }) {
             return (
               <div
                 key={tier}
-                className="flex flex-col rounded-xl bg-white px-5 py-4 text-center shadow-sm ring-1 ring-slate-200/70"
+                className="flex flex-col rounded-xl bg-white px-4 py-3.5 text-center shadow-sm ring-1 ring-slate-200/70"
               >
-                <h3 className="mb-4 text-sm font-bold uppercase tracking-widest text-bdaio-blue">
+                <h3 className="mb-3 text-[13px] font-bold uppercase tracking-widest text-bdaio-blue">
                   {TIER_LABELS[tier]}
                 </h3>
-                <div className="flex flex-1 flex-wrap items-center justify-center gap-x-6 gap-y-4">
+                <div className="flex flex-1 flex-wrap items-center justify-center gap-x-5 gap-y-3">
                   {rows.map((sponsor) => (
                     <SponsorLogo
                       key={sponsor.id}
