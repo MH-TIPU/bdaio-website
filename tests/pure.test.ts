@@ -6,7 +6,7 @@ import { findColumn, headerIndex, parseCsv } from "@/lib/results/csv";
 import { medalLabel } from "@/lib/results/medals";
 import { emailBucket, retryAfterMessage } from "@/lib/security/rateLimit";
 import { SETTINGS, decodeSetting, settingsFormSchema } from "@/lib/settings/registry";
-import { SPONSOR_TIERS, TIER_COLUMNS, TIER_LABELS } from "@/lib/sponsors";
+import { SPONSOR_TIERS, TIER_LABELS, TIER_SIZE } from "@/lib/sponsors";
 import { metaDescription } from "@/lib/seo";
 
 describe("Bangladeshi mobile numbers", () => {
@@ -241,10 +241,10 @@ describe("site settings registry", () => {
 });
 
 describe("sponsor tiers", () => {
-  it("gives every tier a heading and a column count", () => {
+  it("gives every tier a heading and a size", () => {
     for (const tier of SPONSOR_TIERS) {
       expect(TIER_LABELS[tier], tier).toBeTruthy();
-      expect(TIER_COLUMNS[tier], tier).toBeGreaterThan(0);
+      expect(["lg", "md", "sm"], tier).toContain(TIER_SIZE[tier]);
     }
   });
 

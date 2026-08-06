@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { db } from "@/lib/db";
 import { mediaUrl } from "@/lib/storage/uploads";
-import { SPONSOR_TIERS, TIER_COLUMNS, TIER_LABELS } from "@/lib/sponsors";
+import { SPONSOR_TIERS, TIER_LABELS, TIER_SIZE, type TierSize } from "@/lib/sponsors";
 import type { Locale } from "@/lib/i18n/config";
 import type { SponsorTier } from "@/generated/prisma/enums";
 
@@ -13,8 +13,8 @@ import type { SponsorTier } from "@/generated/prisma/enums";
  * which block of markup it happened to be pasted into. Now the tier is a column
  * and the layout is one loop, so adding a sponsor is a form.
  *
- * The trade is that the sections are uniform where the old markup was bespoke.
- * `TIER_COLUMNS` keeps the part of that bespoke-ness that carried meaning: the
+ * The trade is that the tiers are uniform where the old markup was bespoke.
+ * `TIER_SIZE` keeps the part of that bespoke-ness that carried meaning: the
  * organiser and headline sponsors still get more room than the long tail.
  */
 
@@ -29,25 +29,44 @@ type SponsorRow = {
   height: number;
 };
 
-function SponsorLogo({ sponsor, locale }: { sponsor: SponsorRow; locale: Locale }) {
+/**
+ * How much room one logo gets. The card around it belongs to the tier, so these
+ * are the dimensions of the artwork alone.
+ */
+const BOX_CLASS: Record<TierSize, string> = {
+  lg: "h-16 w-40",
+  md: "h-12 w-32",
+  sm: "h-10 w-24",
+};
+
+function SponsorLogo({
+  sponsor,
+  locale,
+  size,
+}: {
+  sponsor: SponsorRow;
+  locale: Locale;
+  size: TierSize;
+}) {
   const name = locale === "bn" && sponsor.nameBn ? sponsor.nameBn : sponsor.name;
+  const box = BOX_CLASS[size];
 
   const inner = sponsor.logo ? (
-    <div className="group relative flex h-20 w-full items-center justify-center rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-blue-400 hover:shadow-md">
+    <div className={`flex items-center justify-center ${box}`}>
       <Image
         src={sponsor.logo}
         alt={sponsor.alt || `${name} logo`}
         width={sponsor.width}
         height={sponsor.height}
-        sizes="(min-width: 640px) 200px, 45vw"
-        className="max-h-full w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+        sizes="160px"
+        className="max-h-full w-auto object-contain transition-transform duration-300 hover:scale-105"
       />
     </div>
   ) : (
     // No logo uploaded yet: the name is still the information, so show it rather
     // than an empty box or a broken image.
     <div
-      className={`flex h-20 w-full items-center justify-center rounded-xl border border-slate-100 bg-white px-4 text-center text-xs font-bold text-slate-500 shadow-sm ${
+      className={`flex items-center justify-center text-center text-xs font-bold text-slate-500 ${box} ${
         locale === "bn" && sponsor.nameBn ? "font-bengali" : ""
       }`}
     >
@@ -62,27 +81,12 @@ function SponsorLogo({ sponsor, locale }: { sponsor: SponsorRow; locale: Locale 
       href={sponsor.url}
       target="_blank"
       rel="noopener noreferrer sponsored"
-      className="block rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-bdaio-blue/50"
+      className="block rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-bdaio-blue/50"
     >
       {inner}
     </a>
   );
 }
-
-const COLUMN_CLASS: Record<number, string> = {
-  1: "grid-cols-1",
-  2: "grid-cols-2",
-  3: "grid-cols-3",
-  5: "grid-cols-2 sm:grid-cols-5",
-};
-
-/** Roughly how wide a tier's block should be, so a single logo is not stretched. */
-const WIDTH_CLASS: Record<number, string> = {
-  1: "max-w-xs",
-  2: "max-w-md",
-  3: "max-w-xl",
-  5: "max-w-4xl",
-};
 
 export async function SponsorsSection({ locale }: { locale: Locale }) {
   const sponsors = await db.sponsor.findMany({
@@ -110,31 +114,52 @@ export async function SponsorsSection({ locale }: { locale: Locale }) {
   }
 
   return (
-    <section className="bg-slate-50/70 py-20 border-t border-slate-100">
-      <div className="mx-auto max-w-7xl space-y-16 px-4 sm:px-6 lg:px-8">
+    <section className="bg-slate-50/70 py-16 border-t border-slate-100">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="text-center">
-          <h2 className="text-3xl font-black text-[#1e5a8a]">Official Sponsors &amp; Partners</h2>
+          <h2 className="text-3xl font-black text-bdaio-blue-dark">
+            Official Sponsors &amp; Partners
+          </h2>
           <p className="mt-2 text-slate-500">Supporting the AI talent of Bangladesh</p>
         </div>
 
-        {SPONSOR_TIERS.map((tier) => {
-          const rows = byTier.get(tier);
-          if (!rows?.length) return null;
-          const columns = TIER_COLUMNS[tier];
+        {/*
+          One card per tier, and the tiers on one wrapping line.
 
-          return (
-            <div key={tier} className={`mx-auto text-center ${WIDTH_CLASS[columns] ?? "max-w-4xl"}`}>
-              <h3 className="mb-4 text-xs font-bold uppercase tracking-widest text-bdaio-blue">
-                {TIER_LABELS[tier]}
-              </h3>
-              <div className={`grid gap-4 ${COLUMN_CLASS[columns] ?? "grid-cols-3"}`}>
-                {rows.map((sponsor) => (
-                  <SponsorLogo key={sponsor.id} sponsor={sponsor} locale={locale} />
-                ))}
+          Before: eleven tiers stacked as eleven full-width rows, each logo in a
+          card of its own — the section ran for several screens, and three
+          partners read as three unrelated things rather than one group. The card
+          is now the tier, which is what the grouping actually is, and the tiers
+          flow together. `TIER_SIZE` carries the hierarchy that the
+          row-per-tier layout used to carry by position.
+        */}
+        <div className="mt-10 flex flex-wrap items-stretch justify-center gap-4">
+          {SPONSOR_TIERS.map((tier) => {
+            const rows = byTier.get(tier);
+            if (!rows?.length) return null;
+
+            return (
+              <div
+                key={tier}
+                className="flex flex-col rounded-xl bg-white px-5 py-4 text-center shadow-sm ring-1 ring-slate-200/70"
+              >
+                <h3 className="mb-3 text-[11px] font-bold uppercase tracking-widest text-bdaio-blue">
+                  {TIER_LABELS[tier]}
+                </h3>
+                <div className="flex flex-1 flex-wrap items-center justify-center gap-x-6 gap-y-4">
+                  {rows.map((sponsor) => (
+                    <SponsorLogo
+                      key={sponsor.id}
+                      sponsor={sponsor}
+                      locale={locale}
+                      size={TIER_SIZE[tier]}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </section>
   );

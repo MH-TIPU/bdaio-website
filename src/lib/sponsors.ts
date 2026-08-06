@@ -37,23 +37,25 @@ export const TIER_LABELS: Record<SponsorTier, string> = {
 };
 
 /**
- * How wide the tier's logos are allowed to be.
+ * How much room a tier's logos get.
  *
- * The old hand-built layout gave the organiser and the headline sponsors more
- * room than the long tail of partners, and losing that would flatten the
- * hierarchy the tiers exist to express. Kept as a column count per tier rather
- * than free-form markup so the sections stay uniform as sponsors come and go.
+ * The tiers exist to express a hierarchy, and every logo at the same size would
+ * flatten it — the organiser would read the same as the ninth venue partner.
+ * Size carries that now: the tiers all sit on one wrapping line, so a bigger box
+ * is what makes a headline sponsor look like one.
  */
-export const TIER_COLUMNS: Record<SponsorTier, number> = {
-  ORGANIZER: 1,
-  PLATINUM: 1,
-  POWERED_BY: 1,
-  GOLD: 1,
-  SILVER: 2,
-  BRONZE: 1,
-  KNOWLEDGE: 1,
-  TV: 1,
-  PARTNER: 3,
-  MAGAZINE: 2,
-  VENUE: 5,
+export type TierSize = "lg" | "md" | "sm";
+
+export const TIER_SIZE: Record<SponsorTier, TierSize> = {
+  ORGANIZER: "lg",
+  PLATINUM: "lg",
+  POWERED_BY: "lg",
+  GOLD: "lg",
+  SILVER: "md",
+  BRONZE: "md",
+  KNOWLEDGE: "md",
+  TV: "md",
+  PARTNER: "sm",
+  MAGAZINE: "sm",
+  VENUE: "sm",
 };
