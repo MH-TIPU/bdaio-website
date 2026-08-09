@@ -25,7 +25,14 @@ import {
 // helpers live in `src/lib/i18n/config.ts` and not in the i18n barrel, which
 // reads cookies through `next/headers`.
 
-const PROTECTED_PREFIXES = ["/dashboard", "/admin"];
+/**
+ * Signed-in surfaces: guarded, and never given a locale prefix — they read the
+ * locale from the cookie instead (§13.2).
+ *
+ * `/study` is the course player. It sits outside `/dashboard` because it has no
+ * business inheriting the dashboard's sidebar, but it is exactly as private.
+ */
+const PROTECTED_PREFIXES = ["/dashboard", "/admin", "/study"];
 
 /**
  * Never given a locale prefix, because they are not pages. `/uploads` is served

@@ -49,7 +49,7 @@ export default async function LearningPage() {
                   </p>
                 </div>
                 <Link
-                  href={`/dashboard/learning/${course.slug}`}
+                  href={`/study/${course.slug}`}
                   className="shrink-0 rounded-lg bg-bdaio-blue px-3.5 py-2 text-sm font-semibold text-white hover:bg-bdaio-blue-dark"
                 >
                   {complete ? "Review" : percent > 0 ? "Continue" : "Start"}

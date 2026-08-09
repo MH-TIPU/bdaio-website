@@ -93,7 +93,7 @@ export default async function CoursePage({ params }: PageProps<"/[locale]/learn/
             </Link>
           ) : enrolled ? (
             <a
-              href={`/dashboard/learning/${course.slug}`}
+              href={`/study/${course.slug}`}
               className="inline-flex rounded-xl bg-bdaio-blue px-6 py-3 text-sm font-semibold text-white hover:bg-bdaio-blue-dark"
             >
               {t.continue}

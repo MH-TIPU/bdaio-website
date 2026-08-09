@@ -29,7 +29,7 @@ function refresh(slug?: string) {
   revalidatePath("/[locale]/learn", "page");
   if (slug) {
     revalidatePath(`/[locale]/learn/${slug}`, "page");
-    revalidatePath(`/dashboard/learning/${slug}`);
+    revalidatePath(`/study/${slug}`);
   }
   revalidatePath("/dashboard/learning");
 }

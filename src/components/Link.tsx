@@ -21,7 +21,7 @@ import { splitLocale, localePath } from "@/lib/i18n/config";
  */
 
 /** Route trees that are never locale-prefixed (§13.2). */
-const UNLOCALIZED_PREFIXES = ["/dashboard", "/admin", "/api", "/uploads"];
+const UNLOCALIZED_PREFIXES = ["/dashboard", "/admin", "/study", "/api", "/uploads"];
 
 function isUnlocalized(href: string): boolean {
   return UNLOCALIZED_PREFIXES.some(

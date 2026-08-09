@@ -56,7 +56,7 @@ export async function enrol(_prev: LearnState, formData: FormData): Promise<Lear
   }
 
   revalidatePath("/dashboard/learning");
-  revalidatePath(`/dashboard/learning/${course.slug}`);
+  revalidatePath(`/study/${course.slug}`);
   return { ok: true, message: `You are enrolled on ${course.title}.` };
 }
 
@@ -101,7 +101,7 @@ export async function completeLesson(formData: FormData): Promise<void> {
 
   await settleCompletion(user.id, slug);
 
-  revalidatePath(`/dashboard/learning/${slug}`);
+  revalidatePath(`/study/${slug}`);
   revalidatePath("/dashboard/learning");
 }
 
@@ -126,7 +126,7 @@ export async function uncompleteLesson(formData: FormData): Promise<void> {
     data: { status: "ACTIVE" },
   });
 
-  revalidatePath(`/dashboard/learning/${slug}`);
+  revalidatePath(`/study/${slug}`);
 }
 
 /**
@@ -207,7 +207,7 @@ export async function submitQuiz(
     await settleCompletion(user.id, slug);
   }
 
-  revalidatePath(`/dashboard/learning/${slug}`);
+  revalidatePath(`/study/${slug}`);
 
   return {
     ok: true,
