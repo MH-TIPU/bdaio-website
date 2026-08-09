@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { dictionaryFor, getDictionary, isLocale } from "@/lib/i18n";
 import { getSettings } from "@/lib/settings";
 import { ContactForm } from "./ContactForm";
+import { PAGE_NARROW } from "@/lib/layout";
 
 export async function generateMetadata(
   { params }: PageProps<"/[locale]/contact">,
@@ -31,7 +32,10 @@ export default async function ContactPage({ params }: PageProps<"/[locale]/conta
 
   return (
     <section className="bg-white py-20">
-      <div className="mx-auto max-w-2xl px-4 text-center sm:px-6 lg:px-8 space-y-6">
+      {/* Narrow on purpose: this page is a form, and a form stretched across a
+          wide screen makes the eye travel from a label on one side to its field
+          on the other. */}
+      <div className={`${PAGE_NARROW} space-y-6 text-center`}>
         {/* Main Header - Matches the old site screenshot */}
         <h1 className="text-2xl font-bold tracking-tight text-[#1e5a8a]">
           {t.title}

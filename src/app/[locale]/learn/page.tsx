@@ -7,6 +7,7 @@ import { dictionaryFor, getDictionary, isLocale } from "@/lib/i18n";
 import { listCourses, membersOnlyCourseCount } from "@/lib/learn/courses";
 import { pageMetadata } from "@/lib/seo";
 import { mediaUrl } from "@/lib/storage/uploads";
+import { PAGE } from "@/lib/layout";
 
 export async function generateMetadata(
   { params }: PageProps<"/[locale]/learn">,
@@ -35,7 +36,7 @@ export default async function LearnPage({ params }: PageProps<"/[locale]/learn">
 
   return (
     <section className="bg-slate-50/50 py-16">
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+      <div className={PAGE}>
         <div className="mx-auto mb-10 max-w-3xl text-center">
           <h1 className={`text-4xl font-black text-bdaio-blue sm:text-5xl ${locale === "bn" ? "font-bengali" : ""}`}>
             {t.title}
@@ -60,7 +61,7 @@ export default async function LearnPage({ params }: PageProps<"/[locale]/learn">
             {t.empty}
           </p>
         ) : (
-          <div className="grid gap-6 sm:grid-cols-2">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {courses.map((course) => {
               const title = locale === "bn" && course.titleBn ? course.titleBn : course.title;
               const summary =
@@ -77,7 +78,7 @@ export default async function LearnPage({ params }: PageProps<"/[locale]/learn">
                         src={mediaUrl(course.cover.filename)}
                         alt={course.cover.alt ?? ""}
                         fill
-                        sizes="(min-width: 640px) 50vw, 100vw"
+                        sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                         className="object-cover"
                       />
                     </div>

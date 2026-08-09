@@ -9,6 +9,7 @@ import { getCourseOutline } from "@/lib/learn/courses";
 import { pageMetadata } from "@/lib/seo";
 import { mediaUrl } from "@/lib/storage/uploads";
 import { EnrolButton } from "./EnrolButton";
+import { PAGE, PROSE } from "@/lib/layout";
 
 export async function generateMetadata(
   { params }: PageProps<"/[locale]/learn/[slug]">,
@@ -54,14 +55,14 @@ export default async function CoursePage({ params }: PageProps<"/[locale]/learn/
 
   return (
     <section className="bg-slate-50/50 py-16">
-      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+      <div className={PAGE}>
         {course.cover && (
           <div className="relative mb-8 aspect-[21/9] w-full overflow-hidden rounded-2xl bg-slate-100">
             <Image
               src={mediaUrl(course.cover.filename)}
               alt={course.cover.alt ?? ""}
               fill
-              sizes="(min-width: 896px) 896px, 100vw"
+              sizes="(min-width: 1280px) 1280px, 100vw"
               className="object-cover"
               priority
             />
@@ -72,7 +73,7 @@ export default async function CoursePage({ params }: PageProps<"/[locale]/learn/
           {title}
         </h1>
         {summary && (
-          <p className={`mt-3 text-lg text-slate-600 ${bengali && course.summaryBn ? "font-bengali" : ""}`}>
+          <p className={`mt-3 ${PROSE} text-lg text-slate-600 ${bengali && course.summaryBn ? "font-bengali" : ""}`}>
             {summary}
           </p>
         )}
@@ -109,7 +110,7 @@ export default async function CoursePage({ params }: PageProps<"/[locale]/learn/
         )}
 
         {course.description && (
-          <div className="mt-10 space-y-4 text-slate-700">
+          <div className={`mt-10 ${PROSE} space-y-4 text-slate-700`}>
             {course.description.split(/\n{2,}/).map((paragraph, index) => (
               <p key={index}>{paragraph}</p>
             ))}
@@ -117,7 +118,7 @@ export default async function CoursePage({ params }: PageProps<"/[locale]/learn/
         )}
 
         <h2 className="mt-12 text-xl font-bold text-slate-900">{t.syllabus}</h2>
-        <div className="mt-4 space-y-5">
+        <div className="mt-4 grid gap-5 lg:grid-cols-2">
           {course.modules.map((courseModule) => (
             <div
               key={courseModule.id}

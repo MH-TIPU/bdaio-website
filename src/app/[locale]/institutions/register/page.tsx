@@ -3,6 +3,7 @@ import { Link } from "@/components/Link";
 import { getCurrentUser } from "@/lib/auth/dal";
 import { RegisterInstitutionForm } from "./RegisterInstitutionForm";
 import { pageMetadata } from "@/lib/seo";
+import { PAGE_NARROW } from "@/lib/layout";
 
 export async function generateMetadata(
   { params }: PageProps<"/[locale]/institutions/register">,
@@ -22,7 +23,7 @@ export default async function RegisterInstitutionPage() {
 
   return (
     <section className="bg-slate-50/50 py-16">
-      <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8">
+      <div className={PAGE_NARROW}>
         <Link
           href="/institutions"
           className="text-sm font-medium text-bdaio-blue hover:underline"

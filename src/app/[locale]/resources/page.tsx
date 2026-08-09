@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { dictionaryFor, getDictionary, isLocale } from "@/lib/i18n";
 import { getCurrentUser } from "@/lib/auth/dal";
 import { pageMetadata } from "@/lib/seo";
+import { PAGE } from "@/lib/layout";
 
 export async function generateMetadata(
   { params }: PageProps<"/[locale]/resources">,
@@ -64,7 +65,7 @@ export default async function ResourcesPage({ params }: PageProps<"/[locale]/res
 
   return (
     <section className="bg-slate-50/50 py-16">
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+      <div className={PAGE}>
         <div className="mx-auto mb-10 max-w-3xl text-center">
           <h1 className="text-4xl font-black text-bdaio-blue sm:text-5xl">
             {t.title}

@@ -20,13 +20,13 @@ export type NavItem = {
 };
 
 /**
- * Eight top-level items, not ten.
+ * Seven top-level items, not ten.
  *
  * Ten crowded the header — badly enough in Bengali, whose script needs more room
  * per label, that the two languages had to be set at different sizes to fit. The
  * pages that were only ever one click deep now sit under the heading they belong
- * to: About with Contact, and FAQ with the other things a participant reads
- * before entering.
+ * to: About with Contact, Results with the competitions that produce them, and
+ * FAQ with the other things a participant reads before entering.
  *
  * A parent renders as a dropdown trigger rather than a link, so anything that
  * has children also appears *as* a child — otherwise the parent's own page
@@ -49,6 +49,7 @@ export const navItems: NavItem[] = [
       { key: "programs", href: "/programs" },
       { key: "events", href: "/events" },
       { key: "workshops", href: "/workshops" },
+      { key: "results", href: "/results" },
     ],
   },
   {
@@ -59,7 +60,6 @@ export const navItems: NavItem[] = [
       { key: "registerInstitution", href: "/institutions/register" },
     ],
   },
-  { key: "results", href: "/results" },
   { key: "announcements", href: "/announcements" },
   { key: "news", href: "/news" },
   {

@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/lib/auth/dal";
 import { dictionaryFor, getDictionary, isLocale } from "@/lib/i18n";
 import { visibleAnnouncements } from "@/lib/cms/announcements";
 import { pageMetadata } from "@/lib/seo";
+import { PAGE } from "@/lib/layout";
 
 export async function generateMetadata(
   { params }: PageProps<"/[locale]/announcements">,
@@ -33,7 +34,7 @@ export default async function AnnouncementsPage({
 
   return (
     <section className="bg-slate-50/50 py-16">
-      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+      <div className={PAGE}>
         <div className="mb-10 text-center">
           <h1 className="text-4xl font-black text-bdaio-blue sm:text-5xl">
             {t.title}

@@ -21,6 +21,7 @@ import {
 import { JsonLd } from "@/components/JsonLd";
 import { breadcrumbJsonLd, eventJsonLd, metaDescription, pageMetadata } from "@/lib/seo";
 import { RegisterPanel } from "./RegisterPanel";
+import { PAGE } from "@/lib/layout";
 
 export async function generateMetadata(
   props: PageProps<"/[locale]/events/[slug]">,
@@ -113,7 +114,7 @@ export default async function EventPage(props: PageProps<"/[locale]/events/[slug
           { name: event.title, path: `/events/${event.slug}` },
         ])}
       />
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+      <div className={PAGE}>
         <Link
           href={`/programs/${event.program.slug}`}
           className="text-sm font-medium text-bdaio-blue hover:underline"

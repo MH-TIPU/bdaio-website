@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { JsonLd } from "@/components/JsonLd";
 import { institutionJsonLd, metaDescription, pageMetadata } from "@/lib/seo";
+import { PAGE } from "@/lib/layout";
 
 export const revalidate = 60;
 
@@ -68,7 +69,7 @@ export default async function InstitutionPage(
   return (
     <section className="bg-slate-50/50 py-16">
       <JsonLd data={institutionJsonLd(institution)} />
-      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+      <div className={PAGE}>
         <Link
           href="/institutions"
           className="text-sm font-medium text-bdaio-blue hover:underline"

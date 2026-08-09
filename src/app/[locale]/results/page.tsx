@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { dictionaryFor, getDictionary, isLocale } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
+import { PAGE } from "@/lib/layout";
 
 export async function generateMetadata(
   { params }: PageProps<"/[locale]/results">,
@@ -45,7 +46,7 @@ export default async function ResultsIndexPage({ params }: PageProps<"/[locale]/
 
   return (
     <section className="bg-slate-50/50 py-16">
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+      <div className={PAGE}>
         <div className="mx-auto mb-10 max-w-3xl text-center">
           <h1 className="text-4xl font-black text-bdaio-blue sm:text-5xl">{t.title}</h1>
           <p className="mt-3 text-lg text-slate-500">{t.lead}</p>

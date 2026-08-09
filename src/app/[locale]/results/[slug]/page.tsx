@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { MedalChip } from "@/components/results/MedalChip";
 import { pageMetadata } from "@/lib/seo";
+import { PAGE } from "@/lib/layout";
 
 export const revalidate = 60;
 
@@ -89,7 +90,7 @@ export default async function EventResultsPage(
 
   return (
     <section className="bg-slate-50/50 py-16">
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+      <div className={PAGE}>
         <Link href="/results" className="text-sm font-medium text-bdaio-blue hover:underline">
           ← Results
         </Link>
