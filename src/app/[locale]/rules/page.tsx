@@ -50,11 +50,11 @@ export default async function RulesPage({ params }: PageProps<"/[locale]/rules">
     <section className="py-20 bg-slate-50/50">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <h1 className="text-4xl font-black text-[#1e5a8a] sm:text-5xl">
+          <h1 className="text-4xl font-black text-bdaio-blue sm:text-5xl">
             {t.title}
           </h1>
           <p className="mt-3 text-lg text-slate-500">{t.lead}</p>
-          <div className="mx-auto mt-6 h-1 w-20 rounded bg-blue-500" />
+          <div className="mx-auto mt-6 h-1 w-20 rounded bg-bdaio-blue-light" />
         </div>
 
         <div className="grid gap-8 md:grid-cols-2 mb-16">
@@ -102,11 +102,11 @@ export default async function RulesPage({ params }: PageProps<"/[locale]/rules">
 
         {/* Guideline Redirect */}
         <div className="rounded-2xl border border-blue-100 bg-blue-50/20 p-8 text-center max-w-2xl mx-auto">
-          <h3 className="text-lg font-bold text-[#1e5a8a] mb-2">{t.ctaTitle}</h3>
+          <h3 className="text-lg font-bold text-bdaio-blue mb-2">{t.ctaTitle}</h3>
           <p className="text-sm text-slate-500 mb-5">{t.ctaBody}</p>
           <Link
             href={localePath(locale, "/participation-guideline")}
-            className="inline-flex items-center gap-2 rounded-xl bg-[#1e5a8a] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#0d3d6b]"
+            className="inline-flex items-center gap-2 rounded-xl bg-bdaio-blue px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-bdaio-blue-dark"
           >
             {t.ctaButton}
             <svg

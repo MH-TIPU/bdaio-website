@@ -44,7 +44,7 @@ export default async function LearnPage({ params }: PageProps<"/[locale]/learn">
           <p className={`mt-3 text-lg text-slate-500 ${locale === "bn" ? "font-bengali" : ""}`}>
             {t.lead}
           </p>
-          <div className="mx-auto mt-6 h-1 w-20 rounded bg-blue-500" />
+          <div className="mx-auto mt-6 h-1 w-20 rounded bg-bdaio-blue-light" />
         </div>
 
         {hidden > 0 && (

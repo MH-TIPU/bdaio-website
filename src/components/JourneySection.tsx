@@ -18,7 +18,7 @@ export function JourneySection({ t }: { t: Home }) {
     <section className="bg-white py-20 border-t border-slate-100">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-3xl font-black text-[#1e5a8a]">{t.journeyTitle}</h2>
+          <h2 className="text-3xl font-black text-bdaio-blue">{t.journeyTitle}</h2>
           <p className="mt-2 text-slate-500">
             {t.journeyLead}
           </p>
@@ -45,7 +45,7 @@ export function JourneySection({ t }: { t: Home }) {
               >
                 {step.number}
               </span>
-              <h3 className="text-lg font-bold text-[#1e5a8a] mb-2">{step.title}</h3>
+              <h3 className="text-lg font-bold text-bdaio-blue mb-2">{step.title}</h3>
               <p className="text-xs leading-relaxed text-slate-500">{step.description}</p>
             </div>
           ))}

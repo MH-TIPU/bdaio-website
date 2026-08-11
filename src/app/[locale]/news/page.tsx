@@ -28,22 +28,22 @@ export default async function NewsPage({ params }: PageProps<"/[locale]/news">) 
     <section className="bg-slate-50/50 py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto mb-14 max-w-3xl text-center">
-          <span className="text-sm font-extrabold uppercase tracking-widest text-blue-500">
+          <span className="text-sm font-extrabold uppercase tracking-widest text-bdaio-blue-light">
             {t.kicker}
           </span>
-          <h1 className="mt-3 text-4xl font-black text-[#1e5a8a] sm:text-5xl">
+          <h1 className="mt-3 text-4xl font-black text-bdaio-blue sm:text-5xl">
             {t.title}
           </h1>
           <p className="mt-4 text-base leading-relaxed text-slate-500 sm:text-lg">
             {t.lead}
           </p>
-          <div className="mx-auto mt-6 h-1 w-20 rounded bg-blue-500" />
+          <div className="mx-auto mt-6 h-1 w-20 rounded bg-bdaio-blue-light" />
         </div>
 
         <div className="mb-10 flex justify-center">
           <Link
             href="/news/library"
-            className="inline-flex items-center gap-2 rounded-xl bg-[#1e5a8a] px-6 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#0d3d6b] hover:shadow-md"
+            className="inline-flex items-center gap-2 rounded-xl bg-bdaio-blue px-6 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-bdaio-blue-dark hover:shadow-md"
           >
             {t.libraryCta}
             <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
@@ -62,7 +62,7 @@ export default async function NewsPage({ params }: PageProps<"/[locale]/news">) 
             </div>
             <Link
               href="/news/library"
-              className="inline-flex shrink-0 items-center justify-center rounded-xl border border-[#1e5a8a] px-5 py-2.5 text-sm font-bold text-[#1e5a8a] transition hover:bg-[#1e5a8a] hover:text-white"
+              className="inline-flex shrink-0 items-center justify-center rounded-xl border border-bdaio-blue px-5 py-2.5 text-sm font-bold text-bdaio-blue transition hover:bg-bdaio-blue hover:text-white"
             >
               {t.openLibrary}
             </Link>
@@ -90,7 +90,7 @@ export default async function NewsPage({ params }: PageProps<"/[locale]/news">) 
                 </p>
                 <Link
                   href={`/news/${post.slug}`}
-                  className="mt-6 text-sm font-bold text-[#1e5a8a] hover:underline"
+                  className="mt-6 text-sm font-bold text-bdaio-blue hover:underline"
                 >
                   {common.readMore}
                 </Link>

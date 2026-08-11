@@ -56,7 +56,7 @@ export function CelebrationSection({ t }: { t: Home }) {
         </div>
 
         {/* Title Section */}
-        <h2 className="text-3xl font-black tracking-tight text-[#1e5a8a] sm:text-4xl mb-4">
+        <h2 className="text-3xl font-black tracking-tight text-bdaio-blue sm:text-4xl mb-4">
           {t.achievementTitle}
         </h2>
         
@@ -89,7 +89,7 @@ export function CelebrationSection({ t }: { t: Home }) {
               <div className="relative mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-amber-50 to-yellow-100 border border-amber-200 text-4xl shadow-xs text-amber-600 transition-transform duration-300 group-hover:scale-110">
                 <span>🏅</span>
               </div>
-              <h3 className="text-lg font-bold text-[#1e5a8a]">{medalist.name}</h3>
+              <h3 className="text-lg font-bold text-bdaio-blue">{medalist.name}</h3>
               {/* amber-700, not 600: at this size AA wants 4.5:1 and 600 lands at 3.3. */}
               <p className="text-xs font-semibold text-amber-700 uppercase tracking-wider mt-1">
                 {t.goldMedalist}

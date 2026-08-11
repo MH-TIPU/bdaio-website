@@ -25,7 +25,7 @@ export default async function NewsLibraryPage({ params }: PageProps<"/[locale]/n
         <div className="mb-10">
           <Link
             href="/news"
-            className="inline-flex items-center gap-2 text-sm font-bold text-[#1e5a8a] hover:underline"
+            className="inline-flex items-center gap-2 text-sm font-bold text-bdaio-blue hover:underline"
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
@@ -35,16 +35,16 @@ export default async function NewsLibraryPage({ params }: PageProps<"/[locale]/n
         </div>
 
         <div className="mx-auto mb-14 max-w-3xl text-center">
-          <span className="text-sm font-extrabold uppercase tracking-widest text-blue-500">
+          <span className="text-sm font-extrabold uppercase tracking-widest text-bdaio-blue-light">
             Media Coverage
           </span>
-          <h1 className="mt-3 text-4xl font-black text-[#1e5a8a] sm:text-5xl">
+          <h1 className="mt-3 text-4xl font-black text-bdaio-blue sm:text-5xl">
             News Link Library
           </h1>
           <p className="mt-4 text-base leading-relaxed text-slate-500 sm:text-lg">
             Direct links to published BdAIO coverage from newspapers, online portals, and partner media.
           </p>
-          <div className="mx-auto mt-6 h-1 w-20 rounded bg-blue-500" />
+          <div className="mx-auto mt-6 h-1 w-20 rounded bg-bdaio-blue-light" />
         </div>
 
         {newsLinks.length > 0 ? (
@@ -67,7 +67,7 @@ export default async function NewsLibraryPage({ params }: PageProps<"/[locale]/n
                         {item.publishedAt}
                       </time>
                     </div>
-                    <h2 className="text-lg font-black leading-snug text-slate-800 group-hover:text-[#1e5a8a]">
+                    <h2 className="text-lg font-black leading-snug text-slate-800 group-hover:text-bdaio-blue">
                       {item.title}
                     </h2>
                     {item.summary ? (
@@ -76,7 +76,7 @@ export default async function NewsLibraryPage({ params }: PageProps<"/[locale]/n
                       </p>
                     ) : null}
                   </div>
-                  <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-[#1e5a8a] shadow-sm transition group-hover:bg-[#1e5a8a] group-hover:text-white">
+                  <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-bdaio-blue shadow-sm transition group-hover:bg-bdaio-blue group-hover:text-white">
                     <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5H21m0 0V12m0-7.5L10.5 15M6 6h4.5M6 18h12" />
                     </svg>

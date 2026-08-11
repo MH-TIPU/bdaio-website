@@ -48,13 +48,13 @@ export default async function ArchivesPage({ params }: PageProps<"/[locale]/arch
     <section className="py-20 bg-slate-50/50">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <h1 className="text-4xl font-black text-[#1e5a8a] sm:text-5xl">
+          <h1 className="text-4xl font-black text-bdaio-blue sm:text-5xl">
             {t.title}
           </h1>
           <p className="mt-3 text-lg text-slate-500">
             {t.lead}
           </p>
-          <div className="mx-auto mt-6 h-1 w-20 rounded bg-blue-500" />
+          <div className="mx-auto mt-6 h-1 w-20 rounded bg-bdaio-blue-light" />
         </div>
 
         {/* Timeline Cards */}
@@ -66,7 +66,7 @@ export default async function ArchivesPage({ params }: PageProps<"/[locale]/arch
             >
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4 mb-6">
                 <div>
-                  <span className="text-sm font-extrabold uppercase tracking-widest text-blue-500">
+                  <span className="text-sm font-extrabold uppercase tracking-widest text-bdaio-blue-light">
                     {t.kicker}
                   </span>
                   <h2 className="text-2xl font-black text-slate-800">
@@ -74,7 +74,7 @@ export default async function ArchivesPage({ params }: PageProps<"/[locale]/arch
                   </h2>
                 </div>
                 <div className="text-left sm:text-right">
-                  <p className="text-sm font-bold text-[#1e5a8a]">{event.olympiad}</p>
+                  <p className="text-sm font-bold text-bdaio-blue">{event.olympiad}</p>
                   <p className="text-xs text-slate-500 font-semibold">{event.location}</p>
                 </div>
               </div>
@@ -110,7 +110,7 @@ export default async function ArchivesPage({ params }: PageProps<"/[locale]/arch
 
         {/* Gallery Section */}
         <div>
-          <h2 className="text-2xl font-black text-[#1e5a8a] text-center mb-10">{t.gallery}</h2>
+          <h2 className="text-2xl font-black text-bdaio-blue text-center mb-10">{t.gallery}</h2>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {galleryMedia.map((img, idx) => (
               <div

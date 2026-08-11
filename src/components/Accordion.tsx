@@ -29,15 +29,15 @@ export function Accordion({ items, className = "", bengali = false }: AccordionP
               }`}
             >
               <div className="flex items-center gap-3.5 pr-4">
-                <span className="shrink-0 text-xl font-bold text-[#1e5a8a] select-none">
+                <span className="shrink-0 text-xl font-bold text-bdaio-blue select-none">
                   {isOpen ? "−" : "+"}
                 </span>
-                <span className="text-base font-semibold text-[#1e5a8a] hover:text-blue-700 transition-colors">
+                <span className="text-base font-semibold text-bdaio-blue hover:text-bdaio-blue-dark transition-colors">
                   {item.question}
                 </span>
               </div>
               <svg
-                className={`h-4.5 w-4.5 shrink-0 text-[#1e5a8a] transition-transform duration-200 ${
+                className={`h-4.5 w-4.5 shrink-0 text-bdaio-blue transition-transform duration-200 ${
                   isOpen ? "rotate-90" : ""
                 }`}
                 fill="none"

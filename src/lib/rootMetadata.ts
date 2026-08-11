@@ -50,5 +50,5 @@ export const rootMetadata: Metadata = {
 
 export const rootViewport: Viewport = {
   // Tints the browser chrome on Android and the status bar in standalone mode.
-  themeColor: "#026f89",
+  themeColor: "#0e3268",
 };

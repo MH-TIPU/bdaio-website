@@ -37,7 +37,7 @@ export default async function ContactPage({ params }: PageProps<"/[locale]/conta
           on the other. */}
       <div className={`${PAGE_NARROW} space-y-6 text-center`}>
         {/* Main Header - Matches the old site screenshot */}
-        <h1 className="text-2xl font-bold tracking-tight text-[#1e5a8a]">
+        <h1 className="text-2xl font-bold tracking-tight text-bdaio-blue">
           {t.title}
         </h1>
 
@@ -46,7 +46,7 @@ export default async function ContactPage({ params }: PageProps<"/[locale]/conta
           {t.emailLabel}:{" "}
           <a
             href={`mailto:${settings["contact.email"]}`}
-            className="text-[#1e5a8a] hover:underline"
+            className="text-bdaio-blue hover:underline"
           >
             {settings["contact.email"]}
           </a>
@@ -57,7 +57,7 @@ export default async function ContactPage({ params }: PageProps<"/[locale]/conta
             {t.phoneLabel}:{" "}
             <a
               href={`tel:${settings["contact.phone"].replace(/\s+/g, "")}`}
-              className="text-[#1e5a8a] hover:underline"
+              className="text-bdaio-blue hover:underline"
             >
               {settings["contact.phone"]}
             </a>

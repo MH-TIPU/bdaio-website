@@ -23,7 +23,7 @@ export default async function AboutPage({ params }: PageProps<"/[locale]/about">
   return (
     <section className="py-16 bg-white">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <h1 className="text-center text-3xl font-bold text-[#1e5a8a] mb-12">
+        <h1 className="text-center text-3xl font-bold text-bdaio-blue mb-12">
           {t.title}
         </h1>
 

@@ -26,13 +26,13 @@ export default async function SyllabusPage({ params }: PageProps<"/[locale]/syll
     <section className="py-20 bg-slate-50/50">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <h1 className="text-4xl font-black text-[#1e5a8a] sm:text-5xl">
+          <h1 className="text-4xl font-black text-bdaio-blue sm:text-5xl">
             {t.title}
           </h1>
           <p className="mt-3 text-lg text-slate-500">
             {t.lead}
           </p>
-          <div className="mx-auto mt-6 h-1 w-20 rounded bg-blue-500" />
+          <div className="mx-auto mt-6 h-1 w-20 rounded bg-bdaio-blue-light" />
         </div>
 
         {/* Syllabus Sections */}
@@ -56,7 +56,7 @@ export default async function SyllabusPage({ params }: PageProps<"/[locale]/syll
 
         {/* Syllabus Note footer */}
         <div className="mt-16 rounded-2xl border border-blue-100 bg-blue-50/20 p-8 text-center max-w-2xl mx-auto">
-          <h3 className="text-base font-bold text-[#1e5a8a] mb-2">{t.noteTitle}</h3>
+          <h3 className="text-base font-bold text-bdaio-blue mb-2">{t.noteTitle}</h3>
           <p className="text-sm text-slate-550 leading-relaxed">{t.noteBody}</p>
         </div>
       </div>

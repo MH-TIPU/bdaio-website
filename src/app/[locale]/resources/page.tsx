@@ -71,7 +71,7 @@ export default async function ResourcesPage({ params }: PageProps<"/[locale]/res
             {t.title}
           </h1>
           <p className="mt-3 text-lg text-slate-500">{t.lead}</p>
-          <div className="mx-auto mt-6 h-1 w-20 rounded bg-blue-500" />
+          <div className="mx-auto mt-6 h-1 w-20 rounded bg-bdaio-blue-light" />
         </div>
 
         {membersOnlyCount > 0 && (

@@ -50,7 +50,7 @@ export default async function ResultsIndexPage({ params }: PageProps<"/[locale]/
         <div className="mx-auto mb-10 max-w-3xl text-center">
           <h1 className="text-4xl font-black text-bdaio-blue sm:text-5xl">{t.title}</h1>
           <p className="mt-3 text-lg text-slate-500">{t.lead}</p>
-          <div className="mx-auto mt-6 h-1 w-20 rounded bg-blue-500" />
+          <div className="mx-auto mt-6 h-1 w-20 rounded bg-bdaio-blue-light" />
         </div>
 
         {events.length === 0 ? (

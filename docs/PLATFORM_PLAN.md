@@ -122,7 +122,16 @@ prisma/
   actions/layouts.
 - **Every mutation** = a server action in `src/server/<domain>/…` that (1) authenticates, (2) authorizes,
   (3) Zod‑validates, (4) writes, (5) logs to `ActivityLog`.
-- **Design tokens** stay in `globals.css` (the existing BdAIO blue/emerald/slate palette) — no ad‑hoc colors.
+- **Design tokens** stay in `globals.css` (BdAIO navy/emerald/slate) — no ad‑hoc colors. The brand is one hue at
+  three lightnesses: `--bdaio-blue` `#0e3268`, `--bdaio-blue-light` `#2759a5` for accents, `--bdaio-blue-dark`
+  `#081c3a` for the hover on anything filled with the base. That last one is measured, not eyeballed: the base is
+  dark enough (12.5:1 on white) that a hover step has to be checked, and the two sit ~11 L\* apart — about the
+  least that still reads as a state change. A darker brand cannot buy more room without going to near‑black.
+  **The "no ad‑hoc colors" half of this rule was decorative until 2026‑08‑11**, when the public pages were found
+  running a second palette — `#1e5a8a` with `#0d3d6b` as its hover, hardcoded 48 times across 14 files, plus
+  `bg-blue-500`/`text-blue-500` on every page‑title underline and eyebrow. Those are gone; the only blues left
+  outside the tokens are categorical (status chips, the four‑colour card scheme in `/rules`), which encode meaning
+  rather than brand. A brand change is now one line here.
 - **Env** via `.env` (never committed): `DATABASE_URL`, `AUTH_SECRET`, SMTP creds, `SHURJOPAY_*`, `UPLOAD_DIR`.
 
 ### 3.4 Next.js 16 constraints (verified against installed 16.2.9)

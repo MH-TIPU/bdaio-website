@@ -29,18 +29,18 @@ export default function ResultPage() {
     <section className="py-20 bg-slate-50/50">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-12">
-          <h1 className="text-4xl font-black text-[#1e5a8a] sm:text-5xl">
+          <h1 className="text-4xl font-black text-bdaio-blue sm:text-5xl">
             Competition Results
           </h1>
           <p className="mt-3 text-lg text-slate-500">
             Official standing of winners and international representatives.
           </p>
-          <div className="mx-auto mt-6 h-1 w-20 rounded bg-blue-500" />
+          <div className="mx-auto mt-6 h-1 w-20 rounded bg-bdaio-blue-light" />
         </div>
 
         {/* Notice Info Box */}
         <div className="mx-auto max-w-3xl mb-12 rounded-2xl border border-blue-100 bg-blue-50/40 p-6 text-center shadow-xs">
-          <h3 className="text-base font-bold text-[#1e5a8a] mb-1.5">BdAIO 2026 Results</h3>
+          <h3 className="text-base font-bold text-bdaio-blue mb-1.5">BdAIO 2026 Results</h3>
           <p className="text-sm text-slate-550 leading-relaxed max-w-2xl mx-auto">
             Official BdAIO 2026 results and national standings will be published here in May 2026 after the Selection Camp. Follow our WhatsApp community for instant result alerts.
           </p>
@@ -85,7 +85,7 @@ export default function ResultPage() {
                         {row.category}
                       </span>
                     </td>
-                    <td className="py-4 px-6 text-right font-bold text-[#1e5a8a]">{row.award}</td>
+                    <td className="py-4 px-6 text-right font-bold text-bdaio-blue">{row.award}</td>
                   </tr>
                 ))}
               </tbody>

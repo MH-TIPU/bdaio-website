@@ -19,7 +19,7 @@ function ExternalLink({ href, children }: { href: string; children: React.ReactN
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="inline-flex items-center gap-1 font-bold text-[#1e5a8a] hover:text-blue-700 hover:underline"
+      className="inline-flex items-center gap-1 font-bold text-bdaio-blue hover:text-bdaio-blue-dark hover:underline"
     >
       {children}
       <svg className="h-3.5 w-3.5 shrink-0" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
@@ -36,18 +36,18 @@ export default function ParticipationGuidelinePage() {
         
         {/* Page Header */}
         <div className="text-center max-w-3xl mx-auto">
-          <h1 className="text-4xl font-black text-[#1e5a8a] sm:text-5xl">
+          <h1 className="text-4xl font-black text-bdaio-blue sm:text-5xl">
             নির্দেশিকা
           </h1>
           <p className="mt-4 text-lg text-slate-550 leading-relaxed">
             এআই অলিম্পিয়াডের AI প্রবলেম সলভিং ও কুইজ কম্পিটিশনে অংশ নেওয়ার ধাপগুলো খুবই সহজ। ধাপগুলো আমরা নিচে বর্ণনা করেছি।
           </p>
-          <div className="mx-auto mt-6 h-1 w-20 rounded bg-blue-500" />
+          <div className="mx-auto mt-6 h-1 w-20 rounded bg-bdaio-blue-light" />
         </div>
 
         {/* 1. Registration Steps */}
         <div className="bg-white rounded-2xl border border-slate-100 p-6 sm:p-8 shadow-sm space-y-6">
-          <h2 className="text-2xl font-black text-[#1e5a8a] border-b border-slate-100 pb-3">নিবন্ধন করার ধাপসমূহ</h2>
+          <h2 className="text-2xl font-black text-bdaio-blue border-b border-slate-100 pb-3">নিবন্ধন করার ধাপসমূহ</h2>
           <ul className="list-disc pl-5 space-y-3 text-sm text-slate-600 leading-relaxed">
             <li>সবার প্রথম কাজ হলো নিবন্ধন করা। এজন্য প্রথমে এআই অলিম্পিয়াডের ওয়েবসাইটে যাবে (<ExternalLink href="https://www.bdaio.org">www.bdaio.org</ExternalLink>)। সেখানে তুমি উপরের ডান কোণায় একটি রেজিস্ট্রেশন বাটন পাবে।</li>
             <li>রেজিস্ট্রেশন বাটনে ক্লিক করলে তোমাকে রেজিস্ট্রেশন পেজে নিয়ে যাবে।</li>
@@ -61,7 +61,7 @@ export default function ParticipationGuidelinePage() {
             <p>
               রেজিস্ট্রেশন প্ল্যাটফর্মে একাউন্ট ক্রিয়েট করার পর Get a Ticket থেকে QUIZ অথবা AI Problem Solving এর যে কোন একটি ক্যাটাগরিতে নিবন্ধন করা যাবে। নিবন্ধন হয়ে গেলে ইমেইলের মাধ্যমে নিবন্ধন নিশ্চিত করা হবে। এর পরবর্তীতে প্রতিযোগিদের আঞ্চলিক প্রতিযোগিতার জন্য প্রস্তুতি নিতে হবে।
             </p>
-            <p className="font-bold text-[#1e5a8a]">
+            <p className="font-bold text-bdaio-blue">
               নিবন্ধন করার ধাপগুলো এই ভিডিওতেও পাবে: <ExternalLink href="https://www.facebook.com/share/v/193oiRXbee/">ফেসবুক ভিডিও লিংক</ExternalLink>
             </p>
           </div>
@@ -69,7 +69,7 @@ export default function ParticipationGuidelinePage() {
 
         {/* 2. Kaggle Account Creation */}
         <div className="bg-white rounded-2xl border border-slate-100 p-6 sm:p-8 shadow-sm space-y-6">
-          <h2 className="text-2xl font-black text-[#1e5a8a] border-b border-slate-100 pb-3">ক্যাগল একাউন্ট তৈরি:</h2>
+          <h2 className="text-2xl font-black text-bdaio-blue border-b border-slate-100 pb-3">ক্যাগল একাউন্ট তৈরি:</h2>
           <ul className="list-disc pl-5 space-y-3 text-sm text-slate-600 leading-relaxed">
             <li>আর্টিফিশিয়াল ইন্টেলিজেন্স সেগমেন্ট ক্যাগল প্ল্যাটফর্মে আয়োজিত হবে। সেজন্য ক্যাগলে একাউন্ট করে নিতে হবে।</li>
             <li>প্রথমে <ExternalLink href="https://www.kaggle.com">https://www.kaggle.com</ExternalLink> ওয়েবসাইটে যেতে হবে।</li>
@@ -83,7 +83,7 @@ export default function ParticipationGuidelinePage() {
 
         {/* 3. Kaggle Preparation & Courses */}
         <div className="bg-white rounded-2xl border border-slate-100 p-6 sm:p-8 shadow-sm space-y-6">
-          <h2 className="text-2xl font-black text-[#1e5a8a] border-b border-slate-100 pb-3">ক্যাগল ও মেশিন লার্নিং প্রস্তুতি</h2>
+          <h2 className="text-2xl font-black text-bdaio-blue border-b border-slate-100 pb-3">ক্যাগল ও মেশিন লার্নিং প্রস্তুতি</h2>
           
           <div className="space-y-4">
             <h3 className="font-bold text-slate-800 text-sm">ক্যাগলের নিজস্ব কিছু মেশিন লার্নিং শেখার কোর্স রয়েছে। তুমি সেখান থেকেই শেখা শুরু করতে পারো। আমরা এখানে এরকম কিছু কোর্সের লিংক দিয়ে দিচ্ছি:</h3>
@@ -125,12 +125,12 @@ export default function ParticipationGuidelinePage() {
 
         {/* 4. LLM Chatbot Tips */}
         <div className="bg-white rounded-2xl border border-slate-100 p-6 sm:p-8 shadow-sm space-y-6">
-          <h2 className="text-2xl font-black text-[#1e5a8a] border-b border-slate-100 pb-3">চ্যাটবট বা LLM-কে ব্যবহারের নির্দেশিকা</h2>
+          <h2 className="text-2xl font-black text-bdaio-blue border-b border-slate-100 pb-3">চ্যাটবট বা LLM-কে ব্যবহারের নির্দেশিকা</h2>
           <p className="text-sm text-slate-600 leading-relaxed">
             ChatGPT, Gemini, Claude ইত্যাদি চ্যাটবটের সাহায্যে তুমি নিজেও কিন্তু নিজের জন্য লার্নিং রিসোর্স তৈরি করে নিতে পারো!
           </p>
           <div className="rounded-xl border border-blue-100 bg-blue-50/20 p-5 space-y-4">
-            <h4 className="font-bold text-[#1e5a8a] text-sm">তোমার জন্য একটা প্রম্পটের উদাহরণ:</h4>
+            <h4 className="font-bold text-bdaio-blue text-sm">তোমার জন্য একটা প্রম্পটের উদাহরণ:</h4>
             <div className="rounded-xl border border-slate-200/60 bg-white p-5 font-mono text-xs text-slate-600 italic select-all cursor-pointer hover:border-slate-300 transition-colors">
               &quot;I am a student of class 9. I know basic python programming but I have never worked with AI models. In the next month, there is an AI Olympiad for school and college students in Bangladesh. I really want to participate in the kaggle competition segment, but I am feeling a bit nervous. Can I really learn AI &amp; ML before the contest? Can you concisely guide me?&quot;
             </div>
@@ -142,7 +142,7 @@ export default function ParticipationGuidelinePage() {
 
         {/* 5. Video & Other Resources */}
         <div className="bg-white rounded-2xl border border-slate-100 p-6 sm:p-8 shadow-sm space-y-6">
-          <h2 className="text-2xl font-black text-[#1e5a8a] border-b border-slate-100 pb-3">ভিডিও ও অন্যান্য রিসোর্স (কুইজ ও কোডিং উভয় সেগমেন্টের জন্য সহায়ক)</h2>
+          <h2 className="text-2xl font-black text-bdaio-blue border-b border-slate-100 pb-3">ভিডিও ও অন্যান্য রিসোর্স (কুইজ ও কোডিং উভয় সেগমেন্টের জন্য সহায়ক)</h2>
           <ul className="grid gap-4 sm:grid-cols-2 text-sm text-slate-600">
             <li className="flex items-center gap-2">
               <span className="text-blue-500">▶</span>
@@ -177,7 +177,7 @@ export default function ParticipationGuidelinePage() {
 
         {/* 6. Important Regulations & Kaggle Rules */}
         <div className="bg-white rounded-2xl border border-slate-100 p-6 sm:p-8 shadow-sm space-y-6">
-          <h2 className="text-2xl font-black text-[#1e5a8a] border-b border-slate-100 pb-3">প্রতিযোগিতার অতি গুরুত্বপূর্ণ নিয়মাবলী</h2>
+          <h2 className="text-2xl font-black text-bdaio-blue border-b border-slate-100 pb-3">প্রতিযোগিতার অতি গুরুত্বপূর্ণ নিয়মাবলী</h2>
           <ul className="list-disc pl-5 space-y-2.5 text-sm text-slate-650 leading-relaxed">
             <li>প্রতিযোগিতার সময় কোড করতে হবে ক্যাগল প্ল্যাটফর্মে।</li>
             <li>কোন এলএলএম চ্যাটবট (ChatGPT, Claude, Gemini etc) কন্টেস্টের সময় ব্যবহার করা যাবে না। কন্টেস্টের সময় কোন ওয়েবসাইটের কথা আলাদা করে বলে না দিলে সেটা ব্যবহার করা যাবে না।</li>
@@ -219,7 +219,7 @@ export default function ParticipationGuidelinePage() {
 
         {/* Bottom Navigation Link */}
         <div className="text-center pt-6">
-          <Link href="/syllabus" className="inline-flex items-center gap-2 text-base font-bold text-[#1e5a8a] hover:text-blue-700 hover:underline">
+          <Link href="/syllabus" className="inline-flex items-center gap-2 text-base font-bold text-bdaio-blue hover:text-bdaio-blue-dark hover:underline">
             সিলেবাস দেখুন
             <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
