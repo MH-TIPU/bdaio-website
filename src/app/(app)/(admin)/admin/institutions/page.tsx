@@ -2,6 +2,20 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { decideInstitution } from "@/server/community/actions";
+import {
+  ACTION_CLASS,
+  DataTable,
+  EmptyRow,
+  RowActions,
+  SortableTh,
+  TBody,
+  THead,
+  Td,
+  Th,
+  Tr,
+} from "@/components/admin/DataTable";
+import { readSort, sortHref } from "@/lib/admin/sort";
+import type { Prisma } from "@/generated/prisma/client";
 
 export const metadata: Metadata = { title: "Institutions · Admin" };
 
@@ -11,9 +25,33 @@ const STATUS_STYLES = {
   SUSPENDED: "bg-red-50 text-red-700",
 } as const;
 
-export default async function AdminInstitutionsPage() {
+/**
+ * What may be sorted on, and the ordering each one means.
+ *
+ * The status ordering follows the enum — pending, approved, suspended — so
+ * ascending puts what needs reviewing at the top, which is the default.
+ */
+const SORTS = {
+  name: (dir) => [{ name: dir }],
+  members: (dir) => [{ memberships: { _count: dir } }],
+  status: (dir) => [{ status: dir }, { createdAt: "desc" }],
+  added: (dir) => [{ createdAt: dir }],
+} satisfies Record<
+  string,
+  (dir: "asc" | "desc") => Prisma.InstitutionOrderByWithRelationInput[]
+>;
+
+type SortKey = keyof typeof SORTS;
+const SORT_KEYS = Object.keys(SORTS) as SortKey[];
+
+export default async function AdminInstitutionsPage(
+  props: PageProps<"/admin/institutions">,
+) {
+  const params = await props.searchParams;
+  const sort = readSort(params, SORT_KEYS, { key: "status", dir: "asc" });
+
   const institutions = await db.institution.findMany({
-    orderBy: [{ status: "asc" }, { createdAt: "desc" }],
+    orderBy: SORTS[sort.key](sort.dir),
     include: {
       _count: { select: { memberships: true } },
       memberships: {
@@ -26,6 +64,8 @@ export default async function AdminInstitutionsPage() {
   });
 
   const pending = institutions.filter((i) => i.status === "PENDING");
+  const href = (column: SortKey) =>
+    sortHref("/admin/institutions", params, sort, column);
 
   return (
     <>
@@ -41,25 +81,37 @@ export default async function AdminInstitutionsPage() {
         </p>
       )}
 
-      <div className="mt-6 overflow-x-auto rounded-xl bg-white shadow-sm ring-1 ring-slate-100">
-        <table className="w-full min-w-[720px] text-left text-sm">
-          <thead className="border-b border-slate-100 bg-slate-50/70">
-            <tr>
-              <th className="px-4 py-3 font-semibold text-slate-700">Institution</th>
-              <th className="px-4 py-3 font-semibold text-slate-700">Proposed by</th>
-              <th className="px-4 py-3 font-semibold text-slate-700">Status</th>
-              <th className="px-4 py-3" />
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
+      <div className="mt-6">
+        <DataTable minWidth={820}>
+          <THead>
+            <SortableTh column="name" current={sort} href={href("name")}>
+              Institution
+            </SortableTh>
+            <Th>Proposed by</Th>
+            <SortableTh column="members" current={sort} href={href("members")}>
+              Members
+            </SortableTh>
+            <SortableTh column="status" current={sort} href={href("status")}>
+              Status
+            </SortableTh>
+            <SortableTh column="added" current={sort} href={href("added")}>
+              Added
+            </SortableTh>
+            <Th align="right" srOnly="Actions" />
+          </THead>
+
+          <TBody>
+            {institutions.length === 0 && (
+              <EmptyRow colSpan={6}>No institutions registered yet.</EmptyRow>
+            )}
+
             {institutions.map((institution) => (
-              <tr key={institution.id}>
-                <td className="px-4 py-3">
+              <Tr key={institution.id}>
+                <Td>
                   <p className="font-medium text-slate-900">{institution.name}</p>
                   <p className="text-xs text-slate-500">
                     {institution.type.charAt(0) + institution.type.slice(1).toLowerCase()}
-                    {institution.district ? ` · ${institution.district}` : ""} ·{" "}
-                    {institution._count.memberships} members
+                    {institution.district ? ` · ${institution.district}` : ""}
                   </p>
                   {institution.status === "APPROVED" && (
                     <Link
@@ -69,8 +121,9 @@ export default async function AdminInstitutionsPage() {
                       View public page
                     </Link>
                   )}
-                </td>
-                <td className="px-4 py-3">
+                </Td>
+
+                <Td>
                   {institution.memberships.map((m) => (
                     <p key={m.id} className="text-xs text-slate-600">
                       {m.user.profile?.fullName ?? m.user.email}
@@ -79,54 +132,55 @@ export default async function AdminInstitutionsPage() {
                   {institution.memberships.length === 0 && (
                     <span className="text-xs text-slate-400">—</span>
                   )}
-                </td>
-                <td className="px-4 py-3">
+                </Td>
+
+                <Td>
+                  <span className="text-slate-700">{institution._count.memberships}</span>
+                </Td>
+
+                <Td>
                   <span
                     className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${STATUS_STYLES[institution.status]}`}
                   >
                     {institution.status.charAt(0) +
                       institution.status.slice(1).toLowerCase()}
                   </span>
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex justify-end gap-2 whitespace-nowrap">
-                    {institution.status !== "APPROVED" && (
-                      <form action={decideInstitution}>
-                        <input type="hidden" name="institutionId" value={institution.id} />
-                        <input type="hidden" name="decision" value="APPROVED" />
-                        <button
-                          type="submit"
-                          className="rounded-lg px-2.5 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200 hover:bg-emerald-50"
-                        >
-                          Approve
-                        </button>
-                      </form>
-                    )}
-                    {institution.status !== "SUSPENDED" && (
-                      <form action={decideInstitution}>
-                        <input type="hidden" name="institutionId" value={institution.id} />
-                        <input type="hidden" name="decision" value="SUSPENDED" />
-                        <button
-                          type="submit"
-                          className="rounded-lg px-2.5 py-1 text-xs font-semibold text-red-600 ring-1 ring-red-200 hover:bg-red-50"
-                        >
-                          Suspend
-                        </button>
-                      </form>
-                    )}
-                  </div>
-                </td>
-              </tr>
+                </Td>
+
+                <Td>
+                  <span className="whitespace-nowrap text-xs text-slate-500">
+                    {institution.createdAt.toLocaleDateString("en-GB", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </span>
+                </Td>
+
+                <RowActions>
+                  {institution.status !== "APPROVED" && (
+                    <form action={decideInstitution}>
+                      <input type="hidden" name="institutionId" value={institution.id} />
+                      <input type="hidden" name="decision" value="APPROVED" />
+                      <button type="submit" className={ACTION_CLASS.good}>
+                        Approve
+                      </button>
+                    </form>
+                  )}
+                  {institution.status !== "SUSPENDED" && (
+                    <form action={decideInstitution}>
+                      <input type="hidden" name="institutionId" value={institution.id} />
+                      <input type="hidden" name="decision" value="SUSPENDED" />
+                      <button type="submit" className={ACTION_CLASS.danger}>
+                        Suspend
+                      </button>
+                    </form>
+                  )}
+                </RowActions>
+              </Tr>
             ))}
-            {institutions.length === 0 && (
-              <tr>
-                <td colSpan={4} className="px-4 py-8 text-center text-slate-500">
-                  No institutions registered yet.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+          </TBody>
+        </DataTable>
       </div>
     </>
   );

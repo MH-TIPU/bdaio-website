@@ -364,6 +364,31 @@ Two separate authorities, because marking and announcing are different responsib
   scored data.
 - **Audit log** at `/admin/logs` with action-prefix filters and per-action counts. Rejected attempts still write
   nothing, so the trail never implies an action that did not happen.
+- **One table, one sort mechanism** across every admin list. Each screen had grown its own `<table>` markup, so
+  padding, header weight, row dividers and the empty state all differed slightly, and none of them sorted.
+  `src/components/admin/DataTable.tsx` holds the shared parts (`DataTable`, `THead`, `Tr`, `Td`, `SortableTh`,
+  `RowActions`, `ACTION_CLASS`, `EmptyRow`); a page supplies only its columns and cells.
+  - **The sort lives in the URL** (`?sort=name&dir=asc`, `src/lib/admin/sort.ts`), so it is shareable, survives a
+    reload, and — this is the load-bearing part — **orders in the database, not the client**. These lists are
+    capped at 100–200 rows; a client-side sort would reorder only what was fetched and quietly answer a different
+    question than the one asked.
+  - **Column keys are allowlisted per table**, so a hand-edited query string cannot reach a field the page never
+    meant to order by. Headers are links and carry `aria-sort`, so the table works without JavaScript and the
+    arrow is not decoration only sighted users can read.
+  - **Filters and searches carry the sort through**, and vice versa — changing one must not silently reset the
+    other. Every default sort is a *visible* column, or the table would be ordered by something with no indicator;
+    that is why registrations gained "Applied", certificates "Issued" and institutions "Members". Two captions
+    that said "the 200 most recent" now say "the first 200 in this order", which is what they mean once the sort
+    can change.
+  - **`/admin/messages` keeps its cards** — a contact message is long-form prose of no fixed length and reading it
+    is the point of the screen, so a table row would mean truncating the body. Same URL contract and same
+    primitives; the controls are a row of links because there is no `<th>` to hang them on.
+  - **A null-ordering bug fell out of the migration.** The message list ordered by `[{ handledAt: "asc" }, …]` and
+    the comment claimed it put unanswered messages on top, but Postgres sorts nulls *last* on `ASC` — verified
+    directly (`ORDER BY v ASC` over `(1), (NULL), (2)` returns `1 2 NULL`) — so outstanding messages had been
+    sinking to the bottom. Both directions now state null placement explicitly.
+  - All 58 orderBy shapes (7 screens × keys × both directions, including the relation `_count` sorts behind
+    Entries/Scored/Judges) were executed against a real database, not just typechecked.
 
 ### 3.12 Hardening (built in Phase 7a)
 

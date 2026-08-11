@@ -2,10 +2,49 @@ import type { Metadata } from "next";
 import { db } from "@/lib/db";
 import { issueEventCertificates, revokeCertificate } from "@/server/journey/actions";
 import { SELECT_CLASS } from "@/components/admin/formStyles";
+import {
+  ACTION_CLASS,
+  DataTable,
+  EmptyRow,
+  RowActions,
+  SortableTh,
+  TBody,
+  THead,
+  Td,
+  Th,
+  Tr,
+} from "@/components/admin/DataTable";
+import { readSort, sortHref } from "@/lib/admin/sort";
+import type { Prisma } from "@/generated/prisma/client";
 
 export const metadata: Metadata = { title: "Certificates · Admin" };
 
-export default async function AdminCertificatesPage() {
+/**
+ * What may be sorted on, and the ordering each one means.
+ *
+ * Status is `revokedAt`: a valid certificate has none, so descending gathers
+ * the valid ones first and ascending walks the revocations oldest-first.
+ */
+const SORTS = {
+  serial: (dir) => [{ serial: dir }],
+  recipient: (dir) => [{ recipientName: dir }],
+  event: (dir) => [{ event: { title: dir } }, { issuedAt: "desc" }],
+  status: (dir) => [{ revokedAt: dir }, { issuedAt: "desc" }],
+  issued: (dir) => [{ issuedAt: dir }],
+} satisfies Record<
+  string,
+  (dir: "asc" | "desc") => Prisma.CertificateOrderByWithRelationInput[]
+>;
+
+type SortKey = keyof typeof SORTS;
+const SORT_KEYS = Object.keys(SORTS) as SortKey[];
+
+export default async function AdminCertificatesPage(
+  props: PageProps<"/admin/certificates">,
+) {
+  const params = await props.searchParams;
+  const sort = readSort(params, SORT_KEYS, { key: "issued", dir: "desc" });
+
   const [events, certificates] = await Promise.all([
     db.event.findMany({
       orderBy: [{ year: "desc" }, { title: "asc" }],
@@ -16,7 +55,7 @@ export default async function AdminCertificatesPage() {
       },
     }),
     db.certificate.findMany({
-      orderBy: { issuedAt: "desc" },
+      orderBy: SORTS[sort.key](sort.dir),
       take: 100,
       include: {
         user: { select: { email: true } },
@@ -24,6 +63,9 @@ export default async function AdminCertificatesPage() {
       },
     }),
   ]);
+
+  const href = (column: SortKey) =>
+    sortHref("/admin/certificates", params, sort, column);
 
   return (
     <>
@@ -69,31 +111,46 @@ export default async function AdminCertificatesPage() {
         </form>
       </div>
 
-      <div className="mt-6 overflow-x-auto rounded-xl bg-white shadow-sm ring-1 ring-slate-100">
-        <table className="w-full min-w-[720px] text-left text-sm">
-          <thead className="border-b border-slate-100 bg-slate-50/70">
-            <tr>
-              <th className="px-4 py-3 font-semibold text-slate-700">Serial</th>
-              <th className="px-4 py-3 font-semibold text-slate-700">Recipient</th>
-              <th className="px-4 py-3 font-semibold text-slate-700">Event</th>
-              <th className="px-4 py-3 font-semibold text-slate-700">Status</th>
-              <th className="px-4 py-3" />
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
+      <div className="mt-6">
+        <DataTable minWidth={860}>
+          <THead>
+            <SortableTh column="serial" current={sort} href={href("serial")}>
+              Serial
+            </SortableTh>
+            <SortableTh column="recipient" current={sort} href={href("recipient")}>
+              Recipient
+            </SortableTh>
+            <SortableTh column="event" current={sort} href={href("event")}>
+              Event
+            </SortableTh>
+            <SortableTh column="status" current={sort} href={href("status")}>
+              Status
+            </SortableTh>
+            <SortableTh column="issued" current={sort} href={href("issued")}>
+              Issued
+            </SortableTh>
+            <Th align="right" srOnly="Actions" />
+          </THead>
+
+          <TBody>
+            {certificates.length === 0 && (
+              <EmptyRow colSpan={6}>No certificates issued yet.</EmptyRow>
+            )}
+
             {certificates.map((certificate) => (
-              <tr key={certificate.id}>
-                <td className="px-4 py-3 font-mono text-xs text-slate-700">
+              <Tr key={certificate.id}>
+                <Td className="font-mono text-xs text-slate-700">
                   {certificate.serial}
-                </td>
-                <td className="px-4 py-3">
+                </Td>
+
+                <Td>
                   <p className="text-slate-900">{certificate.recipientName}</p>
                   <p className="text-xs text-slate-500">{certificate.user.email}</p>
-                </td>
-                <td className="px-4 py-3 text-slate-700">
-                  {certificate.event?.title ?? "—"}
-                </td>
-                <td className="px-4 py-3">
+                </Td>
+
+                <Td className="text-slate-700">{certificate.event?.title ?? "—"}</Td>
+
+                <Td>
                   {certificate.revokedAt ? (
                     <span className="rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-semibold text-red-700">
                       Revoked
@@ -103,33 +160,35 @@ export default async function AdminCertificatesPage() {
                       Valid
                     </span>
                   )}
-                </td>
-                <td className="px-4 py-3 text-right">
+                </Td>
+
+                <Td>
+                  <span className="whitespace-nowrap text-xs text-slate-500">
+                    {certificate.issuedAt.toLocaleDateString("en-GB", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </span>
+                </Td>
+
+                <RowActions>
                   <form action={revokeCertificate}>
                     <input type="hidden" name="certificateId" value={certificate.id} />
                     <button
                       type="submit"
-                      className={`rounded-lg px-2.5 py-1 text-xs font-semibold ring-1 ${
-                        certificate.revokedAt
-                          ? "text-emerald-700 ring-emerald-200 hover:bg-emerald-50"
-                          : "text-red-600 ring-red-200 hover:bg-red-50"
-                      }`}
+                      className={
+                        certificate.revokedAt ? ACTION_CLASS.good : ACTION_CLASS.danger
+                      }
                     >
                       {certificate.revokedAt ? "Restore" : "Revoke"}
                     </button>
                   </form>
-                </td>
-              </tr>
+                </RowActions>
+              </Tr>
             ))}
-            {certificates.length === 0 && (
-              <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-slate-500">
-                  No certificates issued yet.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+          </TBody>
+        </DataTable>
       </div>
     </>
   );

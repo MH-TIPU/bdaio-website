@@ -2,6 +2,20 @@ import type { Metadata } from "next";
 import { db } from "@/lib/db";
 import { MAX_ATTEMPTS } from "@/lib/email/queue";
 import { retryEmail } from "@/server/admin/email";
+import {
+  ACTION_CLASS,
+  DataTable,
+  EmptyRow,
+  RowActions,
+  SortableTh,
+  TBody,
+  THead,
+  Td,
+  Th,
+  Tr,
+} from "@/components/admin/DataTable";
+import { readSort, sortHref } from "@/lib/admin/sort";
+import type { Prisma } from "@/generated/prisma/client";
 
 export const metadata: Metadata = { title: "Email queue · Admin" };
 
@@ -15,6 +29,26 @@ const STATUS_STYLE = {
   FAILED: "bg-red-50 text-red-800 ring-red-200",
 } as const;
 
+/**
+ * What may be sorted on, and the ordering each one means.
+ *
+ * Tries descending is the one worth reaching for: it floats whatever has been
+ * retried most, which is the job about to exhaust its attempts.
+ */
+const SORTS = {
+  status: (dir) => [{ status: dir }, { createdAt: "desc" }],
+  to: (dir) => [{ to: dir }, { createdAt: "desc" }],
+  subject: (dir) => [{ subject: dir }, { createdAt: "desc" }],
+  queued: (dir) => [{ createdAt: dir }],
+  tries: (dir) => [{ attempts: dir }, { createdAt: "desc" }],
+} satisfies Record<
+  string,
+  (dir: "asc" | "desc") => Prisma.EmailJobOrderByWithRelationInput[]
+>;
+
+type SortKey = keyof typeof SORTS;
+const SORT_KEYS = Object.keys(SORTS) as SortKey[];
+
 function when(date: Date): string {
   return date.toLocaleString("en-GB", {
     day: "2-digit",
@@ -24,13 +58,17 @@ function when(date: Date): string {
   });
 }
 
-export default async function AdminEmailPage() {
+export default async function AdminEmailPage(props: PageProps<"/admin/email">) {
+  const params = await props.searchParams;
+  const sort = readSort(params, SORT_KEYS, { key: "queued", dir: "desc" });
+
   const [jobs, counts] = await Promise.all([
-    db.emailJob.findMany({ orderBy: { createdAt: "desc" }, take: 100 }),
+    db.emailJob.findMany({ orderBy: SORTS[sort.key](sort.dir), take: 100 }),
     db.emailJob.groupBy({ by: ["status"], _count: { _all: true } }),
   ]);
 
   const byStatus = new Map(counts.map((row) => [row.status, row._count._all]));
+  const href = (column: SortKey) => sortHref("/admin/email", params, sort, column);
 
   return (
     <>
@@ -55,66 +93,70 @@ export default async function AdminEmailPage() {
         ))}
       </div>
 
-      <h2 className="mt-8 text-sm font-semibold text-slate-900">Most recent 100</h2>
+      <h2 className="mt-8 text-sm font-semibold text-slate-900">First 100 in this order</h2>
 
-      {jobs.length === 0 ? (
-        <p className="mt-3 rounded-xl bg-white p-5 text-sm text-slate-500 shadow-sm ring-1 ring-slate-100">
-          Nothing has been queued yet.
-        </p>
-      ) : (
-        <div className="mt-3 overflow-x-auto rounded-xl bg-white shadow-sm ring-1 ring-slate-100">
-          <table className="min-w-full text-sm">
-            <thead className="border-b border-slate-100 text-left text-xs uppercase tracking-wide text-slate-500">
-              <tr>
-                <th className="px-4 py-3 font-medium">Status</th>
-                <th className="px-4 py-3 font-medium">To</th>
-                <th className="px-4 py-3 font-medium">Subject</th>
-                <th className="px-4 py-3 font-medium">Queued</th>
-                <th className="px-4 py-3 font-medium">Tries</th>
-                <th className="px-4 py-3 font-medium">Last error</th>
-                <th className="px-4 py-3 font-medium" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {jobs.map((job) => (
-                <tr key={job.id} className="align-top">
-                  <td className="px-4 py-3">
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-semibold ring-1 ${
-                        STATUS_STYLE[job.status]
-                      }`}
-                    >
-                      {job.status.toLowerCase()}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-slate-700">{job.to}</td>
-                  <td className="px-4 py-3 text-slate-700">{job.subject}</td>
-                  <td className="whitespace-nowrap px-4 py-3 text-slate-500">
-                    {when(job.createdAt)}
-                  </td>
-                  <td className="px-4 py-3 text-slate-500">{job.attempts}</td>
-                  <td className="max-w-xs px-4 py-3 text-xs text-slate-500">
-                    {job.lastError ?? "—"}
-                  </td>
-                  <td className="px-4 py-3">
-                    {job.status === "FAILED" && (
-                      <form action={retryEmail}>
-                        <input type="hidden" name="id" value={job.id} />
-                        <button
-                          type="submit"
-                          className="rounded-lg px-2.5 py-1 text-xs font-semibold text-bdaio-blue ring-1 ring-slate-200 hover:bg-slate-50"
-                        >
-                          Retry
-                        </button>
-                      </form>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <div className="mt-3">
+        <DataTable minWidth={960}>
+          <THead>
+            <SortableTh column="status" current={sort} href={href("status")}>
+              Status
+            </SortableTh>
+            <SortableTh column="to" current={sort} href={href("to")}>
+              To
+            </SortableTh>
+            <SortableTh column="subject" current={sort} href={href("subject")}>
+              Subject
+            </SortableTh>
+            <SortableTh column="queued" current={sort} href={href("queued")}>
+              Queued
+            </SortableTh>
+            <SortableTh column="tries" current={sort} href={href("tries")}>
+              Tries
+            </SortableTh>
+            <Th>Last error</Th>
+            <Th align="right" srOnly="Actions" />
+          </THead>
+
+          <TBody>
+            {jobs.length === 0 && (
+              <EmptyRow colSpan={7}>Nothing has been queued yet.</EmptyRow>
+            )}
+
+            {jobs.map((job) => (
+              <Tr key={job.id}>
+                <Td>
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-xs font-semibold ring-1 ${
+                      STATUS_STYLE[job.status]
+                    }`}
+                  >
+                    {job.status.toLowerCase()}
+                  </span>
+                </Td>
+
+                <Td className="text-slate-700">{job.to}</Td>
+                <Td className="text-slate-700">{job.subject}</Td>
+
+                <Td className="whitespace-nowrap text-slate-500">{when(job.createdAt)}</Td>
+                <Td className="text-slate-500">{job.attempts}</Td>
+
+                <Td className="max-w-xs text-xs text-slate-500">{job.lastError ?? "—"}</Td>
+
+                <RowActions>
+                  {job.status === "FAILED" && (
+                    <form action={retryEmail}>
+                      <input type="hidden" name="id" value={job.id} />
+                      <button type="submit" className={ACTION_CLASS.normal}>
+                        Retry
+                      </button>
+                    </form>
+                  )}
+                </RowActions>
+              </Tr>
+            ))}
+          </TBody>
+        </DataTable>
+      </div>
     </>
   );
 }

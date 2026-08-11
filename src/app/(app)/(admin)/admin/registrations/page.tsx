@@ -2,6 +2,20 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { decideRegistration } from "@/server/admin/actions";
+import {
+  ACTION_CLASS,
+  DataTable,
+  EmptyRow,
+  RowActions,
+  SortableTh,
+  TBody,
+  THead,
+  Td,
+  Th,
+  Tr,
+} from "@/components/admin/DataTable";
+import { readSort, sortHref } from "@/lib/admin/sort";
+import type { Prisma } from "@/generated/prisma/client";
 import type { RegistrationStatus } from "@/generated/prisma/enums";
 
 export const metadata: Metadata = { title: "Registrations · Admin" };
@@ -22,12 +36,27 @@ const STATUS_STYLES: Record<RegistrationStatus, string> = {
   WITHDRAWN: "bg-slate-100 text-slate-600",
 };
 
+/** What may be sorted on, and the ordering each one means. */
+const SORTS = {
+  participant: (dir) => [{ user: { profile: { fullName: dir } } }],
+  event: (dir) => [{ event: { title: dir } }, { createdAt: "desc" }],
+  status: (dir) => [{ status: dir }, { createdAt: "desc" }],
+  applied: (dir) => [{ createdAt: dir }],
+} satisfies Record<
+  string,
+  (dir: "asc" | "desc") => Prisma.RegistrationOrderByWithRelationInput[]
+>;
+
+type SortKey = keyof typeof SORTS;
+const SORT_KEYS = Object.keys(SORTS) as SortKey[];
+
 export default async function AdminRegistrationsPage(
   props: PageProps<"/admin/registrations">,
 ) {
   const params = await props.searchParams;
   const status = typeof params.status === "string" ? params.status : "";
   const eventId = typeof params.eventId === "string" ? params.eventId : "";
+  const sort = readSort(params, SORT_KEYS, { key: "applied", dir: "desc" });
 
   const where = {
     ...(STATUSES.includes(status as RegistrationStatus)
@@ -39,7 +68,7 @@ export default async function AdminRegistrationsPage(
   const [registrations, events, counts] = await Promise.all([
     db.registration.findMany({
       where,
-      orderBy: { createdAt: "desc" },
+      orderBy: SORTS[sort.key](sort.dir),
       take: 200,
       include: {
         user: { select: { email: true, profile: { select: { fullName: true } } } },
@@ -61,6 +90,22 @@ export default async function AdminRegistrationsPage(
   if (status) exportQuery.set("status", status);
   if (eventId) exportQuery.set("eventId", eventId);
 
+  const href = (column: SortKey) =>
+    sortHref("/admin/registrations", params, sort, column);
+
+  /**
+   * A status filter link. It carries the sort through, or changing the filter
+   * would silently reorder the table underneath you.
+   */
+  const filterHref = (next: string) => {
+    const query = new URLSearchParams();
+    if (next) query.set("status", next);
+    if (eventId) query.set("eventId", eventId);
+    query.set("sort", sort.key);
+    query.set("dir", sort.dir);
+    return `/admin/registrations?${query.toString()}`;
+  };
+
   return (
     <>
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -81,7 +126,7 @@ export default async function AdminRegistrationsPage(
       {/* Filters are plain links so the view is shareable and bookmarkable. */}
       <div className="mt-5 flex flex-wrap gap-2">
         <Link
-          href="/admin/registrations"
+          href={filterHref("")}
           className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${!status ? "bg-bdaio-blue text-white" : "bg-white text-slate-600 ring-1 ring-slate-200"}`}
         >
           All
@@ -89,7 +134,7 @@ export default async function AdminRegistrationsPage(
         {STATUSES.map((s) => (
           <Link
             key={s}
-            href={`/admin/registrations?status=${s}`}
+            href={filterHref(s)}
             className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${status === s ? "bg-bdaio-blue text-white" : "bg-white text-slate-600 ring-1 ring-slate-200"}`}
           >
             {s.charAt(0) + s.slice(1).toLowerCase()} ({countFor(s)})
@@ -99,6 +144,9 @@ export default async function AdminRegistrationsPage(
 
       <form method="get" className="mt-3">
         {status && <input type="hidden" name="status" value={status} />}
+        {/* Same reason as the filter links: keep the column you sorted by. */}
+        <input type="hidden" name="sort" value={sort.key} />
+        <input type="hidden" name="dir" value={sort.dir} />
         <select
           name="eventId"
           defaultValue={eventId}
@@ -119,83 +167,91 @@ export default async function AdminRegistrationsPage(
         </button>
       </form>
 
-      <div className="mt-5 overflow-x-auto rounded-xl bg-white shadow-sm ring-1 ring-slate-100">
-        <table className="w-full min-w-[760px] text-left text-sm">
-          <thead className="border-b border-slate-100 bg-slate-50/70">
-            <tr>
-              <th className="px-4 py-3 font-semibold text-slate-700">Participant</th>
-              <th className="px-4 py-3 font-semibold text-slate-700">Event</th>
-              <th className="px-4 py-3 font-semibold text-slate-700">Status</th>
-              <th className="px-4 py-3" />
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
+      <div className="mt-5">
+        <DataTable minWidth={880}>
+          <THead>
+            <SortableTh column="participant" current={sort} href={href("participant")}>
+              Participant
+            </SortableTh>
+            <SortableTh column="event" current={sort} href={href("event")}>
+              Event
+            </SortableTh>
+            <SortableTh column="status" current={sort} href={href("status")}>
+              Status
+            </SortableTh>
+            <SortableTh column="applied" current={sort} href={href("applied")}>
+              Applied
+            </SortableTh>
+            <Th align="right" srOnly="Actions" />
+          </THead>
+
+          <TBody>
+            {registrations.length === 0 && (
+              <EmptyRow colSpan={5}>No registrations match this filter.</EmptyRow>
+            )}
+
             {registrations.map((r) => (
-              <tr key={r.id}>
-                <td className="px-4 py-3">
+              <Tr key={r.id}>
+                <Td>
                   <p className="font-medium text-slate-900">
                     {r.user.profile?.fullName ?? "—"}
                   </p>
                   <p className="text-xs text-slate-500">{r.user.email}</p>
-                </td>
-                <td className="px-4 py-3">
+                </Td>
+
+                <Td>
                   <p className="text-slate-800">{r.event.title}</p>
-                  {r.round && (
-                    <p className="text-xs text-slate-500">{r.round.name}</p>
-                  )}
-                </td>
-                <td className="px-4 py-3">
+                  {r.round && <p className="text-xs text-slate-500">{r.round.name}</p>}
+                </Td>
+
+                <Td>
                   <span
                     className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${STATUS_STYLES[r.status]}`}
                   >
                     {r.status.charAt(0) + r.status.slice(1).toLowerCase()}
                   </span>
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex justify-end gap-2 whitespace-nowrap">
-                    {r.status !== "APPROVED" && r.status !== "WITHDRAWN" && (
-                      <form action={decideRegistration}>
-                        <input type="hidden" name="registrationId" value={r.id} />
-                        <input type="hidden" name="decision" value="APPROVED" />
-                        <button
-                          type="submit"
-                          className="rounded-lg px-2.5 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200 hover:bg-emerald-50"
-                        >
-                          Approve
-                        </button>
-                      </form>
-                    )}
-                    {r.status !== "REJECTED" && r.status !== "WITHDRAWN" && (
-                      <form action={decideRegistration}>
-                        <input type="hidden" name="registrationId" value={r.id} />
-                        <input type="hidden" name="decision" value="REJECTED" />
-                        <button
-                          type="submit"
-                          className="rounded-lg px-2.5 py-1 text-xs font-semibold text-red-600 ring-1 ring-red-200 hover:bg-red-50"
-                        >
-                          Reject
-                        </button>
-                      </form>
-                    )}
-                  </div>
-                </td>
-              </tr>
+                </Td>
+
+                <Td>
+                  <span className="whitespace-nowrap text-xs text-slate-500">
+                    {r.createdAt.toLocaleDateString("en-GB", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </span>
+                </Td>
+
+                <RowActions>
+                  {r.status !== "APPROVED" && r.status !== "WITHDRAWN" && (
+                    <form action={decideRegistration}>
+                      <input type="hidden" name="registrationId" value={r.id} />
+                      <input type="hidden" name="decision" value="APPROVED" />
+                      <button type="submit" className={ACTION_CLASS.good}>
+                        Approve
+                      </button>
+                    </form>
+                  )}
+                  {r.status !== "REJECTED" && r.status !== "WITHDRAWN" && (
+                    <form action={decideRegistration}>
+                      <input type="hidden" name="registrationId" value={r.id} />
+                      <input type="hidden" name="decision" value="REJECTED" />
+                      <button type="submit" className={ACTION_CLASS.danger}>
+                        Reject
+                      </button>
+                    </form>
+                  )}
+                </RowActions>
+              </Tr>
             ))}
-            {registrations.length === 0 && (
-              <tr>
-                <td colSpan={4} className="px-4 py-8 text-center text-slate-500">
-                  No registrations match this filter.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+          </TBody>
+        </DataTable>
       </div>
 
       {registrations.length === 200 && (
         <p className="mt-3 text-xs text-slate-500">
-          Showing the 200 most recent entries — narrow the filter or export to CSV
-          for the full list.
+          Showing the first 200 entries in this order — narrow the filter or export
+          to CSV for the full list.
         </p>
       )}
     </>
