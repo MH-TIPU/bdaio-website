@@ -22,7 +22,7 @@
 - **Ship in vertical slices.** Every phase is deployable and demoable on its own. No big‑bang rewrite.
 - **AGENTS.md is law.** This repo runs a Next.js with breaking changes. **Before writing any code for a task I
   read the relevant guide in `node_modules/next/dist/docs/`** and heed deprecations. Any library (auth, ORM,
-  PDF) is verified against **Next 16.2.9** before I commit to it.
+  PDF) is verified against **Next 16.3.2** before I commit to it.
 - **Server‑first.** Prefer Server Components + Server Actions; add route handlers/APIs only where needed
   (webhooks, uploads, third‑party callbacks).
 - **Type‑safe end to end.** One Zod schema per input drives the form, the server action, and the DB write.
@@ -50,7 +50,7 @@ results & certificates, resources, admin/CMS, notifications, then **payments (Sh
 ## 2. Stack — decided
 
 Chosen to match our existing self‑hosted workflow (Lightsail VPS, pm2 + nginx). These are the defaults I build on
-unless a compatibility check against Next 16.2.9 forces the fallback.
+unless a compatibility check against Next 16.3.2 forces the fallback.
 
 | Concern | Decision | Fallback |
 |---|---|---|
@@ -69,7 +69,7 @@ unless a compatibility check against Next 16.2.9 forces the fallback.
 | Payments *(Phase 8)* | **ShurjoPay** (BDT) | — |
 | LMS *(Phase 9)* | **In‑house on this stack** | — |
 | i18n | **English-only UI** — `LOCALES = ["en"]`, one dictionary. Bengali UI was built in Phase 7b and withdrawn in the routing flatten (§13.2); bilingual *content*, email and SMS remain | — |
-| Analytics | **First‑party, aggregate‑only, cookieless** — chosen in Phase 7a over Google Analytics/Plausible; see §3.12 | — |
+| Analytics | **First‑party, aggregate‑only, cookieless** — chosen in Phase 7a over Google Analytics/Plausible; see §3.12. Google Analytics was later added **on the public pages only**, off unless `NEXT_PUBLIC_GA_ID` is set | — |
 | SMS *(optional)* | **Provider‑agnostic HTTP sender**, no gateway chosen yet — Phase 7a, §3.12 | — |
 | Rate limiting | **Postgres‑backed fixed windows** — Phase 7a, §3.12 | Redis if write load ever justifies it |
 | Deploy | **pm2 + nginx on Lightsail**, Postgres alongside; nightly backups | — |
@@ -129,7 +129,7 @@ prisma/
   rather than brand. A brand change is now one line here.
 - **Env** via `.env` (never committed): `DATABASE_URL`, `AUTH_SECRET`, SMTP creds, `SHURJOPAY_*`, `UPLOAD_DIR`.
 
-### 3.4 Next.js 16 constraints (verified against installed 16.2.9)
+### 3.4 Next.js 16 constraints (verified against installed 16.3.2)
 Read from `node_modules/next/dist/docs/.../upgrading/version-16.md`. These shape how we build:
 - **Deploy target** → `output: "standalone"` (done in Phase 0). Copy `public/` + `.next/static` next to the
   standalone `server.js`; run behind pm2 + nginx.
@@ -150,7 +150,22 @@ Read from `node_modules/next/dist/docs/.../upgrading/version-16.md`. These shape
 - **Database-driven pages default to static.** A page that only queries Prisma (no `cookies()`/`headers()`) is
   **prerendered at build time**, so its data freezes until the next deploy — `next build` marks it `○ (Static)`.
   Public list pages therefore set `export const revalidate = 60`. Check the build output whenever a new
-  DB-backed page is added; `ƒ (Dynamic)` is expected only where a session is read.
+  DB-backed page is added.
+- **A request API read in a *layout* takes the whole subtree with it.** This is the one that actually bit us, and
+  it bit silently. `src/app/(public)/layout.tsx` called `getCurrentUser()` so the header could show a signed-in
+  state; that one `cookies()` read made **every** public page `ƒ (Dynamic)`, and the `revalidate = 60` the pages
+  had already declared did nothing at all. Nothing errors — the site simply stops being cached and every visit
+  reaches Postgres. Fixed by moving the session to `/api/session/me`, fetched by the header on the client, which
+  is only safe because nothing user-specific then goes into the shared HTML; `e2e/cacheSafety.spec.ts` is the
+  guard on that.
+- **A dynamic segment needs `generateStaticParams` to be cached at all** — even returning `[]`. Without it the
+  route renders per request whatever `revalidate` says, and the build marks it `ƒ` with no hint that the
+  `revalidate` above is dead. `[]` rather than an enumerated list where the paths change without a deploy:
+  `generateStaticParams` is not re-run during revalidation, so a build-time list leaves anything added later as
+  the only thing still uncached.
+- After both fixes the public tree is `○`/`●` with a `Revalidate` value and serves `x-nextjs-cache: HIT`;
+  `ƒ` is expected only where a cookie or a search param is read, plus `/verify/[serial]`, which opts out on
+  purpose so a certificate is never verified from a cache. OPS §3 carries the per-deploy check.
 - **Server Actions cap request bodies at 1 MB** — see §3.6.
 
 ### 3.5 Auth architecture (decided in Phase 1 — supersedes Auth.js)
@@ -441,7 +456,14 @@ Turbopack (§3.4).
   effect on the next visit.
 
 **Analytics** (`/admin/analytics`) — first-party, aggregate-only.
-- **No third party.** Nothing about a Bangladeshi student's browsing goes to Google.
+- **No third party — *in this collector*.** Nothing this module records leaves the VPS. That is no longer a
+  statement about the whole site: Google Analytics is loaded on the **public** pages when `NEXT_PUBLIC_GA_ID`
+  is set, and it does send browsing to Google, does set `_ga` cookies, and does not honour Do Not Track.
+  It is deliberately **not** mounted on the signed-in tree — `/admin`, `/dashboard`, `/study` — matching the
+  allow-list below, and it was mounted there for a while by mistake.
+  Two consequences worth stating plainly: the "no consent banner" reasoning below covers this collector and not
+  `gtag.js`, and switching GA off costs no measurement an organiser actually reads. Whether it should be on at
+  all, on a platform that enrols minors, is a live product question (§13.8).
 - **No cookie, so no consent banner.** Daily uniques come from `HMAC(ip + user-agent)` keyed with a **per-day**
   secret: not reversible to an IP, and not linkable across days.
 - **Counters, not events.** There is no per-request table, so there is no browsing history to leak, subpoena, or
@@ -639,7 +661,7 @@ API        /api/institutions/search  /api/certificates/[serial]  /api/uploads �
 
 | Phase | Theme | Engineering tasks |
 |---|---|---|
-| **0 Foundation** 🟡 | static → app | *Done:* `output:"standalone"`; Prisma 7 + Postgres + migrations; `.env`/`.env.example`; `src/lib/db.ts`; seed script; `components/ui`; Next patched to 16.2.12. Backup/restore **scripts** and the full runbook landed in Phase 7a (`docs/OPS.md`). *Outstanding:* the server itself — pm2/nginx/Postgres/TLS provisioning, the backup cron, and an off-site copy. Nothing is deployed yet |
+| **0 Foundation** 🟡 | static → app | *Done:* `output:"standalone"`; Prisma 7 + Postgres + migrations; `.env`/`.env.example`; `src/lib/db.ts`; seed script; `components/ui`; Next patched to 16.2.12, later 16.3.2 (§13.3). Backup/restore **scripts** and the full runbook landed in Phase 7a (`docs/OPS.md`). *Outstanding:* the server itself — pm2/nginx/Postgres/TLS provisioning, the backup cron, and an off-site copy. Nothing is deployed yet |
 | **1 Accounts** ✅ | auth & profiles | *Done:* register/login/logout, email verification (+resend), password reset, `User`/`Profile`/`Institution`/`GuardianInfo`, `Session`/`AuthToken`, DAL + RBAC helpers, `src/proxy.ts` guard, `/dashboard` shell + nav, profile editing with minor/guardian rules, `ActivityLog`, and **rate limiting** (closed in Phase 7a — see §3.12). *(SMTP is configured; photo upload shipped in Phase 1; `/u/[handle]` shipped in Phase 3.)* |
 | **2 Programs/Events** ✅ | core flow | *Done:* public `/programs`, `/programs/[slug]`, `/events`, `/events/[slug]`, `/workshops`; typed events; registration + enrolment with windows, eligibility, capacity → **waitlist**; withdraw; bilingual confirmation & decision emails; `/dashboard/registrations`; rules isolated in `src/lib/events/registration.ts`. **Admin back-office:** `/admin` stats + audit feed, program CRUD, event CRUD (incl. **clone next year's edition**), round management with delete-protection, registration review (approve/reject) with filters, and **CSV export** of participant data. Seed covers 4 programs, 6 events, 5 participants, and registrations in all 5 states |
 | **3 Community & Institutions** ✅ | trust & recognition | *Done:* `Institution` self‑registration → admin approval → moderators installed; `InstitutionMembership` + moderator console (approve/reject members, **verify students → Verified Student badge**); `CommunityRole` volunteer/mentor/contributor applications with scoped approval (moderator) vs global (admin); `Contribution` log gated on an approved role; `Badge` model with grant/revoke centralised in `src/lib/community/badges.ts`; **public profiles `/u/[handle]`** via a DTO that enforces opt‑in visibility and minor redaction; institution directory + pages; admin institution & community queues |
@@ -752,7 +774,7 @@ Phases 0–7a are built. In priority order:
 
 ## 13. Remaining work
 
-Everything not yet built, verified against the code on 2026‑08‑01. Grouped by what it blocks, not by phase —
+Everything not yet built, verified against the code on 2026‑08‑21. Grouped by what it blocks, not by phase —
 the phase table (§8) says what each phase *did*; this says what is left.
 
 ### 13.1 Blocking go-live
@@ -766,7 +788,12 @@ Nothing here is app code. The platform is built and cannot yet be reached by any
       shares one rate-limit budget), the `/uploads` alias, and HSTS.
 - [ ] **Backup cron + off-site copy** — the scripts are written and rehearsed; nothing runs them yet.
 - [ ] **Restore drill against real data** — rehearsed locally only, on seed data.
-- [ ] **`CRON_SECRET`** set, and the nightly prune cron installed (OPS §5).
+- [ ] **`CRON_SECRET`** set, and the nightly prune cron installed (OPS §5). It fails **closed**: forget it and
+      the cron routes reject every caller, so the outgoing mail queue stops draining and housekeeping never runs,
+      with nothing logged. Confirm `/var/log/bdaio-prune.log` is being written after the first deploy.
+- [ ] **`NEXT_PUBLIC_GA_ID`** decided before the build, not after. It is inlined at build time, so setting it on a
+      running server does nothing, and leaving it unset means no `gtag.js` at all — which is the right default for
+      development and CI, and a silent absence of analytics in production.
 - [ ] **Staging subdomain** before go-live (§9.7).
 - [ ] **Check the upazila list against the official BBS list** (§3.9) — divisions and districts are authoritative;
       the 495 upazilas are not yet verified.
@@ -865,6 +892,13 @@ needs a database or a browser, which is also the part that covers the trust chai
       verification → sign-in → enrolment through the real forms, a duplicate address, the identical answer for a
       wrong password and an unknown one, and the whole journey **keyboard-only**. Sign-up is capped at 5/hour per
       IP, so the suite clears the rate-limit rows between cases rather than weakening the limit.
+- [x] **CI — red from the day it was added.** Nineteen days and 34 commits, every run failing on
+      **91 `TS2304` errors**: `tsc --noEmit` ran against a checkout with no `next-env.d.ts` and no `.next/types`, so
+      Next 16's App Router globals — `PageProps`, `RouteContext` — did not exist. It passed locally only because a
+      previous `next dev` had left the generated types on disk. `typecheck` now runs `next typegen` first.
+      Because `check` failed, `browser` was **skipped every single time**: the build, the E2E suite and the
+      Lighthouse budget below had never actually run in CI, and each hid a further defect (stale `/en/*` URLs in
+      the specs, a weight budget measuring Google's payload). A gate nobody has ever seen pass is not a gate.
 - [x] **CI** — `.github/workflows/ci.yml` runs typecheck, lint and both test projects on every push and PR to
       `main`, cheapest gate first, with in-progress runs cancelled when a branch is pushed again. A PostgreSQL 16
       service backs the integration project, and it is set up with `prisma migrate deploy` rather than `db push`,
@@ -879,6 +913,16 @@ needs a database or a browser, which is also the part that covers the trust chai
       **This is a floor, not a certificate.** Automated rules catch roughly a third of real accessibility
       problems: they find a missing label, not a form that is labelled and still incomprehensible. A pass with
       someone actually using a screen reader is still owed, and is tracked below.
+- [x] **Cache safety** — `e2e/cacheSafety.spec.ts`. The public pages are prerendered and revalidated, so one
+      HTML document is served to everybody who asks; that is only safe while nothing about *you* is in it. The
+      test signs in and asserts the cached pages carry neither the name nor the email, that `/api/session/me` is
+      `no-store`, that it sends only the four fields the header draws, and that an anonymous visitor is not handed
+      the previous one's page. Reintroducing the layout session read (§3.4) fails this instead of showing a
+      stranger someone else's name in the header.
+- [x] **Hero carousel** — `e2e/heroCarousel.spec.ts`. Asserts the rotation advances unattended *and that the pause
+      button stops the timer*, which axe cannot: it can see the button exists, not that pressing it does anything.
+      WCAG 2.2.2 is why the button is not optional. Autoplay is checked before any mouse interaction, because
+      hovering suspends the rotation on purpose.
 - [ ] **Accessibility — human audit.** Someone who uses assistive technology daily going through registration and
       the dashboard. The automated gate cannot tell us whether the journey makes sense, only that it is labelled.
 - [x] **Lighthouse budget for the BD network** — `lighthouserc.cjs`, run in CI against a production build with
@@ -891,6 +935,14 @@ needs a database or a browser, which is also the part that covers the trust chai
       532 KB, LCP 7.6s → 4.9s and the performance score 59 → 82 on the throttled profile. Budgets are set just
       above today's numbers, so this is a ratchet against regressions; tighten them as pages improve, and do not
       loosen them to make a build pass.
+      When the budget finally ran it failed on all three URLs — 326–333 KB of script against a 260 KB ceiling —
+      and the cause was `gtag.js` at ~150 KB, more than half the budget, while first-party JS sat at ~170 KB.
+      Third-party analytics is now blocked at collection, so the ratchet tracks the bundle **we** control and
+      cannot fail on a commit that touched nothing because Google shipped a bigger tag. The participant still pays
+      for it; that cost belongs in the field metrics `/admin/analytics` already collects, not in a lab gate that
+      cannot tell a Google deploy from ours.
+      Upgrading Next 16.2.12 → 16.3.2 (taken for the vulnerable `postcss`/`sharp` it pulled in) also cut script
+      weight 172.8 → 161.0 KB and lifted the home page's median performance 0.90 → 0.94.
 
 ### 13.4 Carried forward from Phases 5–6
 
@@ -952,6 +1004,12 @@ Each is a `✗` in the §7 route map. None blocks go-live; all were scoped as CM
 - [x] **`/admin/resources`** — resources and their categories are editable, including the members-only switch.
       `Resource.filePath` stays unexposed: serving arbitrary documents needs a validated upload path and an
       attachment-only route (the submissions machinery), so for now a resource is a link.
+- [ ] **Home-page results and hero banners** — still in code, not the CMS. The medal results live in
+      `pages.home.achievements` in the dictionary and the hero slides in `heroSlides` in `src/data/media.ts`, so
+      announcing the next one is a commit and a deploy rather than an organiser typing it in. Both were built as
+      lists rather than duplicated markup, so a third entry is one object — but that is a cheaper edit, not an
+      editable surface. The `MediaAsset` library and the sponsors model are the pattern to follow when this
+      becomes a nuisance; it is not one yet, because a medal result arrives roughly once a year.
 - [ ] **`Team`** — individual entry only, by decision (§9.5). Build it only if a team round actually appears.
 
 ### 13.6 Phase 8 — Payments (ShurjoPay)
@@ -990,5 +1048,10 @@ Not blocking, but each one changes what gets built when it lands.
 - [ ] Do any **team rounds** exist? (§9.5 assumes individual only.)
 - [ ] Which **SMS gateway**? The sender is provider-agnostic; picking one should be a `.env` change (§3.12).
 - [ ] Is there **legacy data** to import? (§9.8 assumes none.)
+- [ ] Should **Google Analytics** be on at all? It contradicts the reasoning that chose a first-party collector
+      (§3.12), adds ~150 KB to every public page for an audience on mobile data, sets `_ga` cookies on a platform
+      that enrols minors with no consent mechanism, and reports nothing `/admin/analytics` does not already. It is
+      now scoped to public pages and off by default, so the question is whether to set `NEXT_PUBLIC_GA_ID` in
+      production — not a code change either way.
 
 *Living document — I revise it as reality teaches us.*
