@@ -7,7 +7,7 @@
 > This is written for **me, the implementer** — decisions are made, not offered. Where a call is really the
 > team's (pricing, policy), I state the **default I'm building to** and flag it; override anytime and I adjust.
 >
-> **Status:** **Phases 0–9 fully built, refined, and verified.** The platform is English-first with complete Admin Back-Office CRUD, Drag-and-Drop Media Uploads, Rich Text Editor with visual asset modals, Drag & Drop Media Library, Standings Table Customization (marks removal, optional awards, custom messages), Site-Wide Broadcast Announcement Topbar & Modal Manager, Universal Pagination, and 100% clean production build verification (`npm run build`, `npm run typecheck`, 97/97 unit tests passing). Ready for production deployment.
+> **Status:** **Phases 0–9 fully built, refined, and verified.** The platform is English-first with complete Admin Back-Office CRUD, Drag-and-Drop Media Uploads, Rich Text Editor with visual asset modals, Drag & Drop Media Library, Standings Table Customization (marks removal, optional awards, custom messages), Site-Wide Broadcast Announcement Topbar & Modal Manager, Click-to-Open Navigation Dropdowns, Universal Pagination, and 100% clean production build verification (`npm run build`, `npm run typecheck`, 97/97 unit tests passing). Ready for production deployment.
 > **Owner:** Engineering (CTO). **Updated:** 2026‑08‑21.
 >
 > **Picking this up in a fresh session?** Read §3.4–§3.12 first — they record the Next 16 traps and the security
