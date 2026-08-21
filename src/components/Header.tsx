@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Link } from "@/components/Link";
@@ -55,6 +55,20 @@ export function Header({
     setMobileExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
+  // Close dropdowns when clicking outside the header
+  useEffect(() => {
+    if (!openDropdown && !userDropdownOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target && !target.closest("header")) {
+        setOpenDropdown(null);
+        setUserDropdownOpen(false);
+      }
+    };
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, [openDropdown, userDropdownOpen]);
+
   const displayName = user?.profile?.fullName || user?.email.split("@")[0] || "User";
   const userHandle = user?.profile?.handle ? `@${user.profile.handle}` : user?.email;
   const initials = displayName
@@ -75,25 +89,25 @@ export function Header({
             const active = isActive(pathname, item.href, item.children);
             const label = t.nav[item.key];
             if (item.children) {
+              const isOpen = openDropdown === item.key;
               return (
-                <div
-                  key={item.key}
-                  className="relative"
-                  onMouseEnter={() => setOpenDropdown(item.key)}
-                  onMouseLeave={() => setOpenDropdown(null)}
-                >
+                <div key={item.key} className="relative">
                   <button
                     type="button"
+                    onClick={() => {
+                      setUserDropdownOpen(false);
+                      setOpenDropdown(isOpen ? null : item.key);
+                    }}
                     className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold transition ${
-                      active
+                      active || isOpen
                         ? "bg-bdaio-blue/10 text-bdaio-blue"
                         : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
                     }`}
                   >
                     {label}
                     <svg
-                      className={`h-3.5 w-3.5 text-slate-400 transition-transform ${
-                        openDropdown === item.key ? "rotate-180 text-bdaio-blue" : ""
+                      className={`h-3.5 w-3.5 text-slate-400 transition-transform duration-200 ${
+                        isOpen ? "rotate-180 text-bdaio-blue" : ""
                       }`}
                       fill="none"
                       viewBox="0 0 24 24"
@@ -104,12 +118,13 @@ export function Header({
                     </svg>
                   </button>
 
-                  {openDropdown === item.key && (
-                    <div className="absolute left-0 top-full mt-1.5 w-52 rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl ring-1 ring-slate-900/5 animate-in fade-in duration-150">
+                  {isOpen && (
+                    <div className="absolute left-0 top-full mt-1.5 w-52 rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl ring-1 ring-slate-900/5 animate-in fade-in duration-150 z-50">
                       {item.children.map((child) => (
                         <Link
                           key={child.href}
                           href={href(child.href)}
+                          onClick={() => setOpenDropdown(null)}
                           className="block rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-bdaio-blue transition"
                         >
                           {t.nav[child.key]}
@@ -181,7 +196,6 @@ export function Header({
               {userDropdownOpen && (
                 <div
                   className="absolute right-0 top-full mt-2 w-64 rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl ring-1 ring-slate-900/5 animate-in fade-in duration-150 z-50"
-                  onMouseLeave={() => setUserDropdownOpen(false)}
                 >
                   <div className="border-b border-slate-100 px-3 py-3">
                     <p className="text-sm font-bold text-slate-900 line-clamp-1">{displayName}</p>
