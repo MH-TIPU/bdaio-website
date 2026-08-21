@@ -9,10 +9,35 @@
  */
 export const heroMedia = {
   heroBanner: "/media/2026/06/apoai-gold-2026.jpg",
+  ioaiBronze: "/media/2026/08/ioai-bronze-2026.jpg",
   regionalRound: "/media/2026/05/WhatsApp-Image-2026-04-29-at-17.05.14.jpeg",
   campaignPoster: "/media/2026/04/popup_banner-02.jpg",
   brainBackground: "/media/2026/03/hero-bg.jpg",
 };
+
+/**
+ * The hero carousel, in the order it rotates.
+ *
+ * **Add a banner by adding an entry here** — the file goes in `public/media/`
+ * under the year and month it belongs to, and `alt` describes what the artwork
+ * says, because that text is all a screen reader gets from it.
+ *
+ * Order matters twice over: the first entry is the one prerendered into the
+ * page and the LCP element on the busiest page of the site, so it should be the
+ * banner that matters most. A single entry is a valid list — the carousel drops
+ * its timer and controls and renders a plain image, so removing banners never
+ * leaves a one-slide carousel rotating against itself.
+ */
+export const heroSlides: readonly { src: string; alt: string }[] = [
+  {
+    src: heroMedia.heroBanner,
+    alt: "Bangladesh won 3 gold medals at the Asia-Pacific Olympiad in Artificial Intelligence 2026: Shaidozzaman Araf, Labib Shahriar and Tridib Roy Arjo.",
+  },
+  {
+    src: heroMedia.ioaiBronze,
+    alt: "Bangladesh took bronze at the International Olympiad in Artificial Intelligence 2026.",
+  },
+];
 
 export const brandMedia = {
   bdaioLogo: "/media/2026/03/bdaio-logo-.png",

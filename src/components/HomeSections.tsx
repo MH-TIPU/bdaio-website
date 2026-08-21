@@ -1,6 +1,6 @@
 import { Link } from "@/components/Link";
-import Image from "next/image";
-import { heroMedia } from "@/data/media";
+import { heroSlides } from "@/data/media";
+import { HeroCarousel } from "@/components/HeroCarousel";
 import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 
 type Home = Dictionary["pages"]["home"];
@@ -14,21 +14,21 @@ export function HeroSection({ t }: { t: Home }) {
         nothing about what it is, and a heading outline that starts at level 2
         fails WCAG 1.3.1. Visually hidden rather than drawn, because the banner
         already says this in the design.
+
+        It stays here, in the server component, rather than moving into the
+        carousel: there must be exactly one h1 on the page (e2e asserts it), and
+        a heading is not something a client component should own.
       */}
       <h1 className="sr-only">{t.heroHeading}</h1>
-      <div className="relative w-full aspect-[16/9]">
-        <Image
-          src={heroMedia.heroBanner}
-          alt="BdAIO 2026 Dhaka Regional Round Banner"
-          fill
-          // Explicit sizes, or next/image assumes 100vw and serves the widest
-          // candidate to a phone. This is the LCP element on the busiest page.
-          sizes="100vw"
-          className="object-cover"
-          priority
-          quality={70}
-        />
-      </div>
+      <HeroCarousel
+        slides={heroSlides}
+        labels={{
+          region: t.heroCarouselLabel,
+          pause: t.heroSlidePause,
+          play: t.heroSlidePlay,
+          goTo: t.heroSlideGoTo,
+        }}
+      />
     </section>
   );
 }
