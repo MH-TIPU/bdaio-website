@@ -31,7 +31,7 @@ test("a new participant can sign up, verify, sign in and enrol", async ({ page }
   const email = uniqueEmail("newcomer");
 
   // --- Register ------------------------------------------------------------
-  await page.goto("/en/register");
+  await page.goto("/register");
   await page.getByLabel("Full name").fill("Nusrat Jahan");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill(PASSWORD);
@@ -42,7 +42,7 @@ test("a new participant can sign up, verify, sign in and enrol", async ({ page }
 
   // --- Verify, by following the link we actually emailed -------------------
   const verificationPath = await verificationPathFor(email);
-  await page.goto(`/en${verificationPath}`);
+  await page.goto(verificationPath);
   await expect(page.getByRole("heading", { name: /email verified/i })).toBeVisible();
 
   // --- Sign out and back in ------------------------------------------------
@@ -56,7 +56,7 @@ test("a new participant can sign up, verify, sign in and enrol", async ({ page }
   await page.waitForURL("**/dashboard");
 
   // --- Enrol ---------------------------------------------------------------
-  await page.goto(`/en/events/${event.slug}`);
+  await page.goto(`/events/${event.slug}`);
   await page.getByRole("button", { name: /enrol now|register now/i }).click();
 
   // The page re-renders server-side into its already-registered state, so the
@@ -71,7 +71,7 @@ test("the sign-up form reports a duplicate address instead of failing silently",
 }) => {
   const email = uniqueEmail("twice");
 
-  await page.goto("/en/register");
+  await page.goto("/register");
   await page.getByLabel("Full name").fill("First Person");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill(PASSWORD);
@@ -82,7 +82,7 @@ test("the sign-up form reports a duplicate address instead of failing silently",
   await page.getByRole("button", { name: /sign out/i }).first().click();
   await page.waitForURL("**/login");
 
-  await page.goto("/en/register");
+  await page.goto("/register");
   await page.getByLabel("Full name").fill("Second Person");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill(PASSWORD);
@@ -95,7 +95,7 @@ test("the sign-up form reports a duplicate address instead of failing silently",
 test("a wrong password is refused without saying whether the account exists", async ({
   page,
 }) => {
-  await page.goto("/en/login");
+  await page.goto("/login");
   await page.getByLabel("Email").fill(uniqueEmail("ghost"));
   await page.getByLabel("Password").fill("not-the-password");
   await page.getByRole("button", { name: /^sign in$/i }).click();
@@ -106,7 +106,7 @@ test("a wrong password is refused without saying whether the account exists", as
 test("the journey works with the keyboard alone", async ({ page }) => {
   const email = uniqueEmail("keyboard");
 
-  await page.goto("/en/register");
+  await page.goto("/register");
   // Tab between fields and submit with Enter — never the mouse.
   await page.getByLabel("Full name").focus();
   await page.keyboard.type("Keyboard Only");

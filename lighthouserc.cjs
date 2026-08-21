@@ -28,11 +28,12 @@ module.exports = {
       startServerCommand: "npm run start:standalone",
       startServerReadyPattern: "Ready|started server",
       startServerReadyTimeout: 120_000,
+      // Canonical un-prefixed URLs. Measuring a legacy `/en/*` path would time
+      // the 301 as well as the page, which is not what a visitor pays.
       url: [
-        `${base}/en`, // the busiest page, and the one with the hero image
-        `${base}/en/events`, // a database-backed list
-        `${base}/en/register`, // the top of the critical path
-        `${base}/bn`, // Bengali loads a second font subset
+        `${base}/`, // the busiest page, and the one with the hero image
+        `${base}/events`, // a database-backed list
+        `${base}/register`, // the top of the critical path
       ],
       // Three runs and take the median: a single run on a shared CI box swings
       // enough to fail a budget for no reason.
