@@ -228,20 +228,25 @@ export const en = {
         "BdAIO is the official national qualifying event where top-performing students are selected to represent Bangladesh globally at the International AI Olympiad (IAIO) and IOAI.",
 
       /**
-       * Results the home page celebrates, oldest first — APOAI is the regional
-       * round the IOAI team is selected from, so it reads in the order it
-       * happened.
+       * The results the home page celebrates — one section, not one per result.
+       *
+       * `badge` and `title` belong to the section; everything in `achievements`
+       * is a result inside it. Two stacked sections each with their own badge
+       * read as two announcements of the same news.
+       *
+       * Oldest first: APOAI is the regional round the IOAI team is selected
+       * from, so it reads in the order it happened.
        *
        * `lead`/`event`/`winning`/`medals` are split rather than one sentence so
        * the medal count can stay visually emphasised without a translation
        * having to guess where the highlight goes. `tone` picks the palette;
-       * both are contrast-checked against the page background (see
-       * CelebrationSection).
+       * both are contrast-checked (see CelebrationSection).
        */
+      achievementsBadge: "Historic Achievement",
+      achievementsTitle: "Bangladesh at APOAI & IOAI 2026!",
       achievements: [
         {
-          badge: "Historic Achievement",
-          title: "Bangladesh at APOAI 2026!",
+          heading: "APOAI 2026",
           lead: "Team Bangladesh has achieved an extraordinary milestone at the",
           event: "Asia-Pacific Olympiad in Artificial Intelligence (APOAI) 2026",
           winning: ", winning",
@@ -251,8 +256,7 @@ export const en = {
           medalists: ["Labib Shahriar", "Shaidozzaman Araf", "Tridib Roy Arjo"],
         },
         {
-          badge: "International Achievement",
-          title: "Bangladesh at IOAI 2026!",
+          heading: "IOAI 2026",
           lead: "Team Bangladesh has achieved an extraordinary milestone at the",
           event:
             "International Olympiad in Artificial Intelligence (IOAI) 2026, at Astana, Kazakhstan",
