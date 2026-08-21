@@ -47,12 +47,29 @@ sudo apt install -y nginx certbot python3-certbot-nginx
 ```
 
 Then create `.env` on the server from `.env.example`. Required in production:
-`DATABASE_URL`, `AUTH_SECRET`, `APP_URL`, the `SMTP_*` block, `UPLOAD_DIR`,
-`CRON_SECRET`.
+`DATABASE_URL`, `AUTH_SECRET`, `APP_URL`, the `SMTP_*` block, `EMAIL_FROM`,
+`UPLOAD_DIR`, `SUBMISSION_DIR`, `CRON_SECRET`.
+
+Generate `AUTH_SECRET` fresh on the server — never reuse the placeholder from
+`.github/workflows/ci.yml`. A missing one throws on the first session signature
+rather than falling back, so it fails loudly and early.
 
 > **`APP_URL` is read at build time.** Canonical tags, `sitemap.xml`,
 > `robots.txt`, and Open Graph images are all built from it. Changing it requires
 > a rebuild, not just a restart.
+
+> **`NEXT_PUBLIC_GA_ID` is also read at build time**, and is the only thing that
+> turns Google Analytics on. Unset — which is the default, and what CI and
+> development use — no `gtag.js` is served at all. It applies to public pages
+> only; the signed-in tree is deliberately not measured (see
+> `src/lib/analytics/record.ts`). Setting it after the build does nothing.
+
+> **`CRON_SECRET` fails silently if you forget it.** The cron routes fail
+> *closed*: with no secret configured they reject every caller, so the crontab
+> in §5 gets a 401 and **the outgoing mail queue never drains and nightly
+> housekeeping never runs**. Nothing errors in the app; mail simply stops going
+> out once a request can no longer drain the queue itself. Confirm after the
+> first deploy that `/var/log/bdaio-prune.log` is being written.
 
 ---
 
@@ -84,9 +101,28 @@ a deploy that reported success. `npm run start:standalone` does this correctly.
 
 Check the build output each time a database-backed page is added: a page that
 only queries Prisma is marked `○ (Static)` and its data **freezes until the next
-deploy** (§3.4). Public list pages must show `revalidate`; `ƒ (Dynamic)` is
-expected only where a session is read. `ƒ Proxy` must appear — if it does not,
-route protection is silently off (§3.5).
+deploy** (§3.4). `ƒ Proxy` must appear — if it does not, route protection is
+silently off (§3.5).
+
+> **Known deviation — every public page is `ƒ (Dynamic)`.** The rule this
+> paragraph used to state ("public list pages must show `revalidate`; `ƒ` only
+> where a session is read") does not currently hold for any page, so do not read
+> a build full of `ƒ` as a regression.
+>
+> The cause is `getCurrentUser()` in `src/app/(public)/layout.tsx`, which reads
+> the session cookie so the header can show a signed-in state. A cookie read in
+> a layout opts every route beneath it out of static rendering — the exact
+> failure mode §13.2 of the plan warned about, arrived at through the session
+> rather than the locale. It predates the `[locale]` flatten (it was in the old
+> layout too, where it was already defeating that route's
+> `generateStaticParams`), so nothing recent broke it.
+>
+> The consequence is capacity, not correctness: no page cache, so every visit to
+> `/`, `/events`, `/faq` and the rest reaches Postgres. Survivable at ordinary
+> traffic on one VPS; the thing to fix before a results-day or
+> registration-deadline spike. The fix is to stop reading the session in the
+> layout — render the header's signed-in state client-side, or split the layout —
+> at which point restore the original rule above and this note goes away.
 
 ### pm2
 
