@@ -275,7 +275,15 @@ export const en = {
       journeyCommunityBody:
         "Join our active community of learners, mentors, and past winners on WhatsApp. Get help, resources, and instant updates!",
       journeyCommunityCta: "Join Our WhatsApp Community",
-      /** Steps keep their numbers and links in code; only the words are here. */
+      /**
+       * Steps keep their numbers and links in code; only the words are here.
+       *
+       * **No dates.** These read as the shape of the olympiad rather than one
+       * year's calendar, so the section does not quietly go stale the day a
+       * round moves — and does not have to be edited to stay true next year.
+       * The actual dates belong on the event and schedule pages, which are
+       * database-backed and editable without a deploy; each step links there.
+       */
       journeySteps: [
         {
           title: "Register",
@@ -284,18 +292,17 @@ export const en = {
         },
         {
           title: "Qualify",
-          description: "Compete and pass the online/regional rounds from 2 – 10 May 2026.",
+          description: "Compete and pass the online and regional rounds.",
           button: "View Rules",
         },
         {
           title: "Compete",
-          description: "Ace the national-level round in Dhaka on 16 May 2026.",
+          description: "Ace the national-level round in Dhaka.",
           button: "View Syllabus",
         },
         {
           title: "Selection",
-          description:
-            "Join the intensive 3-day Selection Camp & Grooming from 18 – 20 May 2026.",
+          description: "Join the intensive Selection Camp & Grooming.",
           button: "Event Schedule",
         },
         {
