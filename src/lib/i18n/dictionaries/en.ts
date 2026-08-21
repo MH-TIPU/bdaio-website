@@ -227,14 +227,42 @@ export const en = {
       gatewayBody:
         "BdAIO is the official national qualifying event where top-performing students are selected to represent Bangladesh globally at the International AI Olympiad (IAIO) and IOAI.",
 
-      achievementBadge: "Historic Achievement",
-      achievementTitle: "Bangladesh at APOAI 2026!",
-      /** Split so the medal count can stay visually emphasised in both languages. */
-      achievementLead: "Team Bangladesh has achieved an extraordinary milestone at the",
-      achievementEvent: "Asia-Pacific Olympiad in Artificial Intelligence (APOAI) 2026",
-      achievementWinning: ", winning",
-      achievementMedals: "3 Gold Medals",
-      goldMedalist: "Gold Medalist",
+      /**
+       * Results the home page celebrates, oldest first — APOAI is the regional
+       * round the IOAI team is selected from, so it reads in the order it
+       * happened.
+       *
+       * `lead`/`event`/`winning`/`medals` are split rather than one sentence so
+       * the medal count can stay visually emphasised without a translation
+       * having to guess where the highlight goes. `tone` picks the palette;
+       * both are contrast-checked against the page background (see
+       * CelebrationSection).
+       */
+      achievements: [
+        {
+          badge: "Historic Achievement",
+          title: "Bangladesh at APOAI 2026!",
+          lead: "Team Bangladesh has achieved an extraordinary milestone at the",
+          event: "Asia-Pacific Olympiad in Artificial Intelligence (APOAI) 2026",
+          winning: ", winning",
+          medals: "3 Gold Medals",
+          medalLabel: "Gold Medalist",
+          tone: "gold",
+          medalists: ["Labib Shahriar", "Shaidozzaman Araf", "Tridib Roy Arjo"],
+        },
+        {
+          badge: "International Achievement",
+          title: "Bangladesh at IOAI 2026!",
+          lead: "Team Bangladesh has achieved an extraordinary milestone at the",
+          event:
+            "International Olympiad in Artificial Intelligence (IOAI) 2026, at Astana, Kazakhstan",
+          winning: " winning",
+          medals: "3 Bronze Medals",
+          medalLabel: "Bronze Medalist",
+          tone: "bronze",
+          medalists: ["Labib Shahriar", "Shaidozzaman Araf", "Mobtasim Chowdhury Priom"],
+        },
+      ] as const,
 
       journeyTitle: "Olympiad Journey",
       journeyLead:
