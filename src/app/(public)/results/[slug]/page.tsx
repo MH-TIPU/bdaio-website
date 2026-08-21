@@ -8,6 +8,23 @@ import { PAGE } from "@/lib/layout";
 
 export const revalidate = 60;
 
+/**
+ * Empty on purpose, and required: a dynamic segment with no
+ * `generateStaticParams` at all is rendered fresh on every request — the build
+ * marks it `f` and nothing is ever cached. Returning an array, even an empty
+ * one, makes the route eligible for ISR, so the first visitor pays for the
+ * render and everyone after them is served from cache until `revalidate`
+ * expires.
+ *
+ * Empty rather than enumerated because these paths are open-ended and change
+ * without a deploy. Listing them at build time would prerender whatever existed
+ * that morning, and `generateStaticParams` is not re-run during revalidation —
+ * so anything added later would be the only thing still rendering per request.
+ */
+export async function generateStaticParams() {
+  return [];
+}
+
 export async function generateMetadata(
   props: PageProps<"/results/[slug]">,
 ): Promise<Metadata> {

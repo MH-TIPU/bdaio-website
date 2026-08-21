@@ -11,7 +11,6 @@ import { organizationJsonLd, websiteJsonLd } from "@/lib/seo";
 import { getSettings, socialLinks } from "@/lib/settings";
 import { rootMetadata, rootViewport } from "@/lib/rootMetadata";
 import { LOCALES, LOCALE_HREFLANG, getDictionary, isLocale } from "@/lib/i18n";
-import { getCurrentUser } from "@/lib/auth/dal";
 import "../globals.css";
 
 const inter = Inter({
@@ -22,6 +21,24 @@ const inter = Inter({
 export const metadata = rootMetadata;
 export const viewport = rootViewport;
 
+/**
+ * The revalidation floor for every public route.
+ *
+ * This layout reads `getSettings()` — the site notice, contact address, footer
+ * social links — so every page beneath it is database-backed whether its own
+ * code touches the database or not. Without this the pages would prerender as
+ * `○ (Static)` and those settings would **freeze until the next deploy**, which
+ * is the §3.4 trap docs/OPS.md warns about: an organiser turns the notice bar on
+ * and nothing happens.
+ *
+ * Next takes the *lowest* `revalidate` across a route's layout and page, so this
+ * is a ceiling, not an override: the pages that already declare `60` keep it,
+ * and a page needing fresher data can ask for less. Reading a cookie still opts
+ * a page out entirely, which is why `/login`, `/register` and the pages that
+ * show enrolment state stay `ƒ (Dynamic)` — correctly, since they personalise.
+ */
+export const revalidate = 60;
+
 export default async function PublicLayout({
   children,
 }: {
@@ -29,8 +46,7 @@ export default async function PublicLayout({
 }) {
   const locale = "en";
 
-  const [user, t, settings] = await Promise.all([
-    getCurrentUser(),
+  const [t, settings] = await Promise.all([
     Promise.resolve(getDictionary(locale)),
     getSettings(),
   ]);
@@ -61,7 +77,7 @@ export default async function PublicLayout({
             url={String(settings["site.noticeUrl"] || "")}
           />
         )}
-        <Header t={t} user={user} />
+        <Header t={t} />
         <main className="site-main flex-1">{children}</main>
         <Footer locale={locale} t={t} social={social} />
         <Analytics />

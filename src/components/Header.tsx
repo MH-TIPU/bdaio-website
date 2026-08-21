@@ -33,14 +33,44 @@ function isActive(pathname: string, href: string, children?: { href: string }[])
   return children?.some((c) => rest === c.href || rest.startsWith(c.href + "/")) ?? false;
 }
 
-export function Header({
-  t,
-  user,
-}: {
-  t: Dictionary;
-  user?: UserHeaderSession;
-}) {
+export function Header({ t }: { t: Dictionary }) {
   const pathname = usePathname();
+  /**
+   * Who you are is fetched here rather than passed down from the layout.
+   *
+   * The layout is prerendered and revalidated (§3 of docs/OPS.md), so its HTML
+   * is shared by everyone who asks for the page — a signed-in name rendered
+   * into it would be served to the next visitor. Nothing user-specific may go
+   * into that HTML, so the header starts signed-out and fills itself in.
+   *
+   * The initial state is `null`, not "unknown", on purpose: the server renders
+   * the signed-out header, so the client's first render has to produce exactly
+   * that or React reports a hydration mismatch. The cost is a brief signed-out
+   * header for someone who is signed in, which is the ordinary trade for a
+   * cacheable page.
+   */
+  const [user, setUser] = useState<UserHeaderSession>(null);
+
+  useEffect(() => {
+    // `ignore` rather than an AbortController: this fires once on mount, and
+    // the only thing to protect against is a response landing after unmount.
+    let ignore = false;
+
+    fetch("/api/session/me", { credentials: "same-origin" })
+      .then((response) => (response.ok ? response.json() : { user: null }))
+      .then((data) => {
+        if (!ignore) setUser(data.user ?? null);
+      })
+      // A failed session lookup is not worth an error state in the chrome:
+      // the header stays signed-out, and every protected route still checks
+      // the session server-side through the DAL.
+      .catch(() => {});
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);

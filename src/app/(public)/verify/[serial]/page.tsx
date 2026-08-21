@@ -15,7 +15,16 @@ export const metadata: Metadata = {
  * Public verification. Anyone holding a certificate can confirm it is genuine,
  * so this deliberately needs no login — but it reveals only what a verifier
  * needs: the name on the certificate, what it was for, and whether it stands.
+ *
+ * Dynamic, unlike its neighbours, and deliberately opting out of the layout's
+ * `revalidate = 60`. Under ISR the answer for a serial is cached — including
+ * "no such certificate", which is what a serial returns in the seconds before
+ * it is issued and after it is revoked. A verification tool that says *invalid*
+ * for a minute about a certificate that is valid, or *valid* about one just
+ * revoked, is worse than a slow one. Traffic here is a trickle of one-off
+ * lookups, so there is nothing to gain by caching them anyway.
  */
+export const dynamic = "force-dynamic";
 export default async function VerifyCertificatePage(
   props: PageProps<"/verify/[serial]">,
 ) {

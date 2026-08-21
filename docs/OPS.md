@@ -104,25 +104,25 @@ only queries Prisma is marked `○ (Static)` and its data **freezes until the ne
 deploy** (§3.4). `ƒ Proxy` must appear — if it does not, route protection is
 silently off (§3.5).
 
-> **Known deviation — every public page is `ƒ (Dynamic)`.** The rule this
-> paragraph used to state ("public list pages must show `revalidate`; `ƒ` only
-> where a session is read") does not currently hold for any page, so do not read
-> a build full of `ƒ` as a regression.
+Public pages must show a `Revalidate` value — `○` for a fixed path, `●` for one
+with a dynamic segment. `ƒ (Dynamic)` is expected only where the page reads a
+cookie or a search param, plus `/verify/[serial]`, which opts out deliberately so
+a certificate is never verified from a cache.
+
+> **A cookie read in a layout takes the whole subtree dynamic.** This is the way
+> this gets broken, and it has been broken before: reading the session in
+> `src/app/(public)/layout.tsx` silently turned every public page `ƒ` and made
+> the `revalidate` the pages already declared do nothing. Nothing errors — the
+> site just stops being cached and every visit reaches Postgres.
 >
-> The cause is `getCurrentUser()` in `src/app/(public)/layout.tsx`, which reads
-> the session cookie so the header can show a signed-in state. A cookie read in
-> a layout opts every route beneath it out of static rendering — the exact
-> failure mode §13.2 of the plan warned about, arrived at through the session
-> rather than the locale. It predates the `[locale]` flatten (it was in the old
-> layout too, where it was already defeating that route's
-> `generateStaticParams`), so nothing recent broke it.
+> The session now comes from `/api/session/me`, fetched by the header on the
+> client, so no user-specific data goes into the shared HTML. `e2e/cacheSafety.spec.ts`
+> is the guard on that: it signs in and asserts the cached pages contain neither
+> the name nor the email. If someone reintroduces the layout read, that test
+> fails rather than a stranger seeing someone else's name in the header.
 >
-> The consequence is capacity, not correctness: no page cache, so every visit to
-> `/`, `/events`, `/faq` and the rest reaches Postgres. Survivable at ordinary
-> traffic on one VPS; the thing to fix before a results-day or
-> registration-deadline spike. The fix is to stop reading the session in the
-> layout — render the header's signed-in state client-side, or split the layout —
-> at which point restore the original rule above and this note goes away.
+> A dynamic segment also needs `generateStaticParams` — even returning `[]` — or
+> it renders on every request with no cache regardless of `revalidate`.
 
 ### pm2
 
