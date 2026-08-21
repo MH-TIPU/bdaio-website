@@ -13,7 +13,7 @@
     "db:generate": "prisma generate",
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "assets:brand": "node scripts/generate-brand-assets.mjs",
     "backup": "bash scripts/backup.sh",
     "restore": "bash scripts/restore.sh",
