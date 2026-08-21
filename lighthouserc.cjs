@@ -57,6 +57,16 @@ module.exports = {
           throughputKbps: 1638.4,
           cpuSlowdownMultiplier: 4,
         },
+        // Third-party analytics is excluded so the weight budgets below measure
+        // the bundle *we* control. `gtag.js` alone is ~150KB — more than half
+        // the script budget — and its size is Google's to change without
+        // notice, which would fail this gate on a commit that touched nothing.
+        //
+        // This does not mean the cost is imaginary: a participant still pays to
+        // download it, and `/admin/analytics` reports the field metrics that
+        // include it. What belongs here is the regression ratchet on our own
+        // code, which a third-party script of drifting size would mask.
+        blockedUrlPatterns: ["*googletagmanager.com*", "*google-analytics.com*"],
       },
     },
 
