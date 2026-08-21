@@ -5,105 +5,97 @@ export type FaqSection = {
 
 export const faqSections: FaqSection[] = [
   {
-    title: "সম্পর্কিত",
+    title: "About",
     items: [
       {
-        question: "BdAIO বা 'বাংলাদেশ আর্টিফিশিয়াল ইন্টেলিজেন্স অলিম্পিয়াড' কী?",
+        question: "What is BdAIO (Bangladesh Artificial Intelligence Olympiad)?",
         answer:
-          "বাংলাদেশ আর্টিফিশিয়াল ইন্টেলিজেন্স অলিম্পিয়াড (BdAIO) বাংলাদেশের স্কুল ও কলেজ পর্যায়ের শিক্ষার্থীদের জন্য একটি জাতীয় পর্যায়ের এআই প্রতিযোগিতা। এটি শিক্ষার্থীদের কৃত্রিম বুদ্ধিমত্তা, মেশিন লার্নিং ও প্রোগ্রামিং দক্ষতা যাচাই করে এবং আন্তর্জাতিক অলিম্পিয়াডে বাংলাদেশের প্রতিনিধিত্বের সুযোগ তৈরি করে।",
+          "The Bangladesh Artificial Intelligence Olympiad (BdAIO) is the premier national AI competition for school and college students in Bangladesh. It tests students in artificial intelligence, machine learning, and programming skills, serving as the official pathway to represent Bangladesh at international AI olympiads.",
       },
       {
-        question: "বাংলাদেশ আর্টিফিশিয়াল ইন্টেলিজেন্স অলিম্পিয়াড প্রতিযোগিতা কয়টি ধাপে অনুষ্ঠিত হয়?",
+        question: "How many stages are involved in the competition?",
         answer:
-          "প্রতিযোগিতাটি সাধারণত তিনটি ধাপে অনুষ্ঠিত হয়: (১) রিজিওনাল/অনলাইন বাছাই পর্ব, (২) জাতীয় পর্ব, এবং (৩) সিলেকশন ক্যাম্প ও গ্রুমিং। সেরা শিক্ষার্থীরা আন্তর্জাতিক অলিম্পিয়াডে অংশ নেয়।",
+          "The competition generally consists of three stages: (1) Regional/Online Selection Round, (2) National Round, and (3) Selection Camp & Grooming. Top performers earn a spot on the national team for international competitions.",
       },
       {
-        question: "আন্তর্জাতিক পর্যায়ে কি BdAIO-এর বিজয়ীরা অংশ নিতে পারে?",
+        question: "Do winners get to participate internationally?",
         answer:
-          "হ্যাঁ। BdAIO-এর সেরা পারফর্মাররা আন্তর্জাতিক কৃত্রিম বুদ্ধিমত্তা অলিম্পিয়াড (IAIO) এবং আন্তর্জাতিক এআই অলিম্পিয়াড (IOAI)-তে বাংলাদেশের হয়ে অংশ নিতে পারে।",
+          "Yes! The top performers of BdAIO represent Bangladesh at the International Artificial Intelligence Olympiad (IAIO) and International AI Olympiad (IOAI).",
       },
       {
-        question: "বিজয়ীরা কী ধরণের পুরস্কার পায়?",
+        question: "What prizes do winners receive?",
         answer:
-          "বিজয়ীরা মেডেল, সার্টিফিকেট এবং আন্তর্জাতিক প্রতিনিধিত্বের সুযোগ পায়। এছাড়া সিলেকশন ক্যাম্পে অংশগ্রহণের মাধ্যমে উন্নত প্রশিক্ষণ ও গাইডেন্স পাওয়া যায়।",
+          "Winners receive medals, certificates, and official selection for international representation. Selection camp participants also receive advanced mentorship and training.",
       },
       {
-        question: "BdAIO বছরে কতবার আয়োজন করা হয়?",
+        question: "How often is BdAIO held?",
         answer:
-          "BdAIO প্রতি বছর একবার নিয়মিতভাবে আয়োজন করা হয়। সাধারণত বছরের প্রথমার্ধে রিজিওনাল রাউন্ড এবং পরবর্তীতে জাতীয় রাউন্ড অনুষ্ঠিত হয়।",
+          "BdAIO is organized annually. Regional rounds typically take place in the first half of the year, followed by the National Finals.",
       },
       {
-        question: "প্রতিযোগীদের আন্তর্জাতিক পর্যায়ে অংশগ্রহণের খরচ কে বহন করে?",
+        question: "Who covers the cost of international participation?",
         answer:
-          "আন্তর্জাতিক পর্যায়ে অংশগ্রহণের খরচ সাধারণত আয়োজক সংস্থা, স্পন্সর ও সরকারি সহায়তার মাধ্যমে বহন করা হয়। বিস্তারিত তথ্য প্রতিযোগিতার সময় ঘোষণা করা হয়।",
+          "Costs for representing the nation at international levels are sponsored through organizing bodies, corporate partners, and government support.",
       },
     ],
   },
   {
-    title: "যোগ্যতা",
+    title: "Eligibility",
     items: [
       {
-        question: "কারা BdAIO-তে অংশ নিতে পারবে?",
+        question: "Who is eligible to participate in BdAIO?",
         answer:
-          "দ্বাদশ শ্রেণি বা সমমান পর্যায়ের শিক্ষার্থীরা, যার মধ্যে পলিটেকনিক ইনস্টিটিউটের চতুর্থ সেমিস্টার পর্যন্তের শিক্ষার্থীরাও অন্তর্ভুক্ত, BdAIO-তে অংশ নিতে পারবে।",
+          "Students up to 12th grade (or equivalent, including polytechnic students up to 4th semester) can compete in BdAIO.",
       },
       {
-        question: "বাংলা মাধ্যম ও ইংরেজি ভার্সনের শিক্ষার্থীরা কি অংশ নিতে পারবে?",
-        answer: "হ্যাঁ, বাংলা মাধ্যম ও ইংরেজি ভার্সন উভয় মাধ্যমের শিক্ষার্থীরা অংশ নিতে পারবে।",
+        question: "Can English Medium and English Version students participate?",
+        answer:
+          "Yes, students from National Curriculum (Bangla & English versions), English Medium, and Polytechnic backgrounds are all eligible.",
       },
       {
-        question: "পলিটেকনিকের শিক্ষার্থীরা কি অংশ নিতে পারবে?",
+        question: "Can university students participate?",
         answer:
-          "হ্যাঁ, পলিটেকনিক ইনস্টিটিউটের চতুর্থ সেমিস্টার পর্যন্তের শিক্ষার্থীরা অংশ নিতে পারবে।",
+          "No, BdAIO is strictly for pre-university (school and college level) students.",
       },
       {
-        question: "বিশ্ববিদ্যালয়ের শিক্ষার্থীরা কি অংশ নিতে পারবে?",
+        question: "How do I register?",
         answer:
-          "না, BdAIO মূলত স্কুল ও কলেজ পর্যায়ের শিক্ষার্থীদের জন্য। বিশ্ববিদ্যালয়ের শিক্ষার্থীরা এই প্রতিযোগিতায় অংশ নিতে পারবে না।",
+          "Visit www.bdaio.org, create an account, and complete your registration under the events section. Detailed instructions are available on the Participation Guideline page.",
       },
       {
-        question: "কীভাবে রেজিস্ট্রেশন করতে হবে?",
+        question: "Is a passport required to enter?",
         answer:
-          "www.bdaio.org ওয়েবসাইটে গিয়ে রেজিস্ট্রেশন বাটনে ক্লিক করুন। রেজিস্ট্রেশন প্ল্যাটফর্মে অ্যাকাউন্ট তৈরি করে 'Get a Ticket' অপশন থেকে রেজিস্ট্রেশন সম্পন্ন করুন। বিস্তারিত নির্দেশিকা Participation Guideline পেজে পাওয়া যাবে।",
-      },
-      {
-        question: "অংশগ্রহণ করতে কি পাসপোর্ট থাকা প্রয়োজন?",
-        answer:
-          "রিজিওনাল ও জাতীয় রাউন্ডে অংশ নিতে পাসপোর্ট প্রয়োজন নয়। তবে আন্তর্জাতিক পর্যায়ে অংশ নিতে হলে বৈধ পাসপোর্ট প্রয়োজন হতে পারে।",
-      },
-      {
-        question: "রিজিওনাল ও ন্যাশনাল রাউন্ডে অংশ না নিয়েও কি এআই অলিম্পিয়াডের ক্যাম্পে আসা সম্ভব?",
-        answer:
-          "না, সিলেকশন ক্যাম্পে অংশ নিতে হলে রিজিওনাল ও জাতীয় রাউন্ডে অংশ নিয়ে যোগ্যতা অর্জন করতে হয়।",
+          "A passport is not required for regional or national rounds. However, a valid passport is required if selected to represent Bangladesh internationally.",
       },
     ],
   },
   {
-    title: "পরীক্ষা",
+    title: "Examination & Preparation",
     items: [
       {
-        question: "প্রতিযোগিতায় কোন কোন বিষয় থাকবে?",
+        question: "What topics are covered in the competition?",
         answer:
-          "প্রতিযোগিতায় মেশিন লার্নিং, নিউরাল নেটওয়ার্ক, ডিপ লার্নিং, কম্পিউটার ভিশন, এনএলপি, ডেটা সায়েন্স এবং পাইথন প্রোগ্রামিংসহ এআই-সম্পর্কিত বিষয়গুলো অন্তর্ভুক্ত থাকে।",
+          "Topics include Machine Learning concepts, Neural Networks, Deep Learning, Computer Vision, Natural Language Processing (NLP), Data Science, and Python programming.",
       },
       {
-        question: "আগে থেকে AI জানা না থাকলে কি অংশ নিতে পারব?",
+        question: "Can I participate if I don't have prior AI experience?",
         answer:
-          "হ্যাঁ, অংশ নিতে পারবেন। প্রতিযোগিতার জন্য প্রস্তুতির উপকরণ ও গাইডলাইন ওয়েবসাইটে দেওয়া আছে। মৌলিক পাইথন জ্ঞান থাকলে শেখা শুরু করা সম্ভব।",
+          "Yes! Study materials, resources, and guidelines are available on our website. Basic Python knowledge is a great starting point.",
       },
       {
-        question: "প্রশ্নগুলো কোন ভাষায় থাকবে?",
+        question: "In which language are exam questions presented?",
         answer:
-          "কুইজ সেগমেন্টে প্রশ্ন বাংলা ও ইংরেজি উভয় ভাষায় থাকতে পারে। কোডিং সেগমেন্টে ইংরেজি ভাষা ব্যবহৃত হয়।",
+          "All official competition problems, coding problems, and resources are provided in English.",
       },
       {
-        question: "টিম হিসেবে না এককভাবে অংশ নিতে হবে?",
-        answer: "প্রতিযোগিতায় এককভাবে অংশ নিতে হয়। টিম হিসেবে অংশগ্রহণের সুযোগ নেই।",
+        question: "Is participation individual or team-based?",
+        answer:
+          "Participation is individual. Team entries are not applicable for standard rounds.",
       },
       {
-        question: "প্রস্তুতির জন্য কোথায় উপকরণ পাওয়া যাবে?",
+        question: "Where can I find preparation materials?",
         answer:
-          "Syllabus ও Participation Guideline পেজে প্রস্তুতির জন্য প্রয়োজনীয় লিংক, কোর্স ও রিসোর্স দেওয়া আছে। কাগলের শেখার কোর্স এবং YouTube প্লেলিস্টও সুপারিশ করা হয়েছে।",
+          "Recommended resources, course links, and reading materials can be found on our Syllabus and Resources pages.",
       },
     ],
   },

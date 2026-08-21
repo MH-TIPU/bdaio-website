@@ -65,6 +65,15 @@ function isLocaleExempt(pathname: string): boolean {
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const cookieLocale = request.cookies.get(LOCALE_COOKIE)?.value;
+  const { locale, rest } = splitLocale(pathname);
+
+  // If a URL like `/en/dashboard` or `/en/dashboard/profile` or `/en/admin` was accessed,
+  // redirect to the unlocalized path (`/dashboard`, `/dashboard/profile`, `/admin`).
+  if (locale && hasPrefix(rest, PROTECTED_PREFIXES)) {
+    const url = request.nextUrl.clone();
+    url.pathname = rest;
+    return NextResponse.redirect(url);
+  }
 
   if (hasPrefix(pathname, PROTECTED_PREFIXES)) {
     const hasSessionCookie = Boolean(request.cookies.get(SESSION_COOKIE)?.value);
@@ -85,8 +94,6 @@ export function proxy(request: NextRequest) {
   }
 
   if (isLocaleExempt(pathname)) return NextResponse.next();
-
-  const { locale } = splitLocale(pathname);
 
   if (locale) {
     const response = NextResponse.next();

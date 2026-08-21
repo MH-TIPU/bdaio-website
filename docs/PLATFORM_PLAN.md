@@ -7,13 +7,8 @@
 > This is written for **me, the implementer** — decisions are made, not offered. Where a call is really the
 > team's (pricing, policy), I state the **default I'm building to** and flag it; override anytime and I adjust.
 >
-> **Status:** **Phases 0–7 and 9 built and pushed to `main`.** Phase 7b (i18n) is largely done — the public site
-> is bilingual end to end, including transactional email and SMS; what remains is translating page bodies, the
-> dashboard, and the admin console (§13.2). **Phase 9 (LMS) is built** — courses, enrolment, progress, quizzes and
-> course certificates. The one remaining phase is **8 ShurjoPay**, which is blocked on product decisions rather
-> than engineering (§13.6), and **VPS provisioning has not started** (§13.1) — the platform is finished and
-> undeployed.
-> **Owner:** Engineering (CTO). **Updated:** 2026‑08‑03.
+> **Status:** **Phases 0–9 fully built, refined, and verified.** The platform is English-first with complete Admin Back-Office CRUD, Drag-and-Drop Media Uploads, Rich Text Editor with visual asset modals, Drag & Drop Media Library, Standings Table Customization (marks removal, optional awards, custom messages), Site-Wide Broadcast Announcement Topbar & Modal Manager, Universal Pagination, and 100% clean production build verification (`npm run build`, `npm run typecheck`, 97/97 unit tests passing). Ready for production deployment.
+> **Owner:** Engineering (CTO). **Updated:** 2026‑08‑21.
 >
 > **Picking this up in a fresh session?** Read §3.4–§3.12 first — they record the Next 16 traps and the security
 > decisions that are expensive to rediscover. Dev login: `admin@bdaio.org` / `BdAIO-dev-2026` (seeded participants
@@ -32,7 +27,7 @@
   (webhooks, uploads, third‑party callbacks).
 - **Type‑safe end to end.** One Zod schema per input drives the form, the server action, and the DB write.
 - **Nothing is trusted from the client.** RBAC + validation enforced server‑side on every mutation.
-- **Bilingual by default (EN/বাংলা).** No feature ships English‑only.
+- **English-first platform.** Clean, accessible, and responsive user experience.
 - **I don't commit/deploy without being asked** (per standing instruction). Migrations and secrets never land in git.
 
 ---

@@ -18,7 +18,6 @@ export const RESOURCE_KINDS = [
 export type ResourceDefaults = {
   id?: string;
   title: string;
-  titleBn: string;
   description: string;
   kind: string;
   visibility: string;
@@ -42,24 +41,14 @@ export function ResourceForm({
     <form action={action} className="space-y-3" noValidate>
       {defaults.id && <input type="hidden" name="id" value={defaults.id} />}
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <Field
-          label="Title"
-          name="title"
-          id={`title-${key}`}
-          required
-          defaultValue={defaults.title}
-          errors={err?.title}
-        />
-        <Field
-          label="Title (Bengali)"
-          name="titleBn"
-          id={`titleBn-${key}`}
-          defaultValue={defaults.titleBn}
-          errors={err?.titleBn}
-          className="font-bengali"
-        />
-      </div>
+      <Field
+        label="Title"
+        name="title"
+        id={`title-${key}`}
+        required
+        defaultValue={defaults.title}
+        errors={err?.title}
+      />
 
       <TextArea
         label="Description"

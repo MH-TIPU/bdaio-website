@@ -30,13 +30,10 @@ export default async function StudyPage({
   const user = await requireUser();
   const { slug } = await params;
   const { lesson: requested } = await searchParams;
-  const locale = await getSessionLocale();
-
   const enrolled = await getEnrolledCourse(user.id, slug);
   if (!enrolled) notFound();
 
   const { course, lessons, completedLessonIds, percent, complete } = enrolled;
-  const bengali = locale === "bn";
 
   const currentId =
     (typeof requested === "string" && lessons.some((l) => l.id === requested)
@@ -68,7 +65,7 @@ export default async function StudyPage({
   const previous = index > 0 ? lessons[index - 1] : null;
   const next = index >= 0 && index < lessons.length - 1 ? lessons[index + 1] : null;
 
-  const courseTitle = bengali && course.titleBn ? course.titleBn : course.title;
+  const courseTitle = course.title;
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -81,11 +78,7 @@ export default async function StudyPage({
           >
             ← <span className="hidden sm:inline">My Learning</span>
           </Link>
-          <h1
-            className={`min-w-0 flex-1 truncate text-base font-bold text-slate-900 ${
-              bengali && course.titleBn ? "font-bengali" : ""
-            }`}
-          >
+          <h1 className="min-w-0 flex-1 truncate text-base font-bold text-slate-900">
             {courseTitle}
           </h1>
           <form action={withdraw} className="shrink-0">
@@ -100,33 +93,23 @@ export default async function StudyPage({
         </div>
       </header>
 
-      <div className="mx-auto grid max-w-[1600px] gap-0 lg:grid-cols-[340px_1fr]">
+      {/* --- Main workspace -------------------------------------------- */}
+      <div className="mx-auto flex max-w-[1600px] flex-col lg:flex-row">
         {/* --- Course outline ------------------------------------------- */}
-        <aside className="border-b border-slate-200 bg-white lg:sticky lg:top-[57px] lg:h-[calc(100vh-57px)] lg:overflow-y-auto lg:border-b-0 lg:border-r">
-          <div className="border-b border-slate-100 px-5 py-4">
-            <div className="flex items-baseline justify-between">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                Your progress
-              </p>
-              <p className="text-sm font-bold text-slate-900">{percent}%</p>
+        <aside className="w-full shrink-0 border-b border-slate-200 bg-white lg:w-80 lg:border-b-0 lg:border-r">
+          <div className="border-b border-slate-100 p-5">
+            <div className="flex items-center justify-between text-xs font-semibold text-slate-600">
+              <span>PROGRESS</span>
+              <span>{percent}%</span>
             </div>
-            <div
-              className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-200"
-              role="progressbar"
-              aria-valuenow={percent}
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-label="Course progress"
-            >
+            <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-100">
               <div
-                className={`h-full rounded-full transition-all ${
-                  complete ? "bg-emerald-600" : "bg-bdaio-blue"
-                }`}
+                className="h-full bg-emerald-600 transition-all duration-300"
                 style={{ width: `${percent}%` }}
               />
             </div>
-            <p className="mt-1.5 text-xs text-slate-500">
-              {completedLessonIds.size} of {lessons.length} lessons
+            <p className="mt-2 text-xs text-slate-500">
+              {completedLessonIds.size} of {lessons.length} completed
               {complete && " · course complete"}
             </p>
           </div>
@@ -134,12 +117,8 @@ export default async function StudyPage({
           <nav aria-label="Course content" className="py-2">
             {course.modules.map((courseModule) => (
               <div key={courseModule.id} className="mb-1">
-                <p
-                  className={`px-5 py-2 text-xs font-bold uppercase tracking-wide text-slate-500 ${
-                    bengali && courseModule.titleBn ? "font-bengali" : ""
-                  }`}
-                >
-                  {bengali && courseModule.titleBn ? courseModule.titleBn : courseModule.title}
+                <p className="px-5 py-2 text-xs font-bold uppercase tracking-wide text-slate-500">
+                  {courseModule.title}
                 </p>
                 <ul>
                   {courseModule.lessons.map((lesson) => {
@@ -150,8 +129,6 @@ export default async function StudyPage({
                         <Link
                           href={`/study/${slug}?lesson=${lesson.id}`}
                           aria-current={active ? "page" : undefined}
-                          // The left rule is the "you are here" marker, in the
-                          // place the eye already tracks down the outline.
                           className={`flex items-start gap-3 border-l-[3px] px-4 py-2.5 text-sm transition-colors ${
                             active
                               ? "border-bdaio-blue bg-bdaio-blue/5 font-semibold text-bdaio-blue-dark"
@@ -169,8 +146,8 @@ export default async function StudyPage({
                             {done ? "✓" : ""}
                           </span>
                           <span className="min-w-0 flex-1">
-                            <span className={bengali && lesson.titleBn ? "font-bengali" : ""}>
-                              {bengali && lesson.titleBn ? lesson.titleBn : lesson.title}
+                            <span>
+                              {lesson.title}
                             </span>
                             {done && <span className="sr-only"> (completed)</span>}
                             {lesson.minutes ? (
@@ -190,7 +167,7 @@ export default async function StudyPage({
         </aside>
 
         {/* --- The lesson ------------------------------------------------ */}
-        <main className="min-w-0 px-4 py-8 sm:px-8 lg:px-12">
+        <main className="min-w-0 flex-1 px-4 py-8 sm:px-8 lg:px-12">
           {!current ? (
             <p className="rounded-xl bg-white p-6 text-sm text-slate-600 shadow-sm ring-1 ring-slate-200">
               This course has no lessons yet.
@@ -200,12 +177,8 @@ export default async function StudyPage({
               <p className="text-xs font-semibold uppercase tracking-wide text-bdaio-blue">
                 Lesson {index + 1} of {lessons.length}
               </p>
-              <h2
-                className={`mt-1 text-3xl font-bold text-slate-900 ${
-                  bengali && current.titleBn ? "font-bengali" : ""
-                }`}
-              >
-                {bengali && current.titleBn ? current.titleBn : current.title}
+              <h2 className="mt-1 text-3xl font-bold text-slate-900">
+                {current.title}
               </h2>
               {current.minutes ? (
                 <p className="mt-1.5 text-sm text-slate-500">
@@ -219,8 +192,6 @@ export default async function StudyPage({
                     src={current.url}
                     title={current.title}
                     allowFullScreen
-                    // Sandboxed: a lesson embed is third-party content, and it
-                    // has no business reaching this page's session.
                     sandbox="allow-scripts allow-same-origin allow-presentation"
                     className="h-full w-full"
                   />
@@ -239,14 +210,18 @@ export default async function StudyPage({
               )}
 
               {(() => {
-                const body = bengali && current.bodyBn ? current.bodyBn : current.body;
+                const body = current.body;
                 if (!body) return null;
+                if (body.startsWith("<")) {
+                  return (
+                    <div
+                      className="prose prose-slate mt-6 max-w-none text-[17px] leading-8 text-slate-700"
+                      dangerouslySetInnerHTML={{ __html: body }}
+                    />
+                  );
+                }
                 return (
-                  <div
-                    className={`mt-6 space-y-4 text-[17px] leading-8 text-slate-700 ${
-                      bengali && current.bodyBn ? "font-bengali" : ""
-                    }`}
-                  >
+                  <div className="mt-6 space-y-4 text-[17px] leading-8 text-slate-700">
                     {body.split(/\n{2,}/).map((paragraph, i) => (
                       <p key={i}>{paragraph}</p>
                     ))}
@@ -263,11 +238,10 @@ export default async function StudyPage({
                     passMark: quiz.passMark,
                     questions: quiz.questions.map((question) => ({
                       id: question.id,
-                      prompt:
-                        bengali && question.promptBn ? question.promptBn : question.prompt,
+                      prompt: question.prompt,
                       options: question.options.map((option) => ({
                         id: option.id,
-                        text: bengali && option.textBn ? option.textBn : option.text,
+                        text: option.text,
                       })),
                     })),
                   }}

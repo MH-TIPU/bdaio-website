@@ -49,7 +49,6 @@ export const navItems: NavItem[] = [
       { key: "programs", href: "/programs" },
       { key: "events", href: "/events" },
       { key: "workshops", href: "/workshops" },
-      { key: "results", href: "/results" },
     ],
   },
   {

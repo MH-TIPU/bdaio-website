@@ -36,25 +36,22 @@ export default async function CmsPage(props: PageProps<"/[locale]/p/[slug]">) {
         <h1 className="text-3xl font-black text-bdaio-blue sm:text-4xl">
           {page.title}
         </h1>
-        {page.titleBn && (
-          <p className="font-bengali mt-1 text-lg text-slate-500">{page.titleBn}</p>
-        )}
-        <div className="mt-6 space-y-4">
-          {page.body.split(/\n{2,}/).map((para, i) => (
-            <p key={i} className="text-base leading-relaxed text-slate-700">
-              {para}
-            </p>
-          ))}
+        <div className="mt-6">
+          {page.body.startsWith("<") ? (
+            <div
+              className="prose prose-slate max-w-none text-base leading-relaxed text-slate-700"
+              dangerouslySetInnerHTML={{ __html: page.body }}
+            />
+          ) : (
+            <div className="space-y-4">
+              {page.body.split(/\n{2,}/).map((para, i) => (
+                <p key={i} className="text-base leading-relaxed text-slate-700">
+                  {para}
+                </p>
+              ))}
+            </div>
+          )}
         </div>
-        {page.bodyBn && (
-          <div className="mt-8 space-y-4 border-t border-slate-100 pt-8">
-            {page.bodyBn.split(/\n{2,}/).map((para, i) => (
-              <p key={i} className="font-bengali text-base leading-relaxed text-slate-700">
-                {para}
-              </p>
-            ))}
-          </div>
-        )}
       </div>
     </section>
   );

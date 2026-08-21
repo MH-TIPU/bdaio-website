@@ -70,24 +70,19 @@ export default async function AnnouncementsPage({
                 </div>
 
                 <h2 className="mt-2 text-lg font-bold text-slate-900">{a.title}</h2>
-                {a.titleBn && (
-                  <p className="font-bengali text-slate-600">{a.titleBn}</p>
-                )}
 
-                {a.body.split(/\n{2,}/).map((para, i) => (
-                  <p key={i} className="mt-2 text-sm leading-relaxed text-slate-700">
-                    {para}
-                  </p>
-                ))}
-                {a.bodyBn &&
-                  a.bodyBn.split(/\n{2,}/).map((para, i) => (
-                    <p
-                      key={`bn-${i}`}
-                      className="font-bengali mt-2 text-sm leading-relaxed text-slate-600"
-                    >
+                {a.body.startsWith("<") ? (
+                  <div
+                    className="prose prose-slate mt-2 text-sm leading-relaxed text-slate-700"
+                    dangerouslySetInnerHTML={{ __html: a.body }}
+                  />
+                ) : (
+                  a.body.split(/\n{2,}/).map((para, i) => (
+                    <p key={i} className="mt-2 text-sm leading-relaxed text-slate-700">
                       {para}
                     </p>
-                  ))}
+                  ))
+                )}
               </li>
             ))}
           </ul>

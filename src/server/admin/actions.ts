@@ -69,6 +69,24 @@ export async function saveProgram(
   redirect("/admin/programs");
 }
 
+export async function deleteProgram(formData: FormData): Promise<void> {
+  const admin = await requireRole("ADMIN");
+  const id = String(formData.get("id") ?? "");
+  if (!id) return;
+
+  await db.program.delete({ where: { id } });
+
+  await logActivity({
+    userId: admin.id,
+    action: "admin.program.deleted",
+    entityType: "Program",
+    entityId: id,
+  });
+
+  refreshPublicViews();
+  revalidatePath("/admin/programs");
+}
+
 // --- Events ----------------------------------------------------------------
 
 export async function saveEvent(
@@ -177,6 +195,24 @@ export async function cloneEvent(formData: FormData): Promise<void> {
 
   revalidatePath("/admin/events");
   redirect(`/admin/events/${clone.id}`);
+}
+
+export async function deleteEvent(formData: FormData): Promise<void> {
+  const admin = await requireRole("ADMIN");
+  const id = String(formData.get("id") ?? "");
+  if (!id) return;
+
+  await db.event.delete({ where: { id } });
+
+  await logActivity({
+    userId: admin.id,
+    action: "admin.event.deleted",
+    entityType: "Event",
+    entityId: id,
+  });
+
+  refreshPublicViews();
+  revalidatePath("/admin/events");
 }
 
 // --- Rounds ----------------------------------------------------------------

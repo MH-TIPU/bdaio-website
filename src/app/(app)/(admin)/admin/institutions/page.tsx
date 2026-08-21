@@ -17,6 +17,9 @@ import {
 import { readSort, sortHref } from "@/lib/admin/sort";
 import type { Prisma } from "@/generated/prisma/client";
 
+import { readPagination } from "@/lib/admin/pagination";
+import { Pagination } from "@/components/admin/Pagination";
+
 export const metadata: Metadata = { title: "Institutions · Admin" };
 
 const STATUS_STYLES = {
@@ -49,21 +52,26 @@ export default async function AdminInstitutionsPage(
 ) {
   const params = await props.searchParams;
   const sort = readSort(params, SORT_KEYS, { key: "status", dir: "asc" });
+  const { page, pageSize, skip, take } = readPagination(params, 15);
 
-  const institutions = await db.institution.findMany({
-    orderBy: SORTS[sort.key](sort.dir),
-    include: {
-      _count: { select: { memberships: true } },
-      memberships: {
-        where: { membershipRole: "MODERATOR" },
-        include: {
-          user: { select: { email: true, profile: { select: { fullName: true } } } },
+  const [totalInstitutions, institutions, pendingCount] = await Promise.all([
+    db.institution.count(),
+    db.institution.findMany({
+      orderBy: SORTS[sort.key](sort.dir),
+      skip,
+      take,
+      include: {
+        _count: { select: { memberships: true } },
+        memberships: {
+          where: { membershipRole: "MODERATOR" },
+          include: {
+            user: { select: { email: true, profile: { select: { fullName: true } } } },
+          },
         },
       },
-    },
-  });
-
-  const pending = institutions.filter((i) => i.status === "PENDING");
+    }),
+    db.institution.count({ where: { status: "PENDING" } }),
+  ]);
   const href = (column: SortKey) =>
     sortHref("/admin/institutions", params, sort, column);
 
@@ -75,9 +83,9 @@ export default async function AdminInstitutionsPage(
         its moderators — who can then verify their own students.
       </p>
 
-      {pending.length > 0 && (
+      {pendingCount > 0 && (
         <p className="mt-4 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          {pending.length} awaiting review.
+          {pendingCount} awaiting review.
         </p>
       )}
 
@@ -181,6 +189,14 @@ export default async function AdminInstitutionsPage(
             ))}
           </TBody>
         </DataTable>
+
+        <Pagination
+          page={page}
+          pageSize={pageSize}
+          totalItems={totalInstitutions}
+          basePath="/admin/institutions"
+          searchParams={params}
+        />
       </div>
     </>
   );

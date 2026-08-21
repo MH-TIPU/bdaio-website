@@ -12,6 +12,9 @@ import {
 import { readSort, sortHref } from "@/lib/admin/sort";
 import type { Prisma } from "@/generated/prisma/client";
 
+import { readPagination } from "@/lib/admin/pagination";
+import { Pagination } from "@/components/admin/Pagination";
+
 export const metadata: Metadata = { title: "Audit log · Admin" };
 
 /** What may be sorted on, and the ordering each one means. */
@@ -29,20 +32,25 @@ type SortKey = keyof typeof SORTS;
 const SORT_KEYS = Object.keys(SORTS) as SortKey[];
 
 /**
- * The audit trail. Every trust decision (verification, role change, publish,
- * suspension) is written here, and rejected attempts write nothing — so this
- * never implies an action that did not happen.
+ * The audit trail.
  */
 export default async function AdminLogsPage(props: PageProps<"/admin/logs">) {
   const params = await props.searchParams;
   const filter = typeof params.action === "string" ? params.action.trim() : "";
   const sort = readSort(params, SORT_KEYS, { key: "when", dir: "desc" });
+  const { page, pageSize, skip, take } = readPagination(params, 20);
 
-  const [entries, actions] = await Promise.all([
+  const where: Prisma.ActivityLogWhereInput = filter
+    ? { action: { startsWith: filter } }
+    : {};
+
+  const [totalLogs, entries, actions] = await Promise.all([
+    db.activityLog.count({ where }),
     db.activityLog.findMany({
-      where: filter ? { action: { startsWith: filter } } : {},
+      where,
       orderBy: SORTS[sort.key](sort.dir),
-      take: 200,
+      skip,
+      take,
       include: { user: { select: { email: true } } },
     }),
     db.activityLog.groupBy({ by: ["action"], _count: true, orderBy: { action: "asc" } }),
@@ -128,6 +136,14 @@ export default async function AdminLogsPage(props: PageProps<"/admin/logs">) {
             ))}
           </TBody>
         </DataTable>
+
+        <Pagination
+          page={page}
+          pageSize={pageSize}
+          totalItems={totalLogs}
+          basePath="/admin/logs"
+          searchParams={params}
+        />
       </div>
     </>
   );

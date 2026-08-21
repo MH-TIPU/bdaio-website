@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { Field } from "@/components/ui/Field";
+import { RichTextEditor } from "@/components/ui/RichTextEditor";
 import { TextArea } from "@/components/ui/TextArea";
 import { SELECT_CLASS } from "@/components/admin/formStyles";
 import { saveLesson } from "@/server/admin/courses";
@@ -33,24 +34,14 @@ export function LessonForm({ defaults }: { defaults: LessonDefaults }) {
       {defaults.id && <input type="hidden" name="id" value={defaults.id} />}
       <input type="hidden" name="moduleId" value={defaults.moduleId} />
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <Field
-          label="Lesson title"
-          name="title"
-          id={`ltitle-${key}`}
-          required
-          defaultValue={defaults.title}
-          errors={err?.title}
-        />
-        <Field
-          label="Title (Bengali)"
-          name="titleBn"
-          id={`ltitleBn-${key}`}
-          defaultValue={defaults.titleBn}
-          errors={err?.titleBn}
-          className="font-bengali"
-        />
-      </div>
+      <Field
+        label="Lesson title"
+        name="title"
+        id={`ltitle-${key}`}
+        required
+        defaultValue={defaults.title}
+        errors={err?.title}
+      />
 
       <div className="grid gap-3 sm:grid-cols-3">
         <div>
@@ -103,26 +94,14 @@ export function LessonForm({ defaults }: { defaults: LessonDefaults }) {
         />
       )}
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <TextArea
-          label={kind === "TEXT" ? "Lesson content" : "Notes"}
-          name="body"
-          id={`lbody-${key}`}
-          rows={6}
-          defaultValue={defaults.body}
-          errors={err?.body}
-          hint="Blank lines separate paragraphs."
-        />
-        <TextArea
-          label="Content (Bengali)"
-          name="bodyBn"
-          id={`lbodyBn-${key}`}
-          rows={6}
-          defaultValue={defaults.bodyBn}
-          errors={err?.bodyBn}
-          className="font-bengali"
-        />
-      </div>
+      <RichTextEditor
+        label={kind === "TEXT" ? "Lesson content" : "Notes"}
+        name="body"
+        id={`lbody-${key}`}
+        defaultValue={defaults.body}
+        errors={err?.body}
+        hint="Rich text formatted lesson content and notes."
+      />
 
       <div className="flex items-center gap-3">
         <button

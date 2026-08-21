@@ -5,6 +5,9 @@ import { markMessageHandled } from "@/server/contact/actions";
 import { readSort, sortHref } from "@/lib/admin/sort";
 import type { Prisma } from "@/generated/prisma/client";
 
+import { readPagination } from "@/lib/admin/pagination";
+import { Pagination } from "@/components/admin/Pagination";
+
 export const metadata: Metadata = { title: "Messages" };
 
 /**
@@ -40,25 +43,22 @@ const SORT_LABELS: Record<SortKey, string> = {
 
 /**
  * Inbox for the public contact form.
- *
- * Cards rather than a table: a message body is long-form prose of no fixed
- * length, and the whole point of this screen is reading it. So the sort lives
- * in a row of links instead of in column headers — same URL, same primitives
- * as the admin tables, just nowhere to hang a `<th>`.
- *
- * Handled messages are kept rather than deleted — someone will ask what was said.
  */
 export default async function AdminMessagesPage(props: PageProps<"/admin/messages">) {
   const params = await props.searchParams;
   const sort = readSort(params, SORT_KEYS, { key: "status", dir: "asc" });
+  const { page, pageSize, skip, take } = readPagination(params, 10);
 
-  const messages = await db.contactMessage.findMany({
-    orderBy: SORTS[sort.key](sort.dir),
-    take: 200,
-    include: { user: { select: { email: true } } },
-  });
-
-  const outstanding = messages.filter((m) => !m.handledAt).length;
+  const [totalMessages, messages, outstanding] = await Promise.all([
+    db.contactMessage.count(),
+    db.contactMessage.findMany({
+      orderBy: SORTS[sort.key](sort.dir),
+      skip,
+      take,
+      include: { user: { select: { email: true } } },
+    }),
+    db.contactMessage.count({ where: { handledAt: null } }),
+  ]);
 
   return (
     <>
@@ -157,6 +157,14 @@ export default async function AdminMessagesPage(props: PageProps<"/admin/message
               </li>
             ))}
           </ul>
+
+          <Pagination
+            page={page}
+            pageSize={pageSize}
+            totalItems={totalMessages}
+            basePath="/admin/messages"
+            searchParams={params}
+          />
         </>
       )}
     </>

@@ -1,14 +1,25 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { db } from "@/lib/db";
+import { deleteProgram } from "@/server/admin/actions";
+import { readPagination } from "@/lib/admin/pagination";
+import { Pagination } from "@/components/admin/Pagination";
 
 export const metadata: Metadata = { title: "Programs · Admin" };
 
-export default async function AdminProgramsPage() {
-  const programs = await db.program.findMany({
-    orderBy: [{ active: "desc" }, { title: "asc" }],
-    include: { _count: { select: { events: true } } },
-  });
+export default async function AdminProgramsPage(props: PageProps<"/admin/programs">) {
+  const params = await props.searchParams;
+  const { page, pageSize, skip, take } = readPagination(params, 15);
+
+  const [totalPrograms, programs] = await Promise.all([
+    db.program.count(),
+    db.program.findMany({
+      orderBy: [{ active: "desc" }, { title: "asc" }],
+      skip,
+      take,
+      include: { _count: { select: { events: true } } },
+    }),
+  ]);
 
   return (
     <>
@@ -59,12 +70,24 @@ export default async function AdminProgramsPage() {
                 </td>
                 <td className="px-4 py-3 text-slate-700">{program._count.events}</td>
                 <td className="px-4 py-3 text-right">
-                  <Link
-                    href={`/admin/programs/${program.id}`}
-                    className="text-sm font-semibold text-bdaio-blue hover:underline"
-                  >
-                    Edit
-                  </Link>
+                  <div className="flex justify-end gap-3 whitespace-nowrap">
+                    <Link
+                      href={`/admin/programs/${program.id}`}
+                      className="text-sm font-semibold text-bdaio-blue hover:underline"
+                    >
+                      Edit
+                    </Link>
+                    <form action={deleteProgram}>
+                      <input type="hidden" name="id" value={program.id} />
+                      <button
+                        type="submit"
+                        className="text-sm font-semibold text-red-600 hover:underline"
+                        title="Delete program"
+                      >
+                        Delete
+                      </button>
+                    </form>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -78,6 +101,14 @@ export default async function AdminProgramsPage() {
           </tbody>
         </table>
       </div>
+
+      <Pagination
+        page={page}
+        pageSize={pageSize}
+        totalItems={totalPrograms}
+        basePath="/admin/programs"
+        searchParams={params}
+      />
     </>
   );
 }

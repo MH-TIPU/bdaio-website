@@ -113,11 +113,6 @@ export default async function ResourcesPage({ params }: PageProps<"/[locale]/res
                                 </span>
                               )}
                             </div>
-                            {resource.titleBn && (
-                              <p className="font-bengali text-sm text-slate-500">
-                                {resource.titleBn}
-                              </p>
-                            )}
                             {resource.description && (
                               <p className="mt-1 text-sm text-slate-600">
                                 {resource.description}

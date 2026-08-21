@@ -8,6 +8,7 @@ import { emailBucket, retryAfterMessage } from "@/lib/security/rateLimit";
 import { SETTINGS, decodeSetting, settingsFormSchema } from "@/lib/settings/registry";
 import { SPONSOR_TIERS, TIER_LABELS, TIER_SIZE, TIER_SIZE_ORDER } from "@/lib/sponsors";
 import { metaDescription } from "@/lib/seo";
+import { parseCollapsed } from "@/lib/admin/nav";
 
 describe("Bangladeshi mobile numbers", () => {
   it("normalises every way a person writes the same number", () => {
@@ -287,5 +288,36 @@ describe("meta descriptions", () => {
     expect(metaDescription("")).toBeUndefined();
     expect(metaDescription(null)).toBeUndefined();
     expect(metaDescription("   ")).toBeUndefined();
+  });
+});
+
+describe("admin nav collapsed groups", () => {
+  it("reads back what the browser wrote", () => {
+    expect(parseCollapsed('["People","Learning"]')).toEqual(["People", "Learning"]);
+  });
+
+  it("treats a missing cookie as nothing folded", () => {
+    expect(parseCollapsed(undefined)).toEqual([]);
+    expect(parseCollapsed("")).toEqual([]);
+  });
+
+  /*
+   * The failure that matters: this cookie is client-written, so a truncated,
+   * hand-edited or older-shaped value is reachable. Throwing here would take
+   * out the whole admin layout — every page behind it — over a preference
+   * about which headings are folded.
+   */
+  it("falls back to an open nav rather than throwing on a bad value", () => {
+    expect(parseCollapsed('["People"')).toEqual([]);
+    expect(parseCollapsed("People,Learning")).toEqual([]);
+    expect(parseCollapsed('{"People":true}')).toEqual([]);
+    expect(parseCollapsed("null")).toEqual([]);
+  });
+
+  it("drops entries that are not group labels", () => {
+    expect(parseCollapsed('["People",3,null,{"a":1},"Learning"]')).toEqual([
+      "People",
+      "Learning",
+    ]);
   });
 });

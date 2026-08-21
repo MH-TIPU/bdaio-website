@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth/dal";
+import { readPagination } from "@/lib/admin/pagination";
+import { Pagination } from "@/components/admin/Pagination";
 
 export const metadata: Metadata = { title: "My Activity" };
 
@@ -31,14 +33,20 @@ function describe(action: string): string {
   return LABELS[action] ?? action.replace(/[._]/g, " ");
 }
 
-export default async function ActivityPage() {
+export default async function ActivityPage(props: PageProps<"/dashboard/activity">) {
   const user = await requireUser();
+  const params = await props.searchParams;
+  const { page, pageSize, skip, take } = readPagination(params, 15);
 
-  const entries = await db.activityLog.findMany({
-    where: { userId: user.id },
-    orderBy: { createdAt: "desc" },
-    take: 100,
-  });
+  const [totalEntries, entries] = await Promise.all([
+    db.activityLog.count({ where: { userId: user.id } }),
+    db.activityLog.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+      skip,
+      take,
+    }),
+  ]);
 
   return (
     <>
@@ -72,6 +80,14 @@ export default async function ActivityPage() {
           ))}
         </ol>
       )}
+
+      <Pagination
+        page={page}
+        pageSize={pageSize}
+        totalItems={totalEntries}
+        basePath="/dashboard/activity"
+        searchParams={params}
+      />
     </>
   );
 }

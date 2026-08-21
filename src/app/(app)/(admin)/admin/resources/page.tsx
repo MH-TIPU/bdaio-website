@@ -1,15 +1,25 @@
 import type { Metadata } from "next";
 import { db } from "@/lib/db";
 import { ResourceForm } from "@/components/admin/ResourceForm";
+import { AddResourceModal } from "@/components/admin/ResourceModals";
 import { CategoryForm } from "@/components/admin/CategoryForm";
 import { deleteCategory, deleteResource } from "@/server/admin/resources";
 
+import { readPagination } from "@/lib/admin/pagination";
+import { Pagination } from "@/components/admin/Pagination";
+
 export const metadata: Metadata = { title: "Resources · Admin" };
 
-export default async function AdminResourcesPage() {
-  const [resources, categories] = await Promise.all([
+export default async function AdminResourcesPage(props: PageProps<"/admin/resources">) {
+  const params = await props.searchParams;
+  const { page, pageSize, skip, take } = readPagination(params, 10);
+
+  const [totalResources, resources, categories] = await Promise.all([
+    db.resource.count(),
     db.resource.findMany({
       orderBy: [{ category: { order: "asc" } }, { title: "asc" }],
+      skip,
+      take,
       include: { category: { select: { id: true, name: true } } },
     }),
     db.resourceCategory.findMany({
@@ -22,17 +32,17 @@ export default async function AdminResourcesPage() {
 
   return (
     <>
-      <h1 className="text-2xl font-bold text-slate-900">Resources</h1>
-      <p className="mt-1 text-sm text-slate-600">
-        The public resource library. Members-only rows are filtered out of the query for
-        signed-out visitors, so an unpublished or restricted title never reaches the page.
-      </p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Resources</h1>
+          <p className="mt-1 text-sm text-slate-600">
+            The public resource library.
+          </p>
+        </div>
+        <AddResourceModal categories={options} />
+      </div>
 
-      <h2 className="mt-8 text-sm font-semibold text-slate-900">
-        Resources <span className="font-normal text-slate-400">({resources.length})</span>
-      </h2>
-
-      <div className="mt-3 space-y-3">
+      <div className="mt-6 space-y-3">
         {resources.map((resource) => (
           <div key={resource.id} className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
             <ResourceForm
@@ -40,7 +50,6 @@ export default async function AdminResourcesPage() {
               defaults={{
                 id: resource.id,
                 title: resource.title,
-                titleBn: resource.titleBn ?? "",
                 description: resource.description ?? "",
                 kind: resource.kind,
                 visibility: resource.visibility,
@@ -62,24 +71,13 @@ export default async function AdminResourcesPage() {
         ))}
       </div>
 
-      <div className="mt-6 rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
-        <h2 className="text-sm font-semibold text-slate-900">Add a resource</h2>
-        <div className="mt-4">
-          <ResourceForm
-            categories={options}
-            defaults={{
-              title: "",
-              titleBn: "",
-              description: "",
-              kind: "MATERIAL",
-              visibility: "PUBLIC",
-              url: "",
-              categoryId: options[0]?.id ?? "",
-              published: true,
-            }}
-          />
-        </div>
-      </div>
+      <Pagination
+        page={page}
+        pageSize={pageSize}
+        totalItems={totalResources}
+        basePath="/admin/resources"
+        searchParams={params}
+      />
 
       <h2 className="mt-10 text-sm font-semibold text-slate-900">Categories</h2>
       <p className="mt-1 text-xs text-slate-500">

@@ -1,6 +1,8 @@
+import { cookies } from "next/headers";
 import { requireRole } from "@/lib/auth/dal";
 import { logout } from "@/server/auth/actions";
 import { AdminNav, type NavGroup } from "@/components/admin/AdminNav";
+import { ADMIN_NAV_COOKIE, parseCollapsed } from "@/lib/admin/nav";
 
 /**
  * Grouped by what an organiser is trying to do, not by which phase built it.
@@ -67,6 +69,8 @@ export default async function AdminLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   // Guard for the whole section; each action re-checks independently.
   const admin = await requireRole("ADMIN");
+  // Free to read: the guard above has already made this layout dynamic.
+  const collapsed = parseCollapsed((await cookies()).get(ADMIN_NAV_COOKIE)?.value);
 
   return (
     <div className="bg-slate-100">
@@ -91,7 +95,7 @@ export default async function AdminLayout({
         </div>
 
         <div className="mt-6 grid gap-8 lg:grid-cols-[200px_1fr]">
-          <AdminNav groups={NAV} />
+          <AdminNav groups={NAV} collapsed={collapsed} />
           <div className="min-w-0">{children}</div>
         </div>
       </div>

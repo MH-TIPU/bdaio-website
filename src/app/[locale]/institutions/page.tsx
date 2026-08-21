@@ -111,11 +111,6 @@ export default async function InstitutionsPage(
                 <h2 className="mt-3 text-base font-bold text-slate-900">
                   {institution.name}
                 </h2>
-                {institution.nameBn && (
-                  <p className="font-bengali text-sm text-slate-500">
-                    {institution.nameBn}
-                  </p>
-                )}
                 {institution.district && (
                   <p className="mt-0.5 text-xs text-slate-500">
                     {institution.district}

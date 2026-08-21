@@ -16,16 +16,13 @@ import {
 import { readSort, sortHref } from "@/lib/admin/sort";
 import type { Prisma } from "@/generated/prisma/client";
 
+import { readPagination } from "@/lib/admin/pagination";
+import { Pagination } from "@/components/admin/Pagination";
+
 export const metadata: Metadata = { title: "Results · Admin" };
 
 /**
  * What may be sorted on, and the ordering each one means.
- *
- * Sorting by round moves the *event* — rounds keep their own order within one
- * event, because "round 2 before round 1" is not a view anyone wants.
- *
- * State is absent: whether a round is published is read from its results in
- * the page, not stored on the round, so there is no column to order by.
  */
 const SORTS = {
   round: (dir) => [{ event: { year: dir } }, { order: "asc" }],
@@ -43,16 +40,21 @@ const SORT_KEYS = Object.keys(SORTS) as SortKey[];
 export default async function AdminResultsPage(props: PageProps<"/admin/results">) {
   const params = await props.searchParams;
   const sort = readSort(params, SORT_KEYS, { key: "round", dir: "desc" });
+  const { page, pageSize, skip, take } = readPagination(params, 15);
 
-  // Only olympiad-style events have rounds to score.
-  const rounds = await db.round.findMany({
-    orderBy: SORTS[sort.key](sort.dir),
-    include: {
-      event: { select: { title: true, year: true } },
-      _count: { select: { registrations: true, results: true, judges: true } },
-      results: { where: { published: true }, select: { id: true }, take: 1 },
-    },
-  });
+  const [totalRounds, rounds] = await Promise.all([
+    db.round.count(),
+    db.round.findMany({
+      orderBy: SORTS[sort.key](sort.dir),
+      skip,
+      take,
+      include: {
+        event: { select: { title: true, year: true } },
+        _count: { select: { registrations: true, results: true, judges: true } },
+        results: { where: { published: true }, select: { id: true }, take: 1 },
+      },
+    }),
+  ]);
 
   const href = (column: SortKey) => sortHref("/admin/results", params, sort, column);
 
@@ -129,6 +131,14 @@ export default async function AdminResultsPage(props: PageProps<"/admin/results"
             ))}
           </TBody>
         </DataTable>
+
+        <Pagination
+          page={page}
+          pageSize={pageSize}
+          totalItems={totalRounds}
+          basePath="/admin/results"
+          searchParams={params}
+        />
       </div>
     </>
   );

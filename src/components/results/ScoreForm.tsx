@@ -12,6 +12,7 @@ export type ScoreRow = {
   institution: string | null;
   marks: string;
   medal: string;
+  remarks: string;
   rank: number | null;
   /** The entrant's answer file, when the round collects them. */
   submission: { id: string; originalName: string; size: string } | null;
@@ -75,7 +76,8 @@ export function ScoreForm({
             <tr>
               <th className="px-4 py-3 font-semibold text-slate-700">Participant</th>
               <th className="px-4 py-3 font-semibold text-slate-700">Marks</th>
-              <th className="px-4 py-3 font-semibold text-slate-700">Medal</th>
+              <th className="px-4 py-3 font-semibold text-slate-700">Medal / Award</th>
+              <th className="px-4 py-3 font-semibold text-slate-700">Custom Message / Status</th>
               <th className="px-4 py-3 font-semibold text-slate-700">Rank</th>
             </tr>
           </thead>
@@ -130,6 +132,16 @@ export function ScoreForm({
                     ))}
                   </select>
                 </td>
+                <td className="px-4 py-2.5">
+                  <input
+                    name={`remarks[${row.registrationId}]`}
+                    type="text"
+                    defaultValue={row.remarks}
+                    placeholder="e.g. Selected for National Round"
+                    aria-label={`Custom message for ${row.name}`}
+                    className="w-56 rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm focus:border-bdaio-blue focus:outline-none focus:ring-2 focus:ring-bdaio-blue/30"
+                  />
+                </td>
                 <td className="px-4 py-2.5 text-slate-700">
                   {row.rank ?? <span className="text-slate-400">—</span>}
                 </td>
@@ -137,7 +149,7 @@ export function ScoreForm({
             ))}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={4} className="px-4 py-8 text-center text-slate-500">
+                <td colSpan={5} className="px-4 py-8 text-center text-slate-500">
                   No approved entries for this round yet.
                 </td>
               </tr>

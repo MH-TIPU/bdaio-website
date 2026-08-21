@@ -102,13 +102,6 @@ export function ProfileForm({
             errors={state?.errors?.fullName}
           />
           <Field
-            label="Full name (বাংলা)"
-            name="fullNameBn"
-            defaultValue={defaults.fullNameBn}
-            errors={state?.errors?.fullNameBn}
-            className="font-bengali"
-          />
-          <Field
             label="Phone"
             name="phone"
             type="tel"

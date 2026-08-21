@@ -47,14 +47,13 @@ const BOX_CLASS: Record<TierSize, string> = {
 
 function SponsorLogo({
   sponsor,
-  locale,
   size,
 }: {
   sponsor: SponsorRow;
-  locale: Locale;
+  locale?: Locale;
   size: TierSize;
 }) {
-  const name = locale === "bn" && sponsor.nameBn ? sponsor.nameBn : sponsor.name;
+  const name = sponsor.name;
   const box = BOX_CLASS[size];
 
   const inner = sponsor.logo ? (
@@ -69,12 +68,8 @@ function SponsorLogo({
       />
     </div>
   ) : (
-    // No logo uploaded yet: the name is still the information, so show it rather
-    // than an empty box or a broken image.
     <div
-      className={`flex items-center justify-center text-center text-xs font-bold text-slate-500 ${box} ${
-        locale === "bn" && sponsor.nameBn ? "font-bengali" : ""
-      }`}
+      className={`flex items-center justify-center text-center text-xs font-bold text-slate-500 ${box}`}
     >
       {name}
     </div>

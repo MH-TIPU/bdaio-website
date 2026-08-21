@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { saveEvent } from "@/server/admin/actions";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
+import { RichTextEditor } from "@/components/ui/RichTextEditor";
 import { SELECT_CLASS } from "@/components/admin/formStyles";
 
 export type EventDefaults = {
@@ -95,13 +96,6 @@ export function EventForm({
 
           <Field label="Title" name="title" required defaultValue={defaults.title} errors={err?.title} />
           <Field
-            label="Title (বাংলা)"
-            name="titleBn"
-            defaultValue={defaults.titleBn}
-            errors={err?.titleBn}
-            className="font-bengali"
-          />
-          <Field
             label="Slug"
             name="slug"
             defaultValue={defaults.slug}
@@ -116,7 +110,7 @@ export function EventForm({
             defaultValue={defaults.year}
             errors={err?.year}
           />
-          <Field
+          <RichTextEditor
             label="Description"
             name="description"
             defaultValue={defaults.description}

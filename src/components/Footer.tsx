@@ -58,11 +58,7 @@ export function Footer({
           </nav>
         )}
 
-        <p
-          className={`text-sm font-semibold text-bdaio-gray tracking-tight ${
-            locale === "bn" ? "font-bengali" : ""
-          }`}
-        >
+        <p className="text-sm font-semibold text-bdaio-gray tracking-tight">
           © {t.footer.copyright} {year}
         </p>
       </div>

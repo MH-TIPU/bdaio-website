@@ -85,6 +85,23 @@ export async function savePage(_prev: CmsState, formData: FormData): Promise<Cms
   redirect("/admin/content");
 }
 
+export async function deletePage(formData: FormData): Promise<void> {
+  const admin = await requireRole("ADMIN");
+  const id = String(formData.get("id") ?? "");
+  if (!id) return;
+
+  await db.page.delete({ where: { id } });
+
+  await logActivity({
+    userId: admin.id,
+    action: "admin.page.deleted",
+    entityType: "Page",
+    entityId: id,
+  });
+
+  revalidatePath("/admin/content");
+}
+
 // --- Announcements ---------------------------------------------------------
 
 const announcementSchema = z.object({

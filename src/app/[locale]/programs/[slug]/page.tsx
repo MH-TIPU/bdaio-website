@@ -51,11 +51,6 @@ export default async function ProgramPage(props: PageProps<"/[locale]/programs/[
           <h1 className="text-4xl font-black text-bdaio-blue sm:text-5xl">
             {program.title}
           </h1>
-          {program.titleBn && (
-            <p className="font-bengali mt-1 text-lg text-slate-500">
-              {program.titleBn}
-            </p>
-          )}
           {program.description && (
             <p className="mt-4 text-lg text-slate-600">{program.description}</p>
           )}

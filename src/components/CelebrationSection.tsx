@@ -6,8 +6,10 @@ import confetti from "canvas-confetti";
 
 type Home = Dictionary["pages"]["home"];
 
-export function CelebrationSection({ t }: { t: Home }) {
+export function CelebrationSection({ t, enabled = true }: { t: Home; enabled?: boolean }) {
   const fireConfetti = () => {
+    if (!enabled) return;
+
     // 1. Initial Left side burst
     confetti({
       particleCount: 80,
@@ -39,12 +41,13 @@ export function CelebrationSection({ t }: { t: Home }) {
   };
 
   useEffect(() => {
+    if (!enabled) return;
     // Small delay to let the page settle before blasting confetti
     const timer = setTimeout(() => {
       fireConfetti();
     }, 800);
     return () => clearTimeout(timer);
-  }, []);
+  }, [enabled]);
 
   return (
     <section className="bg-white py-16 border-t border-slate-100">

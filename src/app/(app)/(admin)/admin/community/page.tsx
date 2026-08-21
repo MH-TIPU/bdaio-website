@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { db } from "@/lib/db";
 import { decideCommunityRole } from "@/server/community/actions";
 
+import { readPagination } from "@/lib/admin/pagination";
+import { Pagination } from "@/components/admin/Pagination";
+
 export const metadata: Metadata = { title: "Community roles · Admin" };
 
 const STATUS_STYLES = {
@@ -10,22 +13,30 @@ const STATUS_STYLES = {
   REJECTED: "bg-red-50 text-red-700",
 } as const;
 
-export default async function AdminCommunityPage() {
-  // Admins decide BdAIO-wide roles; institution-scoped ones go to moderators.
-  const applications = await db.communityRole.findMany({
-    where: { institutionId: null },
-    orderBy: [{ status: "asc" }, { createdAt: "desc" }],
-    include: {
-      user: {
-        select: {
-          email: true,
-          profile: { select: { fullName: true, handle: true } },
+export default async function AdminCommunityPage(
+  props: PageProps<"/admin/community">,
+) {
+  const params = await props.searchParams;
+  const { page, pageSize, skip, take } = readPagination(params, 10);
+
+  const [totalApps, applications, pendingCount] = await Promise.all([
+    db.communityRole.count({ where: { institutionId: null } }),
+    db.communityRole.findMany({
+      where: { institutionId: null },
+      orderBy: [{ status: "asc" }, { createdAt: "desc" }],
+      skip,
+      take,
+      include: {
+        user: {
+          select: {
+            email: true,
+            profile: { select: { fullName: true, handle: true } },
+          },
         },
       },
-    },
-  });
-
-  const pending = applications.filter((a) => a.status === "PENDING");
+    }),
+    db.communityRole.count({ where: { institutionId: null, status: "PENDING" } }),
+  ]);
 
   return (
     <>
@@ -35,9 +46,9 @@ export default async function AdminCommunityPage() {
         grants the matching public badge.
       </p>
 
-      {pending.length > 0 && (
+      {pendingCount > 0 && (
         <p className="mt-4 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          {pending.length} awaiting review.
+          {pendingCount} awaiting review.
         </p>
       )}
 
@@ -102,6 +113,14 @@ export default async function AdminCommunityPage() {
           </p>
         )}
       </div>
+
+      <Pagination
+        page={page}
+        pageSize={pageSize}
+        totalItems={totalApps}
+        basePath="/admin/community"
+        searchParams={params}
+      />
     </>
   );
 }

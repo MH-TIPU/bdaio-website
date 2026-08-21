@@ -34,7 +34,6 @@ export function FaqRowForm({ defaults }: { defaults: FaqDefaults }) {
         defaultValue={defaults.section}
         errors={err?.section}
         hint="Questions are grouped under this heading on the public page."
-        className="font-bengali"
       />
 
       <Field
@@ -43,7 +42,6 @@ export function FaqRowForm({ defaults }: { defaults: FaqDefaults }) {
         required
         defaultValue={defaults.question}
         errors={err?.question}
-        className="font-bengali"
       />
 
       <div>
@@ -52,7 +50,7 @@ export function FaqRowForm({ defaults }: { defaults: FaqDefaults }) {
           name="answer"
           rows={3}
           defaultValue={defaults.answer}
-          className="font-bengali mt-1.5 block w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-bdaio-blue focus:outline-none focus:ring-2 focus:ring-bdaio-blue/30"
+          className="mt-1.5 block w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-bdaio-blue focus:outline-none focus:ring-2 focus:ring-bdaio-blue/30"
         />
         {err?.answer && <p className="mt-1.5 text-xs text-red-600">{err.answer[0]}</p>}
       </div>

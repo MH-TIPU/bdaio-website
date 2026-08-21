@@ -58,6 +58,8 @@ export function LanguageToggle({
     router.refresh();
   }
 
+  if (LOCALES.length <= 1) return null;
+
   return (
     <div
       className="flex items-center rounded-md bg-bdaio-gray-light/60 p-px"

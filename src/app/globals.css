@@ -39,7 +39,6 @@
   --color-bdaio-gray: var(--bdaio-gray);
   --color-bdaio-gray-light: var(--bdaio-gray-light);
   --font-sans: var(--font-inter);
-  --font-bengali: var(--font-hind-siliguri);
 }
 
 html {
@@ -91,10 +90,6 @@ body {
 
 .site-footer {
   border-top-width: 1px;
-}
-
-.font-bengali {
-  font-family: var(--font-hind-siliguri), system-ui, sans-serif;
 }
 
 ::selection {

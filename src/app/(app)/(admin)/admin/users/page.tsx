@@ -16,7 +16,15 @@ import {
   Th,
   Tr,
 } from "@/components/admin/DataTable";
+import {
+  AddUserModal,
+  ViewUserModal,
+  EditUserModal,
+  DeleteUserModal,
+} from "@/components/admin/UserModals";
 import { readSort, sortHref } from "@/lib/admin/sort";
+import { readPagination } from "@/lib/admin/pagination";
+import { Pagination } from "@/components/admin/Pagination";
 import type { Prisma } from "@/generated/prisma/client";
 
 export const metadata: Metadata = { title: "Users · Admin" };
@@ -45,35 +53,47 @@ export default async function AdminUsersPage(props: PageProps<"/admin/users">) {
   const params = await props.searchParams;
   const search = typeof params.q === "string" ? params.q.trim() : "";
   const sort = readSort(params, SORT_KEYS, { key: "joined", dir: "desc" });
+  const { page, pageSize, skip, take } = readPagination(params, 15);
 
-  const users = await db.user.findMany({
-    where: search
-      ? {
-          OR: [
-            { email: { contains: search, mode: "insensitive" } },
-            { profile: { fullName: { contains: search, mode: "insensitive" } } },
-          ],
-        }
-      : {},
-    orderBy: SORTS[sort.key](sort.dir),
-    take: 100,
-    include: {
-      profile: { select: { fullName: true, handle: true } },
-      _count: { select: { registrations: true } },
-    },
-  });
+  const where: Prisma.UserWhereInput = search
+    ? {
+        OR: [
+          { email: { contains: search, mode: "insensitive" } },
+          { profile: { fullName: { contains: search, mode: "insensitive" } } },
+        ],
+      }
+    : {};
+
+  const [totalUsers, users] = await Promise.all([
+    db.user.count({ where }),
+    db.user.findMany({
+      where,
+      orderBy: SORTS[sort.key](sort.dir),
+      skip,
+      take,
+      include: {
+        profile: { select: { fullName: true, handle: true, phone: true } },
+        _count: { select: { registrations: true } },
+      },
+    }),
+  ]);
 
   const isSuper = actor.role === "SUPER_ADMIN";
   const href = (column: SortKey) => sortHref("/admin/users", params, sort, column);
 
   return (
     <>
-      <h1 className="text-2xl font-bold text-slate-900">Users</h1>
-      <p className="mt-1 text-sm text-slate-600">
-        {isSuper
-          ? "You can change any role, including admins."
-          : "Only a super admin can create or change admins."}
-      </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Users</h1>
+          <p className="mt-1 text-sm text-slate-600">
+            {isSuper
+              ? "Full user management — view, add, edit role/profile, suspend, or delete accounts."
+              : "View, edit, suspend, or delete non-admin user accounts."}
+          </p>
+        </div>
+        <AddUserModal isSuper={isSuper} />
+      </div>
 
       <form method="get" className="mt-4 flex gap-2">
         <input
@@ -83,8 +103,6 @@ export default async function AdminUsersPage(props: PageProps<"/admin/users">) {
           placeholder="Search name or email…"
           className="w-full max-w-sm rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-bdaio-blue focus:outline-none focus:ring-2 focus:ring-bdaio-blue/30"
         />
-        {/* Carried through the search, or searching would silently reset the
-            column you had sorted by. */}
         <input type="hidden" name="sort" value={sort.key} />
         <input type="hidden" name="dir" value={sort.dir} />
         <button
@@ -203,14 +221,8 @@ export default async function AdminUsersPage(props: PageProps<"/admin/users">) {
                   </Td>
 
                   <RowActions>
-                    {user.profile?.handle && (
-                      <Link
-                        href={`/u/${user.profile.handle}`}
-                        className={ACTION_CLASS.normal}
-                      >
-                        View
-                      </Link>
-                    )}
+                    <ViewUserModal user={user} />
+                    {mayEdit && <EditUserModal user={user} isSuper={isSuper} />}
                     {mayEdit && (
                       <form action={setUserStatus}>
                         <input type="hidden" name="userId" value={user.id} />
@@ -231,18 +243,24 @@ export default async function AdminUsersPage(props: PageProps<"/admin/users">) {
                         </button>
                       </form>
                     )}
+                    {mayEdit && <DeleteUserModal user={user} />}
                   </RowActions>
                 </Tr>
               );
             })}
           </TBody>
         </DataTable>
+        <Pagination
+          page={page}
+          pageSize={pageSize}
+          totalItems={totalUsers}
+          basePath="/admin/users"
+          searchParams={params}
+        />
       </div>
 
       <p className="mt-3 text-xs text-slate-500">
-        Suspending someone signs them out of every device immediately. There is no delete:
-        an account is attached to registrations, results and certificates, and removing it
-        would take that record with it — suspension is the way to close an account.
+        You have full administrative control: view details, create new user accounts, update profile &amp; role details, suspend active sessions, or permanently delete accounts.
       </p>
     </>
   );

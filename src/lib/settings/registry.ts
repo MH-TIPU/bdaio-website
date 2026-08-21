@@ -67,15 +67,6 @@ export const SETTINGS = [
     max: 300,
   },
   {
-    key: "contact.addressBn",
-    group: "Contact",
-    label: "Office address (Bengali)",
-    type: "textarea",
-    default: "গ্রিন সিটি সেন্টার, লেভেল ১২, ৭৫৮ সাতমসজিদ রোড, ঢাকা ১২০৯, বাংলাদেশ",
-    max: 300,
-    bengali: true,
-  },
-  {
     key: "contact.inbox",
     group: "Contact",
     label: "Contact form inbox",
@@ -134,6 +125,33 @@ export const SETTINGS = [
     default: "false",
   },
   {
+    key: "site.noticeType",
+    group: "Public site",
+    label: "Notice display format",
+    hint: "Choose topbar (banner above header) or modal (popup dialog).",
+    type: "text",
+    default: "topbar",
+    max: 20,
+  },
+  {
+    key: "site.noticeTitle",
+    group: "Public site",
+    label: "Notice title",
+    hint: "Heading displayed for modal popups.",
+    type: "text",
+    default: "Announcement",
+    max: 100,
+  },
+  {
+    key: "site.noticeUrl",
+    group: "Public site",
+    label: "Notice action link URL",
+    hint: "Optional link (e.g. /events/bdaio-2026 or https://...).",
+    type: "text",
+    default: "",
+    max: 300,
+  },
+  {
     key: "site.notice",
     group: "Public site",
     label: "Notice text",
@@ -142,19 +160,18 @@ export const SETTINGS = [
     max: 200,
   },
   {
-    key: "site.noticeBn",
-    group: "Public site",
-    label: "Notice text (Bengali)",
-    type: "text",
-    default: "",
-    max: 200,
-    bengali: true,
-  },
-  {
     key: "signup.enabled",
     group: "Public site",
     label: "Allow new accounts",
     hint: "Turn off to close registration. Existing accounts keep working, and the sign-up form is replaced with a short explanation.",
+    type: "boolean",
+    default: "true",
+  },
+  {
+    key: "site.confettiEnabled",
+    group: "Public site",
+    label: "Enable celebratory confetti animation",
+    hint: "Show celebratory confetti animation on the home page celebration section.",
     type: "boolean",
     default: "true",
   },
@@ -216,6 +233,23 @@ function fieldSchema(setting: SettingDefinition) {
       .union([z.literal("on"), z.literal("")])
       .optional()
       .transform((v) => (v === "on" ? "true" : "false"));
+  }
+
+  if (setting.key === "site.noticeType") {
+    return z
+      .string()
+      .trim()
+      .transform((v) => (v === "modal" ? "modal" : "topbar"));
+  }
+
+  if (setting.key === "site.noticeUrl") {
+    return z
+      .string()
+      .trim()
+      .max(setting.max ?? MAX_TEXT)
+      .refine((v) => v === "" || v.startsWith("/") || /^https?:\/\/\S+$/.test(v), {
+        error: "Enter a relative path (e.g. /events/...) or a full URL starting with http:// or https://",
+      });
   }
 
   const text = z.string().trim().max(setting.max ?? MAX_TEXT);

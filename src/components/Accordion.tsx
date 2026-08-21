@@ -10,10 +10,9 @@ type AccordionItem = {
 type AccordionProps = {
   items: AccordionItem[];
   className?: string;
-  bengali?: boolean;
 };
 
-export function Accordion({ items, className = "", bengali = false }: AccordionProps) {
+export function Accordion({ items, className = "" }: AccordionProps) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
@@ -24,9 +23,7 @@ export function Accordion({ items, className = "", bengali = false }: AccordionP
           <div key={index} className="py-1">
             <button
               onClick={() => setOpenIndex(isOpen ? null : index)}
-              className={`flex w-full items-center justify-between py-4 text-left transition-colors focus:outline-none group ${
-                bengali ? "font-bengali" : ""
-              }`}
+              className="flex w-full items-center justify-between py-4 text-left transition-colors focus:outline-none group"
             >
               <div className="flex items-center gap-3.5 pr-4">
                 <span className="shrink-0 text-xl font-bold text-bdaio-blue select-none">
@@ -50,9 +47,7 @@ export function Accordion({ items, className = "", bengali = false }: AccordionP
             </button>
             {isOpen && (
               <div
-                className={`pb-5 pl-8 pr-6 text-sm leading-relaxed text-slate-655 ${
-                  bengali ? "font-bengali" : ""
-                } animate-in fade-in duration-200`}
+                className="pb-5 pl-8 pr-6 text-sm leading-relaxed text-slate-655 animate-in fade-in duration-200"
               >
                 {item.answer}
               </div>

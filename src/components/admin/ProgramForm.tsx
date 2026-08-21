@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { saveProgram } from "@/server/admin/actions";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
+import { RichTextEditor } from "@/components/ui/RichTextEditor";
 import { SELECT_CLASS } from "@/components/admin/formStyles";
 
 export type ProgramDefaults = {
@@ -39,13 +40,6 @@ export function ProgramForm({ defaults }: { defaults: ProgramDefaults }) {
           errors={state?.errors?.title}
         />
         <Field
-          label="Title (বাংলা)"
-          name="titleBn"
-          defaultValue={defaults.titleBn}
-          errors={state?.errors?.titleBn}
-          className="font-bengali"
-        />
-        <Field
           label="Slug"
           name="slug"
           defaultValue={defaults.slug}
@@ -68,7 +62,7 @@ export function ProgramForm({ defaults }: { defaults: ProgramDefaults }) {
             <option value="INTERNATIONAL">International</option>
           </select>
         </div>
-        <Field
+        <RichTextEditor
           label="Description"
           name="description"
           defaultValue={defaults.description}

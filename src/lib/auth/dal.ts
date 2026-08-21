@@ -39,6 +39,7 @@ export const getCurrentUser = cache(async () => {
               handle: true,
               fullName: true,
               photo: true,
+              visibility: true,
               institutionId: true,
             },
           },

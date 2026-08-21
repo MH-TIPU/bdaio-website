@@ -24,11 +24,7 @@ export default async function ContactPage({ params }: PageProps<"/[locale]/conta
   const t = getDictionary(locale).pages.contact;
   const settings = await getSettings();
 
-  // Bengali falls back to the English address rather than showing nothing when
-  // the translation has not been filled in.
-  const address =
-    (locale === "bn" ? settings["contact.addressBn"] : settings["contact.address"]) ||
-    settings["contact.address"];
+  const address = settings["contact.address"];
 
   return (
     <section className="bg-white py-20">

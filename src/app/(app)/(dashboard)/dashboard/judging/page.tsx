@@ -71,6 +71,7 @@ export default async function JudgingPage() {
           institution: registration.user.profile?.institution?.name ?? null,
           marks: result?.marks != null ? String(result.marks) : "",
           medal: result?.medal ?? "",
+          remarks: result?.remarks ?? "",
           rank: result?.rank ?? null,
           submission: (() => {
             const found = submissionByRegistration.get(registration.id);

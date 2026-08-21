@@ -24,18 +24,12 @@ export function RegisterInstitutionForm() {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Field
-          label="Institution name"
+          label="Institution / Club Name"
           name="name"
           required
           defaultValue=""
           errors={state?.errors?.name}
           className="sm:col-span-2"
-        />
-        <Field
-          label="Name (বাংলা)"
-          name="nameBn"
-          errors={state?.errors?.nameBn}
-          className="font-bengali sm:col-span-2"
         />
         <div>
           <label htmlFor="type" className="block text-sm font-medium text-slate-700">

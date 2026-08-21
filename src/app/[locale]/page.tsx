@@ -8,6 +8,8 @@ import { DESCRIPTION } from "@/lib/rootMetadata";
 import { notFound } from "next/navigation";
 import { getDictionary, isLocale } from "@/lib/i18n";
 
+import { getSettings } from "@/lib/settings";
+
 export async function generateMetadata(
   { params }: PageProps<"/[locale]">,
 ): Promise<Metadata> {
@@ -25,12 +27,15 @@ export async function generateMetadata(
 export default async function HomePage({ params }: PageProps<"/[locale]">) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
-  const t = getDictionary(locale).pages.home;
+  const [settings, t] = await Promise.all([
+    getSettings(),
+    getDictionary(locale).pages.home,
+  ]);
 
   return (
     <>
       <HeroSection t={t} />
-      <CelebrationSection t={t} />
+      <CelebrationSection t={t} enabled={Boolean(settings["site.confettiEnabled"])} />
       <IntroSection t={t} />
       <MissionSection t={t} />
       <JourneySection t={t} />

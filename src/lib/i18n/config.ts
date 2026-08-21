@@ -9,15 +9,9 @@
  * component alike.
  */
 
-export const LOCALES = ["en", "bn"] as const;
+export const LOCALES = ["en"] as const;
 export type Locale = (typeof LOCALES)[number];
 
-/**
- * English is the default because the olympiad's own materials, the syllabus, and
- * the international pathway (IOAI/APAIO) are in English. Bengali is a first-class
- * translation, not a fallback — see §9 of the plan: no feature ships
- * English-only.
- */
 export const DEFAULT_LOCALE: Locale = "en";
 
 /** Remembers a visitor's choice so the toggle survives a navigation. */
@@ -26,28 +20,16 @@ export const LOCALE_COOKIE = "NEXT_LOCALE";
 /** A year: this is a preference, not a session. */
 export const LOCALE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 
-/** What each locale is called *in that locale* — never "Bengali" in English. */
 export const LOCALE_LABELS: Record<Locale, string> = {
   en: "English",
-  bn: "বাংলা",
 };
 
-/**
- * Two-letter codes for the compact toggle in the header.
- *
- * Latin for both, including Bengali: "BN" in a 10px chip stays legible where
- * "বাং" would be a smudge, and the full name is still what a screen reader
- * announces — see the `aria-label` in `LanguageToggle`.
- */
 export const LOCALE_SHORT: Record<Locale, string> = {
   en: "EN",
-  bn: "BN",
 };
 
-/** The `lang` attribute / `hreflang` value for each locale. */
 export const LOCALE_HREFLANG: Record<Locale, string> = {
   en: "en",
-  bn: "bn",
 };
 
 export function isLocale(value: string | undefined | null): value is Locale {
@@ -55,10 +37,8 @@ export function isLocale(value: string | undefined | null): value is Locale {
 }
 
 /**
- * Splits `/bn/events/foo` into its locale and the path without it.
- *
- * Returns `locale: null` when the path carries no locale prefix, which is what
- * the proxy uses to decide whether a redirect is needed.
+ * Splits `/en/events` into its locale and the path without it.
+ * Also handles legacy `/bn/*` paths by mapping rest to the path without `/bn`.
  */
 export function splitLocale(pathname: string): {
   locale: Locale | null;
@@ -71,8 +51,14 @@ export function splitLocale(pathname: string): {
     const rest = `/${segments.slice(2).join("/")}`;
     return { locale: first, rest: rest === "/" ? "/" : rest.replace(/\/$/, "") };
   }
+  if (first === "bn") {
+    const rest = `/${segments.slice(2).join("/")}`;
+    return { locale: null, rest: rest === "/" ? "/" : rest.replace(/\/$/, "") };
+  }
   return { locale: null, rest: pathname };
 }
+
+const UNLOCALIZED_PREFIXES = ["/dashboard", "/admin", "/study", "/api", "/uploads"];
 
 /** Builds a locale-prefixed path: ("bn", "/events") → "/bn/events". */
 export function localePath(locale: Locale, path: string): string {
@@ -80,6 +66,11 @@ export function localePath(locale: Locale, path: string): string {
   // Strip an existing prefix so this is safe to apply to an already-localized
   // path — otherwise a language toggle produces /bn/en/events.
   const { rest } = splitLocale(clean);
+
+  if (UNLOCALIZED_PREFIXES.some((p) => rest === p || rest.startsWith(`${p}/`))) {
+    return rest;
+  }
+
   return rest === "/" ? `/${locale}` : `/${locale}${rest}`;
 }
 

@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { savePage } from "@/server/cms/actions";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
+import { RichTextEditor } from "@/components/ui/RichTextEditor";
 
 export type PageDefaults = {
   id?: string;
@@ -29,13 +30,6 @@ export function PageForm({ defaults }: { defaults: PageDefaults }) {
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Title" name="title" required defaultValue={defaults.title} errors={err?.title} />
         <Field
-          label="Title (বাংলা)"
-          name="titleBn"
-          defaultValue={defaults.titleBn}
-          errors={err?.titleBn}
-          className="font-bengali"
-        />
-        <Field
           label="Slug"
           name="slug"
           required
@@ -46,29 +40,14 @@ export function PageForm({ defaults }: { defaults: PageDefaults }) {
         />
       </div>
 
-      <div>
-        <label htmlFor="body" className="block text-sm font-medium text-slate-700">
-          Content
-        </label>
-        <p className="mt-0.5 text-xs text-slate-500">
-          Plain text. Blank lines start a new paragraph.
-        </p>
-        <textarea id="body" name="body" rows={14} defaultValue={defaults.body} className={TEXTAREA} />
-        {err?.body && <p className="mt-1.5 text-xs text-red-600">{err.body[0]}</p>}
-      </div>
-
-      <div>
-        <label htmlFor="bodyBn" className="block text-sm font-medium text-slate-700">
-          Content (বাংলা)
-        </label>
-        <textarea
-          id="bodyBn"
-          name="bodyBn"
-          rows={10}
-          defaultValue={defaults.bodyBn}
-          className={`${TEXTAREA} font-bengali`}
-        />
-      </div>
+      <RichTextEditor
+        label="Content"
+        name="body"
+        id="body"
+        defaultValue={defaults.body}
+        errors={err?.body}
+        hint="Rich text formatted content."
+      />
 
       <label className="flex items-center gap-2 text-sm text-slate-700">
         <input

@@ -31,14 +31,7 @@ export function ModuleForm({ defaults }: { defaults: ModuleDefaults }) {
         errors={err?.title}
         className="min-w-48 flex-1"
       />
-      <Field
-        label="Title (Bengali)"
-        name="titleBn"
-        id={`mtitleBn-${key}`}
-        defaultValue={defaults.titleBn}
-        errors={err?.titleBn}
-        className="min-w-48 flex-1 font-bengali"
-      />
+
       <Field
         label="Order"
         name="order"

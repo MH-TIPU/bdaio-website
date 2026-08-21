@@ -2,13 +2,32 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { deleteAnnouncement } from "@/server/cms/actions";
+import { getSettings, SETTINGS, type SettingKey } from "@/lib/settings";
+import { SiteNoticeManager } from "@/components/admin/SiteNoticeManager";
+import { readPagination } from "@/lib/admin/pagination";
+import { Pagination } from "@/components/admin/Pagination";
 
 export const metadata: Metadata = { title: "Announcements · Admin" };
 
-export default async function AdminAnnouncementsPage() {
-  const announcements = await db.announcement.findMany({
-    orderBy: [{ pinned: "desc" }, { createdAt: "desc" }],
-  });
+export default async function AdminAnnouncementsPage(
+  props: PageProps<"/admin/announcements">,
+) {
+  const params = await props.searchParams;
+  const { page, pageSize, skip, take } = readPagination(params, 10);
+
+  const [settings, totalAnnouncements, announcements] = await Promise.all([
+    getSettings(),
+    db.announcement.count(),
+    db.announcement.findMany({
+      orderBy: [{ pinned: "desc" }, { createdAt: "desc" }],
+      skip,
+      take,
+    }),
+  ]);
+
+  const allSettings = Object.fromEntries(
+    SETTINGS.map((setting) => [setting.key, String(settings[setting.key as keyof typeof settings])]),
+  ) as Record<SettingKey, string>;
 
   const now = new Date();
 
@@ -28,6 +47,17 @@ export default async function AdminAnnouncementsPage() {
         >
           New announcement
         </Link>
+      </div>
+
+      <div className="mt-8">
+        <SiteNoticeManager
+          enabled={Boolean(settings["site.noticeEnabled"])}
+          type={String(settings["site.noticeType"] || "topbar")}
+          title={String(settings["site.noticeTitle"] || "Important Announcement")}
+          text={String(settings["site.notice"] || "")}
+          url={String(settings["site.noticeUrl"] || "")}
+          allSettings={allSettings}
+        />
       </div>
 
       <ul className="mt-6 space-y-3">
@@ -100,6 +130,14 @@ export default async function AdminAnnouncementsPage() {
           </li>
         )}
       </ul>
+
+      <Pagination
+        page={page}
+        pageSize={pageSize}
+        totalItems={totalAnnouncements}
+        basePath="/admin/announcements"
+        searchParams={params}
+      />
     </>
   );
 }

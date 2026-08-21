@@ -150,3 +150,18 @@ export async function deleteMedia(
   revalidatePath("/admin/media");
   return { success: true, message: "Deleted." };
 }
+
+export async function listMediaAssets(): Promise<{ id: string; title: string; url: string }[]> {
+  const assets = await db.mediaAsset.findMany({
+    orderBy: { createdAt: "desc" },
+    select: { id: true, title: true, filename: true },
+    take: 100,
+  });
+
+  const { mediaUrl } = await import("@/lib/storage/uploads");
+  return assets.map((a) => ({
+    id: a.id,
+    title: a.title,
+    url: mediaUrl(a.filename),
+  }));
+}

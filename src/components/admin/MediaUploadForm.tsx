@@ -57,41 +57,79 @@ export function MediaUploadForm() {
     setPreview(URL.createObjectURL(file));
   }
 
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file && file.type.startsWith("image/")) {
+      setLocalError(null);
+      if (file.size > MAX_BYTES) {
+        setLocalError("Image must be 2 MB or smaller.");
+        setPreview(null);
+        return;
+      }
+      setPreview(URL.createObjectURL(file));
+    }
+  }
+
   const fileError = localError ? [localError] : state?.errors?.file;
 
   return (
     <form ref={formRef} action={action} className="space-y-4" noValidate>
-      <div className="flex items-start gap-4">
-        <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-slate-100 ring-1 ring-slate-200">
-          {preview ? (
-            // A blob: URL from the file picker cannot go through next/image.
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={preview} alt="" className="h-full w-full object-contain" />
-          ) : (
-            <span className="text-xs text-slate-400">Preview</span>
-          )}
-        </div>
-        <div className="min-w-0 flex-1">
-          <label htmlFor="file" className="block text-sm font-medium text-slate-700">
-            Image
-          </label>
-          <input
-            id="file"
-            name="file"
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            onChange={onPick}
-            className="mt-1.5 block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-bdaio-blue file:px-3.5 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-bdaio-blue-dark"
-          />
-          <p className="mt-1.5 text-xs text-slate-500">
-            JPEG, PNG, or WebP, up to 2 MB. Re-encoded to WebP and capped at 1600px on the
-            longest edge; nothing is cropped, so logos keep their shape.
-          </p>
-          {fileError?.length ? (
-            <p className="mt-1.5 text-xs text-red-600">{fileError[0]}</p>
-          ) : null}
-        </div>
+      <div
+        onDragOver={(e) => {
+          e.preventDefault();
+          setIsDragging(true);
+        }}
+        onDragLeave={() => setIsDragging(false)}
+        onDrop={handleDrop}
+        onClick={() => fileInputRef.current?.click()}
+        className={`flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed p-6 text-center transition ${
+          isDragging
+            ? "border-bdaio-blue bg-bdaio-blue/10"
+            : "border-slate-300 bg-slate-50/50 hover:border-bdaio-blue hover:bg-blue-50/30"
+        }`}
+      >
+        <input
+          ref={fileInputRef}
+          id="file"
+          name="file"
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          onChange={onPick}
+          className="hidden"
+        />
+
+        {preview ? (
+          <div className="relative flex h-32 w-48 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-white p-2 shadow-2xs">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={preview} alt="" className="max-h-full w-auto object-contain" />
+          </div>
+        ) : (
+          <>
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-bdaio-blue/10 text-bdaio-blue">
+              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-sm font-bold text-slate-800">
+                Drag & drop image here, or <span className="text-bdaio-blue underline">browse</span>
+              </p>
+              <p className="mt-1 text-xs text-slate-400">
+                JPEG, PNG, or WebP up to 2 MB (capped at 1600px on longest edge)
+              </p>
+            </div>
+          </>
+        )}
       </div>
+
+      {fileError?.length ? (
+        <p className="text-xs font-semibold text-red-600">{fileError[0]}</p>
+      ) : null}
 
       <Field
         label="Name"

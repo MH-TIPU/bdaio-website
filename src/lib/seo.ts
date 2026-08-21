@@ -65,7 +65,6 @@ type PageMetadataInput = {
 /** The `og:locale` value each locale maps to. */
 const OG_LOCALE: Record<Locale, string> = {
   en: "en_US",
-  bn: "bn_BD",
 };
 
 export function pageMetadata({

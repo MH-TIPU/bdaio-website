@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { db } from "@/lib/db";
-import { CourseForm } from "@/components/admin/CourseForm";
+import { mediaUrl } from "@/lib/storage/uploads";
+import { AddCourseModal } from "@/components/admin/CourseModals";
+import { deleteCourse } from "@/server/admin/courses";
+import { readPagination } from "@/lib/admin/pagination";
+import { Pagination } from "@/components/admin/Pagination";
 
 export const metadata: Metadata = { title: "Courses · Admin" };
 
@@ -11,25 +15,42 @@ const STATUS_STYLE: Record<string, string> = {
   ARCHIVED: "bg-amber-50 text-amber-800 ring-amber-200",
 };
 
-export default async function AdminCoursesPage() {
-  const [courses, covers] = await Promise.all([
+export default async function AdminCoursesPage(props: PageProps<"/admin/courses">) {
+  const params = await props.searchParams;
+  const { page, pageSize, skip, take } = readPagination(params, 10);
+
+  const [totalCourses, courses, rawCovers] = await Promise.all([
+    db.course.count(),
     db.course.findMany({
       orderBy: [{ order: "asc" }, { title: "asc" }],
+      skip,
+      take,
       include: {
         _count: { select: { enrollments: true } },
         modules: { select: { lessons: { select: { id: true } } } },
       },
     }),
-    db.mediaAsset.findMany({ orderBy: { title: "asc" }, select: { id: true, title: true } }),
+    db.mediaAsset.findMany({ orderBy: { title: "asc" }, select: { id: true, title: true, filename: true } }),
   ]);
+
+  const covers = rawCovers.map((c) => ({
+    id: c.id,
+    title: c.title,
+    url: mediaUrl(c.filename),
+  }));
 
   return (
     <>
-      <h1 className="text-2xl font-bold text-slate-900">Courses</h1>
-      <p className="mt-1 text-sm text-slate-600">
-        Self-paced learning. A course is a draft until you publish it, and archiving closes it
-        to new starters while everyone already on it keeps their progress.
-      </p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Courses</h1>
+          <p className="mt-1 text-sm text-slate-600">
+            Self-paced learning. A course is a draft until you publish it, and archiving closes it
+            to new starters while everyone already on it keeps their progress.
+          </p>
+        </div>
+        <AddCourseModal covers={covers} nextOrder={totalCourses} />
+      </div>
 
       <div className="mt-6 space-y-3">
         {courses.map((course) => {
@@ -61,12 +82,26 @@ export default async function AdminCoursesPage() {
                   {course.certificate && " · certificate"}
                 </p>
               </div>
-              <Link
-                href={`/admin/courses/${course.id}`}
-                className="shrink-0 rounded-lg px-3.5 py-2 text-sm font-semibold text-bdaio-blue ring-1 ring-slate-200 hover:bg-slate-50"
-              >
-                Edit content
-              </Link>
+              <div className="flex items-center gap-2">
+                <Link
+                  href={`/admin/courses/${course.id}`}
+                  className="shrink-0 rounded-lg px-3.5 py-2 text-sm font-semibold text-bdaio-blue ring-1 ring-slate-200 hover:bg-slate-50"
+                >
+                  Edit content
+                </Link>
+                {course._count.enrollments === 0 && (
+                  <form action={deleteCourse}>
+                    <input type="hidden" name="id" value={course.id} />
+                    <button
+                      type="submit"
+                      className="shrink-0 rounded-lg px-3 py-2 text-sm font-semibold text-red-600 ring-1 ring-red-200 hover:bg-red-50"
+                      title="Delete course"
+                    >
+                      Delete
+                    </button>
+                  </form>
+                )}
+              </div>
             </div>
           );
         })}
@@ -77,28 +112,13 @@ export default async function AdminCoursesPage() {
         )}
       </div>
 
-      <div className="mt-8 rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
-        <h2 className="text-sm font-semibold text-slate-900">New course</h2>
-        <div className="mt-4">
-          <CourseForm
-            covers={covers}
-            defaults={{
-              title: "",
-              titleBn: "",
-              slug: "",
-              summary: "",
-              summaryBn: "",
-              description: "",
-              level: "BEGINNER",
-              status: "DRAFT",
-              visibility: "PUBLIC",
-              coverId: "",
-              certificate: false,
-              order: String(courses.length),
-            }}
-          />
-        </div>
-      </div>
+      <Pagination
+        page={page}
+        pageSize={pageSize}
+        totalItems={totalCourses}
+        basePath="/admin/courses"
+        searchParams={params}
+      />
     </>
   );
 }

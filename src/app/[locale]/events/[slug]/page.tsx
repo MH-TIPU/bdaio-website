@@ -132,13 +132,17 @@ export default async function EventPage(props: PageProps<"/[locale]/events/[slug
         <h1 className="mt-3 text-3xl font-black text-bdaio-blue sm:text-4xl">
           {event.title}
         </h1>
-        {event.titleBn && (
-          <p className="font-bengali mt-1 text-lg text-slate-500">{event.titleBn}</p>
-        )}
         {event.description && (
-          <p className="mt-4 max-w-3xl text-lg text-slate-600">
-            {event.description}
-          </p>
+          event.description.startsWith("<") ? (
+            <div
+              className="prose prose-slate mt-4 max-w-3xl text-lg text-slate-600"
+              dangerouslySetInnerHTML={{ __html: event.description }}
+            />
+          ) : (
+            <p className="mt-4 max-w-3xl text-lg text-slate-600">
+              {event.description}
+            </p>
+          )
         )}
 
         <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_320px]">

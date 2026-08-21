@@ -45,9 +45,8 @@ export default async function CoursePage({ params }: PageProps<"/[locale]/learn/
     : null;
   const enrolled = Boolean(enrollment && enrollment.status !== "WITHDRAWN");
 
-  const bengali = locale === "bn";
-  const title = bengali && course.titleBn ? course.titleBn : course.title;
-  const summary = bengali && course.summaryBn ? course.summaryBn : course.summary;
+  const title = course.title;
+  const summary = course.summary;
   const lessonCount = course.modules.reduce((sum, m) => sum + m.lessons.length, 0);
   const minutes = course.modules
     .flatMap((m) => m.lessons)
@@ -69,11 +68,11 @@ export default async function CoursePage({ params }: PageProps<"/[locale]/learn/
           </div>
         )}
 
-        <h1 className={`text-3xl font-black text-bdaio-blue sm:text-4xl ${bengali && course.titleBn ? "font-bengali" : ""}`}>
+        <h1 className="text-3xl font-black text-bdaio-blue sm:text-4xl">
           {title}
         </h1>
         {summary && (
-          <p className={`mt-3 ${PROSE} text-lg text-slate-600 ${bengali && course.summaryBn ? "font-bengali" : ""}`}>
+          <p className={`mt-3 ${PROSE} text-lg text-slate-600`}>
             {summary}
           </p>
         )}
@@ -110,11 +109,18 @@ export default async function CoursePage({ params }: PageProps<"/[locale]/learn/
         )}
 
         {course.description && (
-          <div className={`mt-10 ${PROSE} space-y-4 text-slate-700`}>
-            {course.description.split(/\n{2,}/).map((paragraph, index) => (
-              <p key={index}>{paragraph}</p>
-            ))}
-          </div>
+          course.description.startsWith("<") ? (
+            <div
+              className={`mt-10 ${PROSE} text-slate-700`}
+              dangerouslySetInnerHTML={{ __html: course.description }}
+            />
+          ) : (
+            <div className={`mt-10 ${PROSE} space-y-4 text-slate-700`}>
+              {course.description.split(/\n{2,}/).map((paragraph, index) => (
+                <p key={index}>{paragraph}</p>
+              ))}
+            </div>
+          )
         )}
 
         <h2 className="mt-12 text-xl font-bold text-slate-900">{t.syllabus}</h2>
@@ -124,12 +130,8 @@ export default async function CoursePage({ params }: PageProps<"/[locale]/learn/
               key={courseModule.id}
               className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-100"
             >
-              <h3
-                className={`text-sm font-semibold text-slate-900 ${
-                  bengali && courseModule.titleBn ? "font-bengali" : ""
-                }`}
-              >
-                {bengali && courseModule.titleBn ? courseModule.titleBn : courseModule.title}
+              <h3 className="text-sm font-semibold text-slate-900">
+                {courseModule.title}
               </h3>
               <ol className="mt-3 space-y-2">
                 {courseModule.lessons.map((lesson) => (
@@ -137,8 +139,8 @@ export default async function CoursePage({ params }: PageProps<"/[locale]/learn/
                     key={lesson.id}
                     className="flex items-baseline justify-between gap-4 text-sm text-slate-600"
                   >
-                    <span className={bengali && lesson.titleBn ? "font-bengali" : ""}>
-                      {bengali && lesson.titleBn ? lesson.titleBn : lesson.title}
+                    <span>
+                      {lesson.title}
                     </span>
                     {lesson.minutes ? (
                       <span className="shrink-0 text-xs text-slate-500">

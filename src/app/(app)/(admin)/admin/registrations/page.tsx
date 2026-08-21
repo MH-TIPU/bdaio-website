@@ -18,6 +18,9 @@ import { readSort, sortHref } from "@/lib/admin/sort";
 import type { Prisma } from "@/generated/prisma/client";
 import type { RegistrationStatus } from "@/generated/prisma/enums";
 
+import { readPagination } from "@/lib/admin/pagination";
+import { Pagination } from "@/components/admin/Pagination";
+
 export const metadata: Metadata = { title: "Registrations · Admin" };
 
 const STATUSES: RegistrationStatus[] = [
@@ -57,19 +60,22 @@ export default async function AdminRegistrationsPage(
   const status = typeof params.status === "string" ? params.status : "";
   const eventId = typeof params.eventId === "string" ? params.eventId : "";
   const sort = readSort(params, SORT_KEYS, { key: "applied", dir: "desc" });
+  const { page, pageSize, skip, take } = readPagination(params, 20);
 
-  const where = {
+  const where: Prisma.RegistrationWhereInput = {
     ...(STATUSES.includes(status as RegistrationStatus)
       ? { status: status as RegistrationStatus }
       : {}),
     ...(eventId ? { eventId } : {}),
   };
 
-  const [registrations, events, counts] = await Promise.all([
+  const [totalRegistrations, registrations, events, counts] = await Promise.all([
+    db.registration.count({ where }),
     db.registration.findMany({
       where,
       orderBy: SORTS[sort.key](sort.dir),
-      take: 200,
+      skip,
+      take,
       include: {
         user: { select: { email: true, profile: { select: { fullName: true } } } },
         event: { select: { id: true, title: true } },
@@ -246,14 +252,14 @@ export default async function AdminRegistrationsPage(
             ))}
           </TBody>
         </DataTable>
+        <Pagination
+          page={page}
+          pageSize={pageSize}
+          totalItems={totalRegistrations}
+          basePath="/admin/registrations"
+          searchParams={params}
+        />
       </div>
-
-      {registrations.length === 200 && (
-        <p className="mt-3 text-xs text-slate-500">
-          Showing the first 200 entries in this order — narrow the filter or export
-          to CSV for the full list.
-        </p>
-      )}
     </>
   );
 }

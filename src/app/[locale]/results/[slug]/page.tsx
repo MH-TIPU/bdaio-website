@@ -100,74 +100,83 @@ export default async function EventResultsPage(
         </h1>
         <p className="mt-1 text-slate-600">{event.program.title}</p>
 
-        {event.rounds.map((round) => (
-          <div key={round.id} className="mt-8">
-            <h2 className="text-lg font-bold text-slate-900">{round.name}</h2>
+        {event.rounds.map((round) => {
+          const showAward = round.results.some((r) => r.medal != null);
+          const showRemarks = round.results.some((r) => Boolean(r.remarks && r.remarks.trim()));
 
-            <div className="mt-3 overflow-x-auto rounded-xl bg-white shadow-sm ring-1 ring-slate-100">
-              <table className="w-full min-w-[560px] text-left text-sm">
-                <thead className="border-b border-slate-100 bg-slate-50/70">
-                  <tr>
-                    <th className="px-4 py-3 font-semibold text-slate-700">Rank</th>
-                    <th className="px-4 py-3 font-semibold text-slate-700">Participant</th>
-                    <th className="px-4 py-3 font-semibold text-slate-700">Institution</th>
-                    <th className="px-4 py-3 font-semibold text-slate-700">Marks</th>
-                    <th className="px-4 py-3 font-semibold text-slate-700">Award</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {round.results.map((result) => {
-                    const profile = result.registration.user.profile;
-                    const shown = displayName(profile);
-                    return (
-                      <tr key={result.id}>
-                        <td className="px-4 py-3 font-semibold text-slate-900">
-                          {result.rank ? `#${result.rank}` : "—"}
-                        </td>
-                        <td className="px-4 py-3">
-                          {shown.handle ? (
-                            <Link
-                              href={`/u/${shown.handle}`}
-                              className="font-medium text-bdaio-blue hover:underline"
-                            >
-                              {shown.label}
-                            </Link>
-                          ) : (
-                            <span className="text-slate-800">{shown.label}</span>
+          return (
+            <div key={round.id} className="mt-8">
+              <h2 className="text-lg font-bold text-slate-900">{round.name}</h2>
+
+              <div className="mt-3 overflow-x-auto rounded-xl bg-white shadow-sm ring-1 ring-slate-100">
+                <table className="w-full min-w-[560px] text-left text-sm">
+                  <thead className="border-b border-slate-100 bg-slate-50/70">
+                    <tr>
+                      <th className="px-4 py-3 font-semibold text-slate-700">Rank</th>
+                      <th className="px-4 py-3 font-semibold text-slate-700">Participant</th>
+                      <th className="px-4 py-3 font-semibold text-slate-700">Institution</th>
+                      {showAward && <th className="px-4 py-3 font-semibold text-slate-700">Award</th>}
+                      {showRemarks && <th className="px-4 py-3 font-semibold text-slate-700">Status / Remarks</th>}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {round.results.map((result) => {
+                      const profile = result.registration.user.profile;
+                      const shown = displayName(profile);
+                      return (
+                        <tr key={result.id}>
+                          <td className="px-4 py-3 font-semibold text-slate-900">
+                            {result.rank ? `#${result.rank}` : "—"}
+                          </td>
+                          <td className="px-4 py-3">
+                            {shown.handle ? (
+                              <Link
+                                href={`/u/${shown.handle}`}
+                                className="font-medium text-bdaio-blue hover:underline"
+                              >
+                                {shown.label}
+                              </Link>
+                            ) : (
+                              <span className="text-slate-800">{shown.label}</span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-slate-600">
+                            {profile?.institution ? (
+                              <Link
+                                href={`/institutions/${profile.institution.slug}`}
+                                className="hover:text-bdaio-blue hover:underline"
+                              >
+                                {profile.institution.name}
+                              </Link>
+                            ) : (
+                              "—"
+                            )}
+                          </td>
+                          {showAward && (
+                            <td className="px-4 py-3">
+                              {result.medal ? <MedalChip medal={result.medal} /> : "—"}
+                            </td>
                           )}
-                        </td>
-                        <td className="px-4 py-3 text-slate-600">
-                          {profile?.institution ? (
-                            <Link
-                              href={`/institutions/${profile.institution.slug}`}
-                              className="hover:text-bdaio-blue hover:underline"
-                            >
-                              {profile.institution.name}
-                            </Link>
-                          ) : (
-                            "—"
+                          {showRemarks && (
+                            <td className="px-4 py-3">
+                              {result.remarks ? (
+                                <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-bdaio-blue ring-1 ring-blue-200">
+                                  {result.remarks}
+                                </span>
+                              ) : (
+                                "—"
+                              )}
+                            </td>
                           )}
-                        </td>
-                        <td className="px-4 py-3 text-slate-700">
-                          {result.marks ?? "—"}
-                          {result.maxMarks != null && result.marks != null && (
-                            <span className="text-xs text-slate-500">
-                              {" "}
-                              / {result.maxMarks}
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3">
-                          {result.medal ? <MedalChip medal={result.medal} /> : "—"}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
 
         <p className="mt-8 text-xs text-slate-500">
           Participants who have not made their profile public are shown by

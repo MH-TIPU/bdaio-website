@@ -1,21 +1,11 @@
 import { cookies } from "next/headers";
 import { DEFAULT_LOCALE, LOCALE_COOKIE, isLocale, type Locale } from "@/lib/i18n/config";
 import { en, type Dictionary } from "@/lib/i18n/dictionaries/en";
-import { bn } from "@/lib/i18n/dictionaries/bn";
 
 export type { Locale, Dictionary };
 export * from "@/lib/i18n/config";
 
-/**
- * Dictionary access.
- *
- * The dictionaries are imported statically rather than through the dynamic
- * `import()` the Next guide shows. Two locales of UI strings are a few kilobytes,
- * they are needed on essentially every render, and a static import keeps this
- * module synchronous — which matters because it is called from layouts and from
- * client-component props, where an extra await buys nothing.
- */
-const DICTIONARIES: Record<Locale, Dictionary> = { en, bn };
+const DICTIONARIES: Record<Locale, Dictionary> = { en };
 
 export function getDictionary(locale: Locale): Dictionary {
   return DICTIONARIES[locale];

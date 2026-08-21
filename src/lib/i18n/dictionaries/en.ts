@@ -17,7 +17,7 @@ export const en = {
     compete: "Compete",
     programs: "Programs",
     events: "Events",
-    workshops: "Workshops & Courses",
+    workshops: "Workshops",
     community: "Community",
     institutions: "Institutions & Clubs",
     registerInstitution: "Register your institution",
@@ -138,7 +138,7 @@ export const en = {
       empty: "No programs are published yet.",
     },
     workshops: {
-      title: "Workshops & Courses",
+      title: "Workshops",
       lead: "Hands-on sessions to build the skills the olympiad asks for — open to everyone with a BdAIO account.",
       empty: "No workshops are open right now. Please check back soon.",
     },

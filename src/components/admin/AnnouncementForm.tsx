@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { saveAnnouncement } from "@/server/cms/actions";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
+import { RichTextEditor } from "@/components/ui/RichTextEditor";
 import { SELECT_CLASS } from "@/components/admin/formStyles";
 
 export type AnnouncementDefaults = {
@@ -36,37 +37,17 @@ export function AnnouncementForm({ defaults }: { defaults: AnnouncementDefaults 
         </p>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div>
         <Field label="Title" name="title" required defaultValue={defaults.title} errors={err?.title} />
-        <Field
-          label="Title (বাংলা)"
-          name="titleBn"
-          defaultValue={defaults.titleBn}
-          errors={err?.titleBn}
-          className="font-bengali"
-        />
       </div>
 
-      <div>
-        <label htmlFor="body" className="block text-sm font-medium text-slate-700">
-          Message
-        </label>
-        <textarea id="body" name="body" rows={5} defaultValue={defaults.body} className={TEXTAREA} />
-        {err?.body && <p className="mt-1.5 text-xs text-red-600">{err.body[0]}</p>}
-      </div>
-
-      <div>
-        <label htmlFor="bodyBn" className="block text-sm font-medium text-slate-700">
-          Message (বাংলা)
-        </label>
-        <textarea
-          id="bodyBn"
-          name="bodyBn"
-          rows={5}
-          defaultValue={defaults.bodyBn}
-          className={`${TEXTAREA} font-bengali`}
-        />
-      </div>
+      <RichTextEditor
+        label="Message"
+        name="body"
+        id="body"
+        defaultValue={defaults.body}
+        errors={err?.body}
+      />
 
       <div className="grid gap-4 sm:grid-cols-3">
         <div>

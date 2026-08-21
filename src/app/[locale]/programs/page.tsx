@@ -77,11 +77,6 @@ export default async function ProgramsPage({ params }: PageProps<"/[locale]/prog
               <h2 className="mt-3 text-lg font-bold text-slate-900">
                 {program.title}
               </h2>
-              {program.titleBn && (
-                <p className="font-bengali text-sm text-slate-500">
-                  {program.titleBn}
-                </p>
-              )}
 
               {program.description && (
                 <p className="mt-2 flex-1 text-sm text-slate-600">

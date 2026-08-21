@@ -87,9 +87,6 @@ export default async function PublicProfilePage(props: PageProps<"/[locale]/u/[h
               <h1 className="text-2xl font-bold text-slate-900">
                 {profile.displayName}
               </h1>
-              {profile.fullNameBn && (
-                <p className="font-bengali text-slate-500">{profile.fullNameBn}</p>
-              )}
 
               {profile.institution && (
                 <p className="mt-1 text-sm text-slate-600">
@@ -100,8 +97,11 @@ export default async function PublicProfilePage(props: PageProps<"/[locale]/u/[h
                     {profile.institution.name}
                   </Link>
                   {profile.verifiedStudent && (
-                    <span className="ml-2 text-xs font-semibold text-emerald-700">
-                      verified
+                    <span className="ml-2.5 inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700 ring-1 ring-emerald-200/80 shadow-2xs">
+                      <svg className="h-3 w-3 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                      Verified
                     </span>
                   )}
                 </p>

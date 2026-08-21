@@ -17,13 +17,13 @@ import {
 import { readSort, sortHref } from "@/lib/admin/sort";
 import type { Prisma } from "@/generated/prisma/client";
 
+import { readPagination } from "@/lib/admin/pagination";
+import { Pagination } from "@/components/admin/Pagination";
+
 export const metadata: Metadata = { title: "Certificates · Admin" };
 
 /**
  * What may be sorted on, and the ordering each one means.
- *
- * Status is `revokedAt`: a valid certificate has none, so descending gathers
- * the valid ones first and ascending walks the revocations oldest-first.
  */
 const SORTS = {
   serial: (dir) => [{ serial: dir }],
@@ -44,8 +44,10 @@ export default async function AdminCertificatesPage(
 ) {
   const params = await props.searchParams;
   const sort = readSort(params, SORT_KEYS, { key: "issued", dir: "desc" });
+  const { page, pageSize, skip, take } = readPagination(params, 15);
 
-  const [events, certificates] = await Promise.all([
+  const [totalCerts, events, certificates] = await Promise.all([
+    db.certificate.count(),
     db.event.findMany({
       orderBy: [{ year: "desc" }, { title: "asc" }],
       select: {
@@ -56,7 +58,8 @@ export default async function AdminCertificatesPage(
     }),
     db.certificate.findMany({
       orderBy: SORTS[sort.key](sort.dir),
-      take: 100,
+      skip,
+      take,
       include: {
         user: { select: { email: true } },
         event: { select: { title: true } },
@@ -189,6 +192,14 @@ export default async function AdminCertificatesPage(
             ))}
           </TBody>
         </DataTable>
+
+        <Pagination
+          page={page}
+          pageSize={pageSize}
+          totalItems={totalCerts}
+          basePath="/admin/certificates"
+          searchParams={params}
+        />
       </div>
     </>
   );

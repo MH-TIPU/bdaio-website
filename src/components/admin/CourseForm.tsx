@@ -2,17 +2,17 @@
 
 import { useActionState } from "react";
 import { Field } from "@/components/ui/Field";
+import { RichTextEditor } from "@/components/ui/RichTextEditor";
 import { TextArea } from "@/components/ui/TextArea";
 import { SELECT_CLASS } from "@/components/admin/formStyles";
 import { saveCourse } from "@/server/admin/courses";
+import { ImagePicker, type MediaOption } from "@/components/admin/ImagePicker";
 
 export type CourseDefaults = {
   id?: string;
   title: string;
-  titleBn: string;
   slug: string;
   summary: string;
-  summaryBn: string;
   description: string;
   level: string;
   status: string;
@@ -25,9 +25,11 @@ export type CourseDefaults = {
 export function CourseForm({
   defaults,
   covers,
+  onSuccess,
 }: {
   defaults: CourseDefaults;
-  covers: { id: string; title: string }[];
+  covers: MediaOption[];
+  onSuccess?: () => void;
 }) {
   const [state, action, pending] = useActionState(saveCourse, undefined);
   const err = state?.errors;
@@ -37,24 +39,14 @@ export function CourseForm({
     <form action={action} className="space-y-4" noValidate>
       {defaults.id && <input type="hidden" name="id" value={defaults.id} />}
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <Field
-          label="Title"
-          name="title"
-          id={`title-${key}`}
-          required
-          defaultValue={defaults.title}
-          errors={err?.title}
-        />
-        <Field
-          label="Title (Bengali)"
-          name="titleBn"
-          id={`titleBn-${key}`}
-          defaultValue={defaults.titleBn}
-          errors={err?.titleBn}
-          className="font-bengali"
-        />
-      </div>
+      <Field
+        label="Title"
+        name="title"
+        id={`title-${key}`}
+        required
+        defaultValue={defaults.title}
+        errors={err?.title}
+      />
 
       <Field
         label="Slug"
@@ -65,35 +57,23 @@ export function CourseForm({
         hint="The course URL: /learn/<slug>. Left empty, it is made from the title."
       />
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <TextArea
-          label="Summary"
-          name="summary"
-          id={`summary-${key}`}
-          rows={2}
-          defaultValue={defaults.summary}
-          errors={err?.summary}
-          hint="One or two lines for the course card."
-        />
-        <TextArea
-          label="Summary (Bengali)"
-          name="summaryBn"
-          id={`summaryBn-${key}`}
-          rows={2}
-          defaultValue={defaults.summaryBn}
-          errors={err?.summaryBn}
-          className="font-bengali"
-        />
-      </div>
-
       <TextArea
+        label="Summary"
+        name="summary"
+        id={`summary-${key}`}
+        rows={2}
+        defaultValue={defaults.summary}
+        errors={err?.summary}
+        hint="One or two lines for the course card."
+      />
+
+      <RichTextEditor
         label="Description"
         name="description"
         id={`description-${key}`}
-        rows={5}
         defaultValue={defaults.description}
         errors={err?.description}
-        hint="Shown on the course page. Blank lines separate paragraphs."
+        hint="Shown on the course overview page."
       />
 
       <div className="grid gap-3 sm:grid-cols-4">
@@ -147,25 +127,14 @@ export function CourseForm({
         />
       </div>
 
-      <div>
-        <label htmlFor={`coverId-${key}`} className="block text-sm font-medium text-slate-700">
-          Cover image
-        </label>
-        <select
-          id={`coverId-${key}`}
-          name="coverId"
-          defaultValue={defaults.coverId}
-          className={SELECT_CLASS}
-        >
-          <option value="">— none —</option>
-          {covers.map((cover) => (
-            <option key={cover.id} value={cover.id}>
-              {cover.title}
-            </option>
-          ))}
-        </select>
-        <p className="mt-1.5 text-xs text-slate-500">From the media library.</p>
-      </div>
+      <ImagePicker
+        label="Cover image"
+        name="coverId"
+        defaultValue={defaults.coverId}
+        assets={covers}
+        errors={err?.coverId}
+        hint="Select or change the course banner image from the Media Library."
+      />
 
       <label className="flex items-start gap-2.5 text-sm font-medium text-slate-700">
         <input

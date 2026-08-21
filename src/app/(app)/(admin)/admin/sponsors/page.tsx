@@ -4,13 +4,25 @@ import { db } from "@/lib/db";
 import { mediaUrl } from "@/lib/storage/uploads";
 import { SPONSOR_TIERS, TIER_LABELS } from "@/lib/sponsors";
 import { SponsorForm } from "@/components/admin/SponsorForm";
+import { AddSponsorModal } from "@/components/admin/SponsorModals";
 import { deleteSponsor } from "@/server/admin/sponsors";
+
+import { readPagination } from "@/lib/admin/pagination";
+import { Pagination } from "@/components/admin/Pagination";
 
 export const metadata: Metadata = { title: "Sponsors · Admin" };
 
-export default async function AdminSponsorsPage() {
-  const [sponsors, assets] = await Promise.all([
-    db.sponsor.findMany({ orderBy: [{ tier: "asc" }, { order: "asc" }, { name: "asc" }] }),
+export default async function AdminSponsorsPage(props: PageProps<"/admin/sponsors">) {
+  const params = await props.searchParams;
+  const { page, pageSize, skip, take } = readPagination(params, 15);
+
+  const [totalSponsors, sponsors, assets] = await Promise.all([
+    db.sponsor.count(),
+    db.sponsor.findMany({
+      orderBy: [{ tier: "asc" }, { order: "asc" }, { name: "asc" }],
+      skip,
+      take,
+    }),
     db.mediaAsset.findMany({ orderBy: { title: "asc" }, select: { id: true, title: true, filename: true } }),
   ]);
 
@@ -22,21 +34,23 @@ export default async function AdminSponsorsPage() {
 
   return (
     <>
-      <h1 className="text-2xl font-bold text-slate-900">Sponsors</h1>
-      <p className="mt-1 text-sm text-slate-600">
-        The logo sections on the home page. A row is a <em>placement</em>, so an organisation
-        supporting us in two capacities — platinum sponsor and venue host, say — is two rows
-        sharing one logo from{" "}
-        <Link href="/admin/media" className="font-medium text-bdaio-blue hover:underline">
-          Media
-        </Link>
-        .
-      </p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Sponsors</h1>
+          <p className="mt-1 text-sm text-slate-600">
+            The logo sections on the home page. Reusable images from{" "}
+            <Link href="/admin/media" className="font-medium text-bdaio-blue hover:underline">
+              Media
+            </Link>
+            .
+          </p>
+        </div>
+        <AddSponsorModal assets={options} />
+      </div>
 
       {options.length === 0 && (
         <p className="mt-4 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-900 ring-1 ring-amber-200">
-          No images in the library yet — upload the logos first, or sponsors will render as a
-          name plate.
+          No images in the library yet — upload the logos first, or sponsors will render as a name plate.
         </p>
       )}
 
@@ -60,7 +74,6 @@ export default async function AdminSponsorsPage() {
                     defaults={{
                       id: sponsor.id,
                       name: sponsor.name,
-                      nameBn: sponsor.nameBn ?? "",
                       tier: sponsor.tier,
                       url: sponsor.url ?? "",
                       assetId: sponsor.assetId ?? "",
@@ -84,23 +97,13 @@ export default async function AdminSponsorsPage() {
         );
       })}
 
-      <div className="mt-8 rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
-        <h2 className="text-sm font-semibold text-slate-900">Add a sponsor</h2>
-        <div className="mt-4">
-          <SponsorForm
-            assets={options}
-            defaults={{
-              name: "",
-              nameBn: "",
-              tier: "PARTNER",
-              url: "",
-              assetId: "",
-              order: "0",
-              published: true,
-            }}
-          />
-        </div>
-      </div>
+      <Pagination
+        page={page}
+        pageSize={pageSize}
+        totalItems={totalSponsors}
+        basePath="/admin/sponsors"
+        searchParams={params}
+      />
     </>
   );
 }

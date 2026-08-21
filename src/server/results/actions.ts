@@ -61,11 +61,12 @@ export async function saveRoundScores(
   });
   if (!round) return { message: "That round no longer exists." };
 
-  // Rows arrive as marks[<registrationId>] / medal[<registrationId>].
+  // Rows arrive as marks[<registrationId>] / medal[<registrationId>] / remarks[<registrationId>].
   const updates: {
     registrationId: string;
     marks: number | null;
     medal: (typeof MEDALS)[number] | null;
+    remarks: string | null;
   }[] = [];
 
   for (const [key, raw] of formData.entries()) {
@@ -88,7 +89,10 @@ export async function saveRoundScores(
       ? (medalRaw as (typeof MEDALS)[number])
       : null;
 
-    updates.push({ registrationId, marks, medal });
+    const remarksRaw = String(formData.get(`remarks[${registrationId}]`) ?? "").trim();
+    const remarks = remarksRaw || null;
+
+    updates.push({ registrationId, marks, medal, remarks });
   }
 
   // Only registrations that actually belong to this round's event may be scored.
@@ -116,6 +120,7 @@ export async function saveRoundScores(
       update: {
         marks: update.marks,
         medal: update.medal,
+        remarks: update.remarks,
         maxMarks,
         scoredById: scorer.id,
       },
@@ -124,6 +129,7 @@ export async function saveRoundScores(
         roundId: round.id,
         marks: update.marks,
         medal: update.medal,
+        remarks: update.remarks,
         maxMarks,
         scoredById: scorer.id,
         published: false,
@@ -394,6 +400,7 @@ export async function importRoundScores(
   const emailAt = findColumn(index, ["email", "emailaddress", "e-mail"]);
   const marksAt = findColumn(index, ["marks", "mark", "score", "points"]);
   const medalAt = findColumn(index, ["medal", "award"]);
+  const remarksAt = findColumn(index, ["remarks", "remark", "status", "message", "custommessage", "note"]);
 
   if (emailAt === undefined || marksAt === undefined) {
     return {
@@ -418,6 +425,7 @@ export async function importRoundScores(
     registrationId: string;
     marks: number | null;
     medal: (typeof MEDALS)[number] | null;
+    remarks: string | null;
   }[] = [];
 
   for (let i = 1; i < rows.length; i++) {
@@ -427,6 +435,7 @@ export async function importRoundScores(
     const email = (row[emailAt] ?? "").trim().toLowerCase();
     const marksText = (row[marksAt] ?? "").trim();
     const medalText = medalAt === undefined ? "" : (row[medalAt] ?? "").trim().toUpperCase();
+    const remarksText = remarksAt === undefined ? "" : (row[remarksAt] ?? "").trim();
 
     if (!email) {
       problems.push(`Line ${line}: no email address.`);
@@ -466,8 +475,10 @@ export async function importRoundScores(
       medal = normalised as (typeof MEDALS)[number];
     }
 
+    const remarks = remarksText || null;
+
     seen.add(registrationId);
-    updates.push({ registrationId, marks, medal });
+    updates.push({ registrationId, marks, medal, remarks });
   }
 
   if (problems.length > 0) {
@@ -492,6 +503,7 @@ export async function importRoundScores(
       update: {
         marks: update.marks,
         medal: update.medal,
+        remarks: update.remarks,
         maxMarks: Number.isFinite(maxMarks) ? maxMarks : null,
         scoredById: scorer.id,
       },
@@ -500,6 +512,7 @@ export async function importRoundScores(
         roundId: round.id,
         marks: update.marks,
         medal: update.medal,
+        remarks: update.remarks,
         maxMarks: Number.isFinite(maxMarks) ? maxMarks : null,
         scoredById: scorer.id,
         published: false,

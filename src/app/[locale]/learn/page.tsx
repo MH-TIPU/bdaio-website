@@ -38,10 +38,10 @@ export default async function LearnPage({ params }: PageProps<"/[locale]/learn">
     <section className="bg-slate-50/50 py-16">
       <div className={PAGE}>
         <div className="mx-auto mb-10 max-w-3xl text-center">
-          <h1 className={`text-4xl font-black text-bdaio-blue sm:text-5xl ${locale === "bn" ? "font-bengali" : ""}`}>
+          <h1 className="text-4xl font-black text-bdaio-blue sm:text-5xl">
             {t.title}
           </h1>
-          <p className={`mt-3 text-lg text-slate-500 ${locale === "bn" ? "font-bengali" : ""}`}>
+          <p className="mt-3 text-lg text-slate-500">
             {t.lead}
           </p>
           <div className="mx-auto mt-6 h-1 w-20 rounded bg-bdaio-blue-light" />
@@ -63,9 +63,8 @@ export default async function LearnPage({ params }: PageProps<"/[locale]/learn">
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {courses.map((course) => {
-              const title = locale === "bn" && course.titleBn ? course.titleBn : course.title;
-              const summary =
-                locale === "bn" && course.summaryBn ? course.summaryBn : course.summary;
+              const title = course.title;
+              const summary = course.summary;
               return (
                 <Link
                   key={course.id}
@@ -94,19 +93,11 @@ export default async function LearnPage({ params }: PageProps<"/[locale]/learn">
                         </span>
                       )}
                     </div>
-                    <h2
-                      className={`text-lg font-bold text-slate-900 group-hover:text-bdaio-blue ${
-                        locale === "bn" && course.titleBn ? "font-bengali" : ""
-                      }`}
-                    >
+                    <h2 className="text-lg font-bold text-slate-900 group-hover:text-bdaio-blue">
                       {title}
                     </h2>
                     {summary && (
-                      <p
-                        className={`mt-1.5 flex-1 text-sm text-slate-600 ${
-                          locale === "bn" && course.summaryBn ? "font-bengali" : ""
-                        }`}
-                      >
+                      <p className="mt-1.5 flex-1 text-sm text-slate-600">
                         {summary}
                       </p>
                     )}

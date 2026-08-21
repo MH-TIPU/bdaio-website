@@ -4,13 +4,24 @@ import { mediaUrl } from "@/lib/storage/uploads";
 import { MediaUploadForm } from "@/components/admin/MediaUploadForm";
 import { MediaCard } from "@/components/admin/MediaCard";
 
+import { readPagination } from "@/lib/admin/pagination";
+import { Pagination } from "@/components/admin/Pagination";
+
 export const metadata: Metadata = { title: "Media · Admin" };
 
-export default async function AdminMediaPage() {
-  const assets = await db.mediaAsset.findMany({
-    orderBy: { createdAt: "desc" },
-    include: { _count: { select: { sponsors: true } } },
-  });
+export default async function AdminMediaPage(props: PageProps<"/admin/media">) {
+  const params = await props.searchParams;
+  const { page, pageSize, skip, take } = readPagination(params, 12);
+
+  const [totalAssets, assets] = await Promise.all([
+    db.mediaAsset.count(),
+    db.mediaAsset.findMany({
+      orderBy: { createdAt: "desc" },
+      skip,
+      take,
+      include: { _count: { select: { sponsors: true } } },
+    }),
+  ]);
 
   return (
     <>
@@ -54,6 +65,14 @@ export default async function AdminMediaPage() {
           ))}
         </div>
       )}
+
+      <Pagination
+        page={page}
+        pageSize={pageSize}
+        totalItems={totalAssets}
+        basePath="/admin/media"
+        searchParams={params}
+      />
     </>
   );
 }

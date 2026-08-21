@@ -44,11 +44,7 @@ export default async function FaqPage({ params }: PageProps<"/[locale]/faq">) {
     <section className="py-16 bg-white">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Main Title - Matches the old site screenshot */}
-        <h1
-          className={`text-center text-3xl font-bold text-bdaio-blue mb-12 ${
-            locale === "bn" ? "font-bengali" : ""
-          }`}
-        >
+        <h1 className="text-center text-3xl font-bold text-bdaio-blue mb-12">
           {t.title}
         </h1>
 
@@ -58,11 +54,11 @@ export default async function FaqPage({ params }: PageProps<"/[locale]/faq">) {
           <div className="space-y-10">
             {sections.map((section) => (
               <div key={section.title} className="space-y-4">
-                <h2 className="font-bengali text-center text-xl font-semibold text-bdaio-blue mt-4">
+                <h2 className="text-center text-xl font-semibold text-bdaio-blue mt-4">
                   {section.title}
                 </h2>
                 <div className="pt-2">
-                  <Accordion items={section.items} bengali />
+                  <Accordion items={section.items} />
                 </div>
               </div>
             ))}

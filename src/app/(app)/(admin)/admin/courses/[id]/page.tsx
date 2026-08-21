@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
+import { mediaUrl } from "@/lib/storage/uploads";
 import { CourseForm } from "@/components/admin/CourseForm";
 import { LessonForm } from "@/components/admin/LessonForm";
 import { ModuleForm } from "@/components/admin/ModuleForm";
@@ -15,7 +16,7 @@ export default async function AdminCoursePage({
 }: PageProps<"/admin/courses/[id]">) {
   const { id } = await params;
 
-  const [course, covers] = await Promise.all([
+  const [course, rawCovers] = await Promise.all([
     db.course.findUnique({
       where: { id },
       include: {
@@ -41,10 +42,16 @@ export default async function AdminCoursePage({
         },
       },
     }),
-    db.mediaAsset.findMany({ orderBy: { title: "asc" }, select: { id: true, title: true } }),
+    db.mediaAsset.findMany({ orderBy: { title: "asc" }, select: { id: true, title: true, filename: true } }),
   ]);
 
   if (!course) notFound();
+
+  const covers = rawCovers.map((c) => ({
+    id: c.id,
+    title: c.title,
+    url: mediaUrl(c.filename),
+  }));
 
   return (
     <>
@@ -67,10 +74,8 @@ export default async function AdminCoursePage({
             defaults={{
               id: course.id,
               title: course.title,
-              titleBn: course.titleBn ?? "",
               slug: course.slug,
               summary: course.summary ?? "",
-              summaryBn: course.summaryBn ?? "",
               description: course.description ?? "",
               level: course.level,
               status: course.status,

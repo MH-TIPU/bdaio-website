@@ -1,19 +1,29 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { db } from "@/lib/db";
-import { cloneEvent } from "@/server/admin/actions";
+import { cloneEvent, deleteEvent } from "@/server/admin/actions";
 import { TYPE_LABELS, StatusPill, formatDate } from "@/components/events/EventCard";
+import { readPagination } from "@/lib/admin/pagination";
+import { Pagination } from "@/components/admin/Pagination";
 
 export const metadata: Metadata = { title: "Events · Admin" };
 
-export default async function AdminEventsPage() {
-  const events = await db.event.findMany({
-    orderBy: [{ year: "desc" }, { startsAt: "asc" }],
-    include: {
-      program: { select: { title: true } },
-      _count: { select: { registrations: true, rounds: true } },
-    },
-  });
+export default async function AdminEventsPage(props: PageProps<"/admin/events">) {
+  const params = await props.searchParams;
+  const { page, pageSize, skip, take } = readPagination(params, 15);
+
+  const [totalEvents, events] = await Promise.all([
+    db.event.count(),
+    db.event.findMany({
+      orderBy: [{ year: "desc" }, { startsAt: "asc" }],
+      skip,
+      take,
+      include: {
+        program: { select: { title: true } },
+        _count: { select: { registrations: true, rounds: true } },
+      },
+    }),
+  ]);
 
   return (
     <>
@@ -94,6 +104,16 @@ export default async function AdminEventsPage() {
                         Clone
                       </button>
                     </form>
+                    <form action={deleteEvent}>
+                      <input type="hidden" name="id" value={event.id} />
+                      <button
+                        type="submit"
+                        className="text-sm font-semibold text-red-600 hover:underline"
+                        title="Delete event"
+                      >
+                        Delete
+                      </button>
+                    </form>
                   </div>
                 </td>
               </tr>
@@ -108,6 +128,14 @@ export default async function AdminEventsPage() {
           </tbody>
         </table>
       </div>
+
+      <Pagination
+        page={page}
+        pageSize={pageSize}
+        totalItems={totalEvents}
+        basePath="/admin/events"
+        searchParams={params}
+      />
     </>
   );
 }
