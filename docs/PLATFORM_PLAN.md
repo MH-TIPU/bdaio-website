@@ -68,7 +68,7 @@ unless a compatibility check against Next 16.2.9 forces the fallback.
 | PDF (certificates) | **pdf-lib** — chosen in Phase 4 to avoid coupling PDF output to a React major version | — |
 | Payments *(Phase 8)* | **ShurjoPay** (BDT) | — |
 | LMS *(Phase 9)* | **In‑house on this stack** | — |
-| i18n | **EN + বাংলা** — `[locale]` route segments + dictionaries, *decided for Phase 7b; see the roadmap table* | — |
+| i18n | **English-only UI** — `LOCALES = ["en"]`, one dictionary. Bengali UI was built in Phase 7b and withdrawn in the routing flatten (§13.2); bilingual *content*, email and SMS remain | — |
 | Analytics | **First‑party, aggregate‑only, cookieless** — chosen in Phase 7a over Google Analytics/Plausible; see §3.12 | — |
 | SMS *(optional)* | **Provider‑agnostic HTTP sender**, no gateway chosen yet — Phase 7a, §3.12 | — |
 | Rate limiting | **Postgres‑backed fixed windows** — Phase 7a, §3.12 | Redis if write load ever justifies it |
@@ -646,8 +646,8 @@ API        /api/institutions/search  /api/certificates/[serial]  /api/uploads �
 | **4 Journey** ✅ | participant value | *Done:* activity feed (`ActivityLog` → readable sentences), achievements page with badge/stat summary, **certificates issued in bulk per event + PDF generated on demand (pdf-lib) + public `/verify/[serial]`**, revocation, resource library with public vs members‑only filtering, notification centre wired into registration/verification/role/certificate events, admin certificates screen |
 | **5 Results** ✅ | scoring | *Done:* `Result` + `RoundJudge` models; per‑round mark sheet with **ranks derived from marks** (ties share a rank); **publish gate** — nothing visible to participant or public until an admin publishes; judge assignment scoped per round; publishing awards medal badges, **auto‑issues achievement certificates**, and notifies; public `/results` index + per‑event leaderboard; participant `/dashboard/results`; judge `/dashboard/judging`. *Outstanding:* CSV score import, submissions |
 | **6 Admin/CMS** ✅ | organizer control | *Done:* user administration with role/status control, **announcements** (audience + scheduling + expiry), **editable CMS pages** at `/p/[slug]`, **FAQ moved from `src/data/faq.ts` into editable rows** (Bengali content preserved), **rounds CRUD** (Phase 2 carry‑over), audit‑log viewer with action filters, registrations CSV export, **site settings** — a typed registry (`src/lib/settings/registry.ts`) behind the `SiteSetting` key/value table, edited at `/admin/settings`, feeding the contact page, the contact‑form inbox, footer social links + `sameAs`, a site‑wide notice bar, and a sign‑up switch; **media library** (`/admin/media`), **sponsors** (`/admin/sponsors`, tiered placements reading that library — the home page is no longer hand‑written markup over `src/data/media.ts`), **resources CRUD** (`/admin/resources`, with categories) |
-| **7a Hardening** ✅ | polish | *Done:* **auth rate limiting** (Phase 1 carry‑over) on login/register/reset/resend plus the public search and institution registration; **SEO** — DB‑driven `sitemap.ts` that inherits the privacy rules, `robots.ts`, canonical + Open Graph/Twitter on every dynamic page, Organization/WebSite/Event/Person/EducationalOrganization/Breadcrumb JSON‑LD, `noindex` on `/verify/*`; **PWA** — generated icons, `manifest.ts`, hand‑written service worker with a bilingual `/offline` page, security headers; **first‑party analytics** — aggregate‑only, cookieless, with `/admin/analytics` and Core Web Vitals; **ops** — `/api/health`, verified backup + restore scripts, nightly prune endpoint, `docs/OPS.md`; **SMS** — provider‑agnostic sender with opt‑in, wired to registration decisions and published results. All of §3.12 |
-| **7b i18n** | bilingual UI | **The one Phase 7 item deliberately not done in 7a**, because it is not a polish task — it touches all 66 pages. Today "bilingual" means BN fields stored beside EN and rendered as secondary text; the chrome, forms, and admin are English‑only. Plan: `src/app/[locale]/` with `generateStaticParams` for `en`/`bn` (keeps public pages static and gives each language its own URL + `hreflang`, which a locale cookie cannot — a cookie read in the root layout would make every page dynamic and lose the §3.4 `revalidate` behaviour), `src/lib/i18n/{en,bn}.ts` dictionaries with a typed `t()`, a language toggle in the header, `alternates.languages` in `pageMetadata()` and the sitemap. Do it as one isolated, reviewable slice |
+| **7a Hardening** ✅ | polish | *Done:* **auth rate limiting** (Phase 1 carry‑over) on login/register/reset/resend plus the public search and institution registration; **SEO** — DB‑driven `sitemap.ts` that inherits the privacy rules, `robots.ts`, canonical + Open Graph/Twitter on every dynamic page, Organization/WebSite/Event/Person/EducationalOrganization/Breadcrumb JSON‑LD, `noindex` on `/verify/*`; **PWA** — generated icons, `manifest.ts`, hand‑written service worker with a branded `/offline` page, security headers; **first‑party analytics** — aggregate‑only, cookieless, with `/admin/analytics` and Core Web Vitals; **ops** — `/api/health`, verified backup + restore scripts, nightly prune endpoint, `docs/OPS.md`; **SMS** — provider‑agnostic sender with opt‑in, wired to registration decisions and published results. All of §3.12 |
+| **7b i18n** ⤫ | withdrawn | **Built, then removed.** The `[locale]` tree, `generateStaticParams` for `en`/`bn`, the `{en,bn}` dictionaries and the header language toggle all shipped, then came out when routing was flattened to clean un-prefixed URLs — Bengali UI needs a per-language URL, and the flatten removed it. The site is **English-only**; bilingual content, email and SMS are unaffected. Full account, and the shape a revival would take, in §13.2 |
 | **8 Payments** | fees | **ShurjoPay** checkout on registration, `Payment` records + webhook, receipts, admin payments/reconciliation |
 | **9 LMS** ✅ | learning | Courses/modules/lessons, enrolment + progress, auto‑graded quizzes, course certificates through the existing pipeline, "My Learning" + admin authoring at `/admin/courses` |
 
@@ -720,9 +720,10 @@ anytime as we learn. These are product calls; I proceed on the default so engine
   legal/security obligation, not a nicety.
 - **Multi‑program complexity** — the Program→Event→Round + typed‑events model absorbs olympiads, regional rounds,
   and workshops without special‑casing; resist per‑competition forks.
-- **Bengali parity** — admin/CMS/profile text must not drift English‑only. **This risk has materialised:** the whole
-  UI chrome is English, and the longer it grows the more expensive Phase 7b becomes. Every page added before 7b is
-  another page to translate.
+- **Bengali parity** — **this risk was accepted, not mitigated.** Phase 7b translated the chrome and was then
+  withdrawn (§13.2); the UI is English-only by decision. What that costs is a Bengali-first entrant reading English
+  navigation, and it grows with every page added. Bilingual content, email and SMS partly cover it. The copy still
+  lives in a dictionary rather than the JSX, so the cost of reversing this is a translation, not a rewrite.
 - **Single VPS** — one machine failure is a total outage. Verified backups (§3.12) are the mitigation, which is why
   the off‑site copy and the restore drill are not optional extras.
 
@@ -738,8 +739,8 @@ Phases 0–7a are built. In priority order:
    proven under real traffic until this is done.
 2. **Run the restore drill against real data** once there is any (§5 of the runbook). Backups have been rehearsed
    locally only.
-3. **Phase 7b — i18n.** The Bengali UI is the last thing that would embarrass us at launch: we claim bilingual by
-   default and currently ship English-only chrome. One isolated slice, plan in the roadmap table.
+3. ~~**Phase 7b — i18n.**~~ **Closed, not done.** Built and withdrawn in the routing flatten; the site ships an
+   English-only UI on purpose (§13.2). Reopen only with a decision to bring back per-language URLs.
 4. **Then Phase 8 (ShurjoPay).** Its open sub-questions — fee per edition vs per round, flat vs by category, refund
    policy — need answers before I build the checkout; the §9.3 default is flat fee per event, no refunds.
 5. Carried forward from earlier phases, none blocking: checking the upazila list against the official BBS list
@@ -770,68 +771,69 @@ Nothing here is app code. The platform is built and cannot yet be reached by any
 - [ ] **Check the upazila list against the official BBS list** (§3.9) — divisions and districts are authoritative;
       the 495 upazilas are not yet verified.
 
-### 13.2 Phase 7b — i18n
+### 13.2 Phase 7b — i18n — **built, then withdrawn**
 
-The only Phase 7 item not in 7a, deliberately: it touches all 66 pages, so it is its own slice. **Started** — the
-content layer and locale negotiation are in; the routing move is the next commit.
+**Status: the site ships English-only.** Phase 7b was built as specified below and then taken out again when the
+`[locale]` routing was flattened to clean un-prefixed URLs (commit `0497c03`). `LOCALES` is now `["en"]`, the
+Bengali dictionary and the language toggle have been deleted, and the dead helpers they left behind — the locale
+cookie negotiation in `proxy.ts`, `pickLocale`, `LOCALE_LABELS`/`LOCALE_SHORT` — are gone with them. **The items
+below are kept as a record of what was built and why, not as a description of what runs.** Read every `[x]` as
+"was done, since removed" unless it is marked otherwise.
 
-**Decided while building the foundation:** the two route trees are localized *differently*, because they have
-different constraints.
-- **Public pages → `[locale]` segments.** Each language gets a real URL and an `hreflang` pair, and the pages stay
-  statically rendered. A cookie cannot do this: read in the root layout it makes every page dynamic and loses the
-  §3.4 `revalidate` behaviour, and it gives Bengali no indexable URL.
-- **Dashboard and admin → the locale cookie.** They read the session, so they are already `ƒ (Dynamic)` and a
-  cookie costs nothing — and nobody shares a link to their own dashboard in a particular language. Putting them
-  under `[locale]` would double the authenticated route surface for no benefit.
+**Why it was withdrawn:** the flatten traded the per-language URL for a single canonical one. Bengali UI cannot
+survive that without a cookie, and a cookie in the public root layout makes every page dynamic — which is the exact
+trade §13.2 rejected in the first place. Rather than ship a half-measure, the language surface was removed.
+Bilingual **content** (BN fields stored beside EN, the Bengali FAQ and participation guideline, bilingual email and
+SMS) is untouched; only the *UI language switch* is gone.
 
-- [x] `src/lib/i18n/config.ts` — locales, cookie, `splitLocale`/`localePath`, and `Accept-Language` negotiation.
-      **Dependency-free**, so `proxy.ts` can import it (§3.5: the proxy bundle cannot be async). Hand-rolled rather
-      than adding `negotiator` + `@formatjs/intl-localematcher` for two locales.
-- [x] `src/lib/i18n/dictionaries/{en,bn}.ts` — chrome, shared UI, and auth. `bn` is typed as the `Dictionary`
-      derived from `en`, so **adding an English key fails the build until it is translated** — the mechanism that
-      stops Bengali drifting behind (§11).
-- [x] `getDictionary()` + `getSessionDictionary()` for the cookie-based authenticated surface.
-- [x] Public routes moved under `src/app/[locale]/`, both languages prerendered (`● SSG`) with `revalidate`
-      preserved. **Two root layouts** now exist — `[locale]/layout.tsx` for the public site and
-      `(app)/layout.tsx` for the authenticated tree — because the locale reaches them differently. The cost is
-      that crossing between them is a full page load; that happens once per sign-in, not while browsing.
-- [x] Locale redirect and cookie sync in `proxy.ts`; `/dashboard` while signed out lands on `/{locale}/login`.
-- [x] Language toggle that switches **in place** — `/bn/events` → `/en/events`, not back to the home page, which
-      is the usual bug and the reason people stop using a toggle.
-- [x] `hreflang` pairs for every URL in `sitemap.xml`, and `alternates.languages` + `x-default` +
-      `og:locale:alternate` from `pageMetadata()`.
-- [x] `hreflang` link tags on every public page: the 22 pages that carried a plain `export const metadata` now
-      route through `pageMetadata()`, so each emits a locale-correct canonical, `hreflang` pairs, `x-default`,
-      and `og:locale`. The two token-bearing auth pages stay static and explicitly `noindex`.
-- [x] Locale-aware `Link` (`src/components/Link.tsx`). Internal `href="/events"` still *worked* through the
-      proxy redirect, but every navigation cost a round trip and prefetch cannot follow a redirect. It takes the
-      locale from the current pathname, so it is a drop-in swap and degrades correctly in the authenticated tree,
-      where there is no prefix — which is what makes it safe in components shared by both.
-- [x] Public pages translated: the list pages (events, programs, workshops, resources, results, institutions,
-      announcements) plus the prose pages (about, contact, syllabus). Headings, leads, empty states and **page
-      titles/descriptions** all come from the dictionary, so the Bengali tree has Bengali `<title>` tags too.
-      Layouts were kept and only the strings extracted — a CMS migration was considered and rejected for the
-      designed pages (rules, archives), where a plain-text body would have flattened the layout.
-- [x] `rules`, `archives`, `news`, `faq`, the home page sections and the whole auth flow (including form labels
-      and pending-button states).
+**What survives in the codebase**
+- `src/lib/i18n/config.ts` — `LOCALES`/`Locale`, `LOCALE_HREFLANG` (feeds `<html lang>`), `LOCALE_COOKIE`, and
+  `stripLocalePrefix()`, which keeps a stray legacy `/en`/`/bn` prefix out of a canonical URL. Still
+  dependency-free, because `proxy.ts` imports it (§3.5).
+- `src/lib/i18n/dictionaries/en.ts` and `getDictionary()`/`getSessionDictionary()` — the copy still lives outside
+  the JSX, which is the seam a second language would come back through.
+- `src/proxy.ts` **301s legacy `/en/*` and `/bn/*` to their un-prefixed equivalents.** Those URLs may be indexed or
+  bookmarked; the redirect is load-bearing and must not be removed.
+- `alternates.languages` + `x-default` in `pageMetadata()` and `sitemap.ts`, now generated over a one-entry
+  `LOCALES`. Correct as emitted, and the mechanism a second language would reuse.
 
-**Scope decided by the team, 2026‑08‑01: translation stops at navigation, headings and leads.** Deep body copy —
-table column labels, certificate-verification field names, dashboard and admin console strings — **stays English on
-purpose.** Chasing every string was costing more than it returned, and the organisers who use the admin console read
-English. If that changes, the mechanism is already in place: add the key to `en.ts`, and the build fails until
-`bn.ts` has it.
+**Built and since removed**
+- [x] ~~`src/lib/i18n/dictionaries/bn.ts`~~ — the Bengali dictionary, typed as the `Dictionary` derived from `en`
+      so an untranslated key failed the build (§11 "Bengali parity"). Deleted; nothing imported it after the
+      flatten.
+- [x] ~~Public routes under `src/app/[locale]/`, both languages prerendered (`● SSG`) via `generateStaticParams`
+      for `en`/`bn`~~ — flattened to un-prefixed routes. There is no `generateStaticParams` for locales any more,
+      and no `[locale]/layout.tsx`; the public tree is `(public)/layout.tsx`.
+- [x] ~~The in-place language toggle~~ (`src/components/LanguageToggle.tsx`) — swapped the prefix on the *current*
+      path rather than sending the reader home, and wrote `NEXT_LOCALE` for the proxy to read. Deleted: with one
+      locale it early-returned `null` on every render.
+- [x] ~~Locale redirect and cookie sync in `proxy.ts`~~ — replaced by the one-way legacy 301 described above.
+      `pickLocale()` and its `Accept-Language` parser went with it.
+- [x] ~~Locale-aware `Link`~~ — `src/components/Link.tsx` is now a plain `next/link` passthrough. With no prefix to
+      preserve there is nothing to rewrite, and dropping `usePathname` took `"use client"` off it too.
+- [x] ~~Per-locale `hreflang` pairs~~ — the machinery stayed (see above) but there is only one locale to pair, so
+      every page's `alternates.languages` is a single `en` entry equal to its canonical URL.
 
-Deliberately left English: the certificate-verification detail labels, the `/result` reference table, the
-`news/library` heading, and the dashboard + admin consoles. The participation guideline and FAQ bodies are already
-properly Bengali and must not be overwritten with demo copy.
-- [x] Transactional email and SMS in both languages. The email bodies were already bilingual; the subjects now are
-      too (`English · বাংলা`), except the contact-form notification, which goes to organisers rather than
-      participants. **SMS segmentation was the real bug**: `oneSegment` trimmed at a fixed 160 characters, but one
-      non-GSM-7 character forces the whole message into UCS-2 at **70** — so a "short" Bengali message was being
-      split and billed as three. The budget now follows the script, and `bilingualSms()` sends Bengali when it fits
-      one segment and falls back to English when it does not, because a truncated Bengali sentence is worse than a
-      complete English one. That is the per-template decision this item asked for, made once instead of at every
-      call site.
+**Built and still shipping (English)**
+- [x] `hreflang`/canonical link tags on every public page: the 22 pages that carried a plain `export const
+      metadata` route through `pageMetadata()`, so each emits a canonical, `x-default`, and `og:locale`. The two
+      token-bearing auth pages stay static and explicitly `noindex`.
+- [x] The dictionary extraction itself — headings, leads, empty states and page titles/descriptions come from
+      `en.ts` rather than being inlined in the JSX, across the list pages (events, programs, workshops, resources,
+      results, institutions, announcements), the prose pages (about, contact, syllabus), and `rules`, `archives`,
+      `news`, `faq`, the home page sections and the whole auth flow. That work is why re-adding a language is a
+      dictionary, not a rewrite.
+- [x] Transactional email and SMS in both languages — **this is content, not UI, and was not withdrawn.** The
+      subjects are bilingual (`English · বাংলা`) except the contact-form notification, which goes to organisers.
+      **SMS segmentation was the real bug**: `oneSegment` trimmed at a fixed 160 characters, but one non-GSM-7
+      character forces the whole message into UCS-2 at **70** — so a "short" Bengali message was being split and
+      billed as three. The budget now follows the script, and `bilingualSms()` sends Bengali when it fits one
+      segment and falls back to English when it does not, because a truncated Bengali sentence is worse than a
+      complete English one.
+
+**If Bengali comes back**, the shape is decided: it needs its own URL, so it needs a prefix, so it means
+reinstating a locale segment — not a cookie. Add `bn` to `LOCALES`, restore `bn.ts` (the typed-parity mechanism
+still works), and the `hreflang`, sitemap and `<html lang>` paths pick it up without further change.
 
 ### 13.3 Quality gates
 
@@ -868,12 +870,12 @@ needs a database or a browser, which is also the part that covers the trust chai
       service backs the integration project, and it is set up with `prisma migrate deploy` rather than `db push`,
       so every run also proves the migration history applies cleanly to an empty database — which is what a deploy
       does.
-- [x] **Accessibility — automated WCAG 2.1 A/AA gate.** axe-core runs over eight public pages (both languages) on
+- [x] **Accessibility — automated WCAG 2.1 A/AA gate.** axe-core runs over eight public pages on
       every push, plus a one-`h1`-per-page check and a keyboard-only run through sign-up. It found two real
       defects, now fixed: the amber "3 Gold Medals" chip on the home page sat at about 3.3:1 against its
       background where AA wants 4.5:1, and the home page **had no `h1` at all** — the hero is artwork, so the
       heading outline started at level 2 and a screen reader was told nothing about what the page was. There is
-      now a visually hidden `h1` carrying the olympiad's name, translated.
+      now a visually hidden `h1` carrying the olympiad's name, from the dictionary.
       **This is a floor, not a certificate.** Automated rules catch roughly a third of real accessibility
       problems: they find a missing label, not a form that is labelled and still incomprehensible. A pass with
       someone actually using a screen reader is still owed, and is tracked below.

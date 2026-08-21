@@ -26,12 +26,11 @@ export function dictionaryFor(locale: string): Dictionary {
 /**
  * The locale for an authenticated page, read from the cookie.
  *
- * Public pages take their locale from the `[locale]` route segment, which keeps
- * them statically rendered and gives each language its own URL. The dashboard and
- * admin console are a different case: they read the session, so they are already
- * `ƒ (Dynamic)` and reading a cookie costs nothing — and nobody needs to share a
- * link to their own dashboard in a specific language. Localizing them by cookie
- * avoids doubling the authenticated route surface for no benefit.
+ * With `LOCALES` down to `en` this always returns the default, and nothing writes
+ * the cookie any more — the language toggle went with the rest of the bilingual
+ * UI in the routing flatten (§13.2). It is kept because it is the one place the
+ * authenticated tree asks "which language?", and a second locale would answer it
+ * here rather than at every call site.
  */
 export async function getSessionLocale(): Promise<Locale> {
   const store = await cookies();

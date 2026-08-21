@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Link } from "@/components/Link";
 import { notFound } from "next/navigation";
 import { RetryButton } from "@/components/RetryButton";
-import { getDictionary, isLocale, localePath } from "@/lib/i18n";
+import { getDictionary, isLocale } from "@/lib/i18n";
 
 export const metadata: Metadata = {
   title: "You are offline",
@@ -13,18 +13,14 @@ export const metadata: Metadata = {
 };
 
 /**
- * The offline fallback, precached by public/sw.js — one copy per locale, because
- * a service worker cannot read cookies and so takes the language from the path of
- * the request that failed.
+ * The offline fallback, precached by public/sw.js at its canonical `/offline` URL.
  *
  * Deliberately static and dependency-free beyond the dictionary: it has to render
  * from the cache with no network, so it cannot query the database or read a
  * session.
  */
 export default async function OfflinePage({ params }: PageProps<"/offline">) {
-  const locale = "en";
-  
-  const t = getDictionary(locale);
+  const t = getDictionary("en");
 
   return (
     <section className="bg-slate-50/50 py-20">
@@ -45,7 +41,7 @@ export default async function OfflinePage({ params }: PageProps<"/offline">) {
               were actually on, and a link would fail the same way. */}
           <RetryButton label={t.common.tryAgain} />
           <Link
-            href={localePath(locale, "/")}
+            href="/"
             className="rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-bdaio-blue ring-1 ring-slate-200 transition-colors hover:bg-slate-50"
           >
             {t.nav.home}

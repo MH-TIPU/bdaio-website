@@ -5,10 +5,9 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Link } from "@/components/Link";
 import { navItems } from "@/data/navigation";
-import { localePath, splitLocale, type Locale } from "@/lib/i18n/config";
+import { splitLocale } from "@/lib/i18n/config";
 import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 import { logout } from "@/server/auth/actions";
-import { LanguageToggle } from "./LanguageToggle";
 import { Logo } from "./Logo";
 
 import type { AccountRole } from "@/generated/prisma/enums";
@@ -35,11 +34,9 @@ function isActive(pathname: string, href: string, children?: { href: string }[])
 }
 
 export function Header({
-  locale,
   t,
   user,
 }: {
-  locale: Locale;
   t: Dictionary;
   user?: UserHeaderSession;
 }) {
@@ -48,8 +45,6 @@ export function Header({
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [mobileExpanded, setMobileExpanded] = useState<Record<string, boolean>>({});
-
-  const href = (path: string) => localePath(locale, path);
 
   const toggleMobileExpand = (key: string) => {
     setMobileExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -81,7 +76,7 @@ export function Header({
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-md transition-all shadow-2xs">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 py-3.5">
-        <Logo locale={locale} />
+        <Logo />
 
         {/* Desktop Navigation Links */}
         <nav className="hidden items-center gap-1 lg:flex">
@@ -123,7 +118,7 @@ export function Header({
                       {item.children.map((child) => (
                         <Link
                           key={child.href}
-                          href={href(child.href)}
+                          href={child.href}
                           onClick={() => setOpenDropdown(null)}
                           className="block rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-bdaio-blue transition"
                         >
@@ -138,7 +133,7 @@ export function Header({
             return (
               <Link
                 key={item.href}
-                href={href(item.href)}
+                href={item.href}
                 className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
                   active
                     ? "bg-bdaio-blue/10 text-bdaio-blue"
@@ -151,10 +146,8 @@ export function Header({
           })}
         </nav>
 
-        {/* Right Action Controls (Auth / User Profile + Language + Mobile Menu) */}
+        {/* Right Action Controls (Auth / User Profile + Mobile Menu) */}
         <div className="flex items-center gap-3">
-          <LanguageToggle locale={locale} t={t} />
-
           {/* User Auth Section */}
           {user ? (
             /* User Profile Dropdown */
@@ -216,7 +209,7 @@ export function Header({
                   <div className="py-1.5 space-y-0.5">
                     {(user.role === "ADMIN" || user.role === "SYSTEM_ADMIN") && (
                       <Link
-                        href={href("/admin")}
+                        href="/admin"
                         onClick={() => setUserDropdownOpen(false)}
                         className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-semibold text-bdaio-blue hover:bg-bdaio-blue/10 transition"
                       >
@@ -224,21 +217,21 @@ export function Header({
                       </Link>
                     )}
                     <Link
-                      href={href("/dashboard")}
+                      href="/dashboard"
                       onClick={() => setUserDropdownOpen(false)}
                       className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition"
                     >
                       📊 Dashboard
                     </Link>
                     <Link
-                      href={href("/learn")}
+                      href="/learn"
                       onClick={() => setUserDropdownOpen(false)}
                       className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition"
                     >
                       🎓 My Learning / Courses
                     </Link>
                     <Link
-                      href={href("/dashboard/profile")}
+                      href="/dashboard/profile"
                       onClick={() => setUserDropdownOpen(false)}
                       className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition"
                     >
@@ -246,7 +239,7 @@ export function Header({
                     </Link>
                     {user.profile?.handle && user.profile.visibility === "PUBLIC" && (
                       <Link
-                        href={href(`/u/${user.profile.handle}`)}
+                        href={`/u/${user.profile.handle}`}
                         onClick={() => setUserDropdownOpen(false)}
                         className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition"
                       >
@@ -272,13 +265,13 @@ export function Header({
             /* Signed Out Buttons */
             <div className="hidden sm:flex items-center gap-2">
               <Link
-                href={href("/login")}
+                href="/login"
                 className="rounded-xl px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition"
               >
                 Sign In
               </Link>
               <Link
-                href={href("/register")}
+                href="/register"
                 className="rounded-xl bg-bdaio-blue px-4 py-2 text-xs font-bold text-white hover:bg-bdaio-blue-dark transition shadow-2xs"
               >
                 Register
@@ -323,7 +316,7 @@ export function Header({
                 <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200/80">
                   {user.role === "ADMIN" && (
                     <Link
-                      href={href("/admin")}
+                      href="/admin"
                       onClick={() => setMobileOpen(false)}
                       className="rounded-lg bg-bdaio-blue/10 px-3 py-1.5 text-center text-xs font-bold text-bdaio-blue"
                     >
@@ -331,7 +324,7 @@ export function Header({
                     </Link>
                   )}
                   <Link
-                    href={href("/dashboard")}
+                    href="/dashboard"
                     onClick={() => setMobileOpen(false)}
                     className="rounded-lg bg-white border border-slate-200 px-3 py-1.5 text-center text-xs font-bold text-slate-700"
                   >
@@ -342,14 +335,14 @@ export function Header({
             ) : (
               <div className="flex items-center gap-2">
                 <Link
-                  href={href("/login")}
+                  href="/login"
                   onClick={() => setMobileOpen(false)}
                   className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-center text-xs font-bold text-slate-700"
                 >
                   Sign In
                 </Link>
                 <Link
-                  href={href("/register")}
+                  href="/register"
                   onClick={() => setMobileOpen(false)}
                   className="flex-1 rounded-lg bg-bdaio-blue px-3 py-2 text-center text-xs font-bold text-white"
                 >
@@ -394,7 +387,7 @@ export function Header({
                         {item.children.map((child) => (
                           <Link
                             key={child.href}
-                            href={href(child.href)}
+                            href={child.href}
                             onClick={() => setMobileOpen(false)}
                             className="block rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-white hover:text-bdaio-blue transition"
                           >
@@ -409,7 +402,7 @@ export function Header({
               return (
                 <Link
                   key={item.href}
-                  href={href(item.href)}
+                  href={item.href}
                   onClick={() => setMobileOpen(false)}
                   className={`block rounded-xl px-3.5 py-2.5 text-sm font-semibold transition ${
                     active

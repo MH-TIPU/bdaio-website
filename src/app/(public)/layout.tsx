@@ -61,7 +61,7 @@ export default async function PublicLayout({
             url={String(settings["site.noticeUrl"] || "")}
           />
         )}
-        <Header locale={locale} t={t} user={user} />
+        <Header t={t} user={user} />
         <main className="site-main flex-1">{children}</main>
         <Footer locale={locale} t={t} social={social} />
         <Analytics />

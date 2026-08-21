@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Link } from "@/components/Link";
 import { pageMetadata } from "@/lib/seo";
-import { dictionaryFor, getDictionary, isLocale, localePath } from "@/lib/i18n";
+import { dictionaryFor, getDictionary, isLocale } from "@/lib/i18n";
 
 export async function generateMetadata(
   { params }: PageProps<"/rules">,
@@ -105,7 +105,7 @@ export default async function RulesPage({ params }: PageProps<"/rules">) {
           <h3 className="text-lg font-bold text-bdaio-blue mb-2">{t.ctaTitle}</h3>
           <p className="text-sm text-slate-500 mb-5">{t.ctaBody}</p>
           <Link
-            href={localePath(locale, "/participation-guideline")}
+            href="/participation-guideline"
             className="inline-flex items-center gap-2 rounded-xl bg-bdaio-blue px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-bdaio-blue-dark"
           >
             {t.ctaButton}

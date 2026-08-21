@@ -4,7 +4,7 @@ import {
   LOCALES,
   LOCALE_HREFLANG,
   isLocale,
-  localePath,
+  stripLocalePrefix,
   type Locale,
 } from "@/lib/i18n/config";
 
@@ -79,16 +79,14 @@ export function pageMetadata({
   modifiedTime,
 }: PageMetadataInput): Metadata {
   const locale: Locale = isLocale(requestedLocale) ? requestedLocale : DEFAULT_LOCALE;
-  const url = absoluteUrl(localePath(locale, path));
+  const url = absoluteUrl(stripLocalePrefix(path));
   const desc = description?.trim() || undefined;
   const card = image ? absoluteUrl(image) : absoluteUrl(DEFAULT_OG_IMAGE);
 
-  // Every language of a page points at every other, itself included — which is
-  // what Google expects, and what stops the two translations being read as
-  // duplicate content competing with each other.
-  const languages = Object.fromEntries(
-    LOCALES.map((l) => [LOCALE_HREFLANG[l], absoluteUrl(localePath(l, path))]),
-  );
+  // One entry per shipped locale — currently just `en` (§13.2). The map is kept
+  // rather than hard-coded so a second language reinstates hreflang by extending
+  // LOCALES, not by rewriting this function.
+  const languages = Object.fromEntries(LOCALES.map((l) => [LOCALE_HREFLANG[l], url]));
 
   return {
     title,
@@ -98,7 +96,7 @@ export function pageMetadata({
       languages: {
         ...languages,
         // Tells a crawler which version to serve when it has no better signal.
-        "x-default": absoluteUrl(localePath(DEFAULT_LOCALE, path)),
+        "x-default": url,
       },
     },
     robots: index ? undefined : { index: false, follow: false },

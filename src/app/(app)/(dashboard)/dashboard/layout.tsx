@@ -34,7 +34,7 @@ export default async function DashboardLayout({
       <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur-md shadow-2xs">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex items-center gap-4">
-            <Logo locale="en" />
+            <Logo />
             <div className="hidden sm:flex items-center gap-2 border-l border-slate-200 pl-4">
               <span className="rounded-md bg-bdaio-blue/10 px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-bdaio-blue">
                 Dashboard

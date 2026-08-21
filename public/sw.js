@@ -21,16 +21,19 @@
  *   self.addEventListener("install", () => self.registration.unregister());
  */
 
-const CACHE_VERSION = "v2";
+const CACHE_VERSION = "v3";
 const ASSET_CACHE = `bdaio-assets-${CACHE_VERSION}`;
 const SHELL_CACHE = `bdaio-shell-${CACHE_VERSION}`;
 
-// One offline page per locale (Phase 7b put public pages behind a `/en`/`/bn`
-// prefix, so a bare `/offline` now redirects and cannot be precached).
-// A service worker cannot read cookies, so the language is taken from the path
-// of the request that failed — which is exactly the page the reader was on.
-const OFFLINE_URLS = { en: "/en/offline", bn: "/bn/offline" };
-const DEFAULT_OFFLINE_URL = OFFLINE_URLS.en;
+// A single offline page, at its canonical URL.
+//
+// Phase 7b precached one per locale (`/en/offline`, `/bn/offline`) because the
+// public tree was prefixed. Both of those now 301 to `/offline`, and a *redirected*
+// response cannot be handed to `respondWith` for a navigation — whose redirect mode
+// is "manual" — so the fallback would have thrown and the reader would have got the
+// bare 503 text instead of the branded page. CACHE_VERSION is bumped so installs
+// still holding the prefixed entries drop them.
+const OFFLINE_URL = "/offline";
 
 /** Immutable, public, and safe to serve from the cache. */
 const CACHEABLE_PREFIXES = ["/_next/static/", "/media/", "/icon-", "/og.png", "/apple-icon"];
@@ -41,11 +44,7 @@ self.addEventListener("install", (event) => {
       const cache = await caches.open(SHELL_CACHE);
       // `reload` bypasses the HTTP cache so a deploy can't leave a stale
       // offline page pinned for the life of the cache.
-      await Promise.all(
-        Object.values(OFFLINE_URLS).map((url) =>
-          cache.add(new Request(url, { cache: "reload" })),
-        ),
-      );
+      await cache.add(new Request(OFFLINE_URL, { cache: "reload" }));
       await self.skipWaiting();
     })(),
   );
@@ -110,9 +109,7 @@ async function networkOnlyWithOfflinePage(request) {
     return await fetch(request);
   } catch {
     const cache = await caches.open(SHELL_CACHE);
-    const offline =
-      (await cache.match(offlineUrlFor(request))) ??
-      (await cache.match(DEFAULT_OFFLINE_URL));
+    const offline = await cache.match(OFFLINE_URL);
     return (
       offline ??
       new Response("You are offline.", {
@@ -121,12 +118,6 @@ async function networkOnlyWithOfflinePage(request) {
       })
     );
   }
-}
-
-/** The offline page in the language of the page the reader was trying to reach. */
-function offlineUrlFor(request) {
-  const locale = new URL(request.url).pathname.split("/")[1];
-  return OFFLINE_URLS[locale] ?? DEFAULT_OFFLINE_URL;
 }
 
 /** Serve the cached copy immediately, refresh it in the background. */

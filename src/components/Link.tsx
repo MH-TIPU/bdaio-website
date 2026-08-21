@@ -1,44 +1,20 @@
-"use client";
-
 import NextLink from "next/link";
-import { usePathname } from "next/navigation";
 import type { ComponentProps } from "react";
-import { splitLocale, localePath } from "@/lib/i18n/config";
 
 /**
- * `next/link` that keeps the reader in their language.
+ * `next/link`, re-exported under the app's own name.
  *
- * Phase 7b put public pages behind a `/en`/`/bn` prefix. A bare `href="/events"`
- * still *works* — the proxy redirects it — but every internal navigation would
- * cost a round trip, and prefetching cannot follow a redirect, so the whole app
- * would feel slower in the language the reader chose.
+ * Phase 7b put public pages behind a `/en`/`/bn` prefix, and this component
+ * existed to keep every internal `href` inside the reader's language — a bare
+ * `href="/events"` still worked through the proxy redirect, but each navigation
+ * cost a round trip and prefetch cannot follow a redirect. The routing flatten
+ * removed the prefix (§13.2), so there is nothing left to rewrite: URLs are
+ * already canonical as written.
  *
- * The locale comes from the current pathname rather than a prop, so this is a
- * drop-in replacement: no page has to thread `locale` down to every link. It
- * also degrades correctly in the authenticated tree — those URLs carry no locale,
- * `splitLocale` returns null, and hrefs are left exactly as written. That is what
- * makes it safe in components shared by both trees, like EventCard.
+ * Kept as a wrapper rather than deleted, because roughly fifty modules import it
+ * and the indirection costs nothing. It is no longer a client component, so it no
+ * longer drags its callers across the server boundary.
  */
-
-/** Route trees that are never locale-prefixed (§13.2). */
-const UNLOCALIZED_PREFIXES = ["/dashboard", "/admin", "/study", "/api", "/uploads"];
-
-function isUnlocalized(href: string): boolean {
-  return UNLOCALIZED_PREFIXES.some(
-    (prefix) => href === prefix || href.startsWith(`${prefix}/`),
-  );
-}
-
 export function Link({ href, ...rest }: ComponentProps<typeof NextLink>) {
-  const pathname = usePathname();
-
-  // Only same-origin absolute paths are rewritten. A UrlObject, an external URL,
-  // a `#hash` or a `mailto:` is passed through untouched.
-  let target = href;
-  if (typeof href === "string" && href.startsWith("/") && !isUnlocalized(href)) {
-    const { locale } = splitLocale(pathname);
-    if (locale) target = localePath(locale, href);
-  }
-
-  return <NextLink href={target} {...rest} />;
+  return <NextLink href={href} {...rest} />;
 }

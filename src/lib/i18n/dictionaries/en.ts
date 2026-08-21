@@ -1,8 +1,10 @@
 /**
- * The English dictionary — and, by being the source of the `Dictionary` type, the
- * contract every other locale must satisfy. Add a key here and TypeScript will
- * fail the build until `bn.ts` has it too, which is how we keep Bengali from
- * silently drifting behind (§11: "Bengali parity").
+ * The English dictionary, and the source of the `Dictionary` type.
+ *
+ * The site ships English-only: the Bengali dictionary was deleted along with the
+ * rest of the bilingual UI when the `[locale]` routing was flattened (§13.2). The
+ * dictionary itself stayed, because it is what keeps the site's copy out of the
+ * JSX — and because it is the seam a second language would come back through.
  *
  * Scope of this file: the site chrome, shared UI, and auth — the strings that
  * appear on every page. Page *prose* (about, rules, syllabus, guidelines) is
@@ -58,13 +60,6 @@ export const en = {
     contributions: "Contributions",
     notRecognised: "Not recognised",
     noExternalLinks: "No external news links yet",
-  },
-
-  language: {
-    /** Label for the switcher itself, e.g. as an aria-label. */
-    label: "Language",
-    /** aria-label on each option: "Switch to বাংলা". */
-    switchTo: "Switch to",
   },
 
   auth: {

@@ -1,26 +1,27 @@
 import type { MetadataRoute } from "next";
 import { db } from "@/lib/db";
 import { absoluteUrl } from "@/lib/seo";
-import { DEFAULT_LOCALE, LOCALES, LOCALE_HREFLANG, localePath } from "@/lib/i18n/config";
+import { LOCALES, LOCALE_HREFLANG, stripLocalePrefix } from "@/lib/i18n/config";
 
 /**
- * One sitemap entry per page, listing the default-locale URL with an
- * `alternates.languages` map to every translation.
+ * One sitemap entry per page, with an `alternates.languages` map over the shipped
+ * locales — currently `en` alone, since Bengali was dropped in the routing
+ * flatten (§13.2). The map is generated from `LOCALES` rather than hard-coded, so
+ * adding a language back reinstates the hreflang pairs here for free.
  *
  * Deliberately *not* one entry per locale: that would list the same page twice
- * and lose the relationship between the two, which is the thing that stops
+ * and lose the relationship between them, which is the thing that stops
  * translations being read as duplicates competing with each other.
  */
 function localizedEntry(
   path: string,
   extras: Omit<MetadataRoute.Sitemap[number], "url" | "alternates">,
 ): MetadataRoute.Sitemap[number] {
+  const url = absoluteUrl(stripLocalePrefix(path));
   return {
-    url: absoluteUrl(localePath(DEFAULT_LOCALE, path)),
+    url,
     alternates: {
-      languages: Object.fromEntries(
-        LOCALES.map((l) => [LOCALE_HREFLANG[l], absoluteUrl(localePath(l, path))]),
-      ),
+      languages: Object.fromEntries(LOCALES.map((l) => [LOCALE_HREFLANG[l], url])),
     },
     ...extras,
   };
