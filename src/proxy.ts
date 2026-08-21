@@ -64,63 +64,27 @@ function isLocaleExempt(pathname: string): boolean {
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const cookieLocale = request.cookies.get(LOCALE_COOKIE)?.value;
   const { locale, rest } = splitLocale(pathname);
 
-  // If a URL like `/en/dashboard` or `/en/dashboard/profile` or `/en/admin` was accessed,
-  // redirect to the unlocalized path (`/dashboard`, `/dashboard/profile`, `/admin`).
-  if (locale && hasPrefix(rest, PROTECTED_PREFIXES)) {
+  // Redirect legacy /en/* or /bn/* prefixed URLs to clean un-prefixed URLs (/events, /about, /)
+  if (locale || pathname.startsWith("/en") || pathname.startsWith("/bn")) {
     const url = request.nextUrl.clone();
     url.pathname = rest;
-    return NextResponse.redirect(url);
+    return NextResponse.redirect(url, 301);
   }
 
   if (hasPrefix(pathname, PROTECTED_PREFIXES)) {
     const hasSessionCookie = Boolean(request.cookies.get(SESSION_COOKIE)?.value);
     if (!hasSessionCookie) {
       const url = request.nextUrl.clone();
-      // Send them to sign-in in their own language, not the default.
-      url.pathname = localePath(
-        pickLocale({
-          cookie: cookieLocale,
-          acceptLanguage: request.headers.get("accept-language"),
-        }),
-        "/login",
-      );
+      url.pathname = "/login";
       url.search = "";
       return NextResponse.redirect(url);
     }
     return NextResponse.next();
   }
 
-  if (isLocaleExempt(pathname)) return NextResponse.next();
-
-  if (locale) {
-    const response = NextResponse.next();
-    // Keep the cookie in step with the URL, so a shared `/bn/...` link becomes
-    // this visitor's preference for their next unprefixed visit.
-    if (cookieLocale !== locale) {
-      response.cookies.set(LOCALE_COOKIE, locale, {
-        path: "/",
-        maxAge: LOCALE_COOKIE_MAX_AGE,
-        sameSite: "lax",
-        // Readable by the client toggle. There is nothing sensitive in a
-        // language preference, and the toggle needs to write it too.
-        httpOnly: false,
-      });
-    }
-    return response;
-  }
-
-  const url = request.nextUrl.clone();
-  url.pathname = localePath(
-    pickLocale({
-      cookie: cookieLocale,
-      acceptLanguage: request.headers.get("accept-language"),
-    }),
-    pathname,
-  );
-  return NextResponse.redirect(url);
+  return NextResponse.next();
 }
 
 export const config = {

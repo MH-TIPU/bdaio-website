@@ -60,18 +60,11 @@ export function splitLocale(pathname: string): {
 
 const UNLOCALIZED_PREFIXES = ["/dashboard", "/admin", "/study", "/api", "/uploads"];
 
-/** Builds a locale-prefixed path: ("bn", "/events") → "/bn/events". */
-export function localePath(locale: Locale, path: string): string {
+/** Builds clean un-prefixed path. */
+export function localePath(_locale: Locale, path: string): string {
   const clean = path.startsWith("/") ? path : `/${path}`;
-  // Strip an existing prefix so this is safe to apply to an already-localized
-  // path — otherwise a language toggle produces /bn/en/events.
   const { rest } = splitLocale(clean);
-
-  if (UNLOCALIZED_PREFIXES.some((p) => rest === p || rest.startsWith(`${p}/`))) {
-    return rest;
-  }
-
-  return rest === "/" ? `/${locale}` : `/${locale}${rest}`;
+  return rest;
 }
 
 /**
