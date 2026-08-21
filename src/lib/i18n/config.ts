@@ -37,25 +37,43 @@ export function isLocale(value: string | undefined | null): value is Locale {
 }
 
 /**
+ * Locales that used to prefix public URLs and no longer do. They are not live
+ * locales — `isLocale("bn")` is false — but the prefix still has to be
+ * recognised, because `/bn/faq` must 301 to `/faq` rather than 404.
+ */
+export const LEGACY_LOCALES = ["bn"] as const;
+
+function isLegacyLocale(value: string | undefined): boolean {
+  return typeof value === "string" && (LEGACY_LOCALES as readonly string[]).includes(value);
+}
+
+/**
  * Splits `/en/events` into its locale and the path without it.
- * Also handles legacy `/bn/*` paths by mapping rest to the path without `/bn`.
+ *
+ * This is the single source of truth for "does this path carry a locale
+ * prefix": `locale` is set for a live locale, `legacy` for a retired one, and a
+ * caller that cares about either — the proxy's 301 — tests both rather than
+ * string-matching the pathname itself. Matching is by whole path segment, so
+ * `/enrol` keeps its own name instead of being read as an `en` prefix.
  */
 export function splitLocale(pathname: string): {
   locale: Locale | null;
   rest: string;
+  legacy: boolean;
 } {
   const segments = pathname.split("/");
   // segments[0] is "" for a leading slash.
   const first = segments[1];
-  if (isLocale(first)) {
+  const legacy = isLegacyLocale(first);
+  if (isLocale(first) || legacy) {
     const rest = `/${segments.slice(2).join("/")}`;
-    return { locale: first, rest: rest === "/" ? "/" : rest.replace(/\/$/, "") };
+    return {
+      locale: isLocale(first) ? first : null,
+      rest: rest === "/" ? "/" : rest.replace(/\/$/, ""),
+      legacy,
+    };
   }
-  if (first === "bn") {
-    const rest = `/${segments.slice(2).join("/")}`;
-    return { locale: null, rest: rest === "/" ? "/" : rest.replace(/\/$/, "") };
-  }
-  return { locale: null, rest: pathname };
+  return { locale: null, rest: pathname, legacy: false };
 }
 
 const UNLOCALIZED_PREFIXES = ["/dashboard", "/admin", "/study", "/api", "/uploads"];

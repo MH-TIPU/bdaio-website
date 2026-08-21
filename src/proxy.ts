@@ -1,12 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { SESSION_COOKIE } from "@/lib/auth/constants";
-import {
-  LOCALE_COOKIE,
-  LOCALE_COOKIE_MAX_AGE,
-  localePath,
-  pickLocale,
-  splitLocale,
-} from "@/lib/i18n/config";
+import { splitLocale } from "@/lib/i18n/config";
 
 // Next.js 16 renamed the `middleware` convention to `proxy` (Node runtime only).
 //
@@ -64,10 +58,13 @@ function isLocaleExempt(pathname: string): boolean {
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const { locale, rest } = splitLocale(pathname);
+  const { locale, rest, legacy } = splitLocale(pathname);
 
-  // Redirect legacy /en/* or /bn/* prefixed URLs to clean un-prefixed URLs (/events, /about, /)
-  if (locale || pathname.startsWith("/en") || pathname.startsWith("/bn")) {
+  // Redirect legacy /en/* or /bn/* prefixed URLs to clean un-prefixed URLs
+  // (/events, /about, /). The condition comes entirely from `splitLocale`, which
+  // matches whole path segments: a bare `pathname.startsWith("/en")` would also
+  // catch `/enrol`, whose `rest` is `/enrol`, and redirect it to itself forever.
+  if (locale || legacy) {
     const url = request.nextUrl.clone();
     url.pathname = rest;
     return NextResponse.redirect(url, 301);
