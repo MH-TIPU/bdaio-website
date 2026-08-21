@@ -65,7 +65,7 @@ export default async function PublicLayout({
         <main className="site-main flex-1">{children}</main>
         <Footer locale={locale} t={t} social={social} />
         <Analytics />
-        <GoogleAnalytics gaId="G-BG29QCBED1" />
+        <GoogleAnalytics />
         <ServiceWorker />
       </body>
     </html>

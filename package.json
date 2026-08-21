@@ -26,6 +26,7 @@
     "test:lighthouse": "lhci autorun"
   },
   "dependencies": {
+    "@next/third-parties": "^16.3.2",
     "@node-rs/argon2": "^2.0.2",
     "@prisma/adapter-pg": "^7.9.1",
     "@prisma/client": "^7.9.1",

@@ -19,6 +19,18 @@ import { vitalBucket } from "@/lib/analytics/vitals";
  *
  * The cost of (3) is that we can't answer "what did this person look at" — which
  * is the point, not a limitation.
+ *
+ * **Scope note.** The three constraints above describe *this* collector, not the
+ * whole site. When `NEXT_PUBLIC_GA_ID` is set, `src/components/GoogleAnalytics.tsx`
+ * also loads Google Analytics on the **public** pages, which does send browsing
+ * to a third party, does set `_ga` cookies, and does not honour Do Not Track.
+ * So (1) and (2) are guarantees about what this module does, and about the
+ * signed-in tree — where GA is deliberately not mounted — rather than a promise
+ * that nothing on the site talks to Google.
+ *
+ * That distinction is the reason to keep this collector: it is the half that
+ * still works when GA is switched off, and switching GA off costs no
+ * measurement an organiser actually reads.
  */
 
 /**

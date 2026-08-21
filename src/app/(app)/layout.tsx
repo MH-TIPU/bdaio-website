@@ -1,6 +1,5 @@
 import { Inter } from "next/font/google";
 import { Analytics } from "@/components/Analytics";
-import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { ServiceWorker } from "@/components/ServiceWorker";
 import { rootMetadata, rootViewport } from "@/lib/rootMetadata";
 import { LOCALE_HREFLANG, getSessionLocale } from "@/lib/i18n";
@@ -28,7 +27,6 @@ export default async function AppRootLayout({
       <body className="flex min-h-full flex-col">
         {children}
         <Analytics />
-        <GoogleAnalytics gaId="G-BG29QCBED1" />
         <ServiceWorker />
       </body>
     </html>
